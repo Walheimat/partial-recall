@@ -7,6 +7,25 @@ $(V).SILENT:
 
 # -- Default goal
 
+ifdef CI
+install: ci
+else
+install: local
+endif
+
+.PHONY: package-install
+package-install: dist
+	$(EMACS) --batch -f package-initialize --eval "(package-install-file \"$(SOURCE_DIR)/dist/partial-recall-$(PACKAGE_VERSION).tar\")"
+
+.PHONY: clean-install
+clean-install: clean install
+
+.PHONY: ci
+ci: .cask
+
+.PHONY: local
+local: dist
+
 dist: .cask
 	cask build
 	cask pkg-file
@@ -14,9 +33,6 @@ dist: .cask
 
 .cask:
 	cask install
-
-install: dist
-	$(EMACS) --batch -f package-initialize --eval "(package-install-file \"$(SOURCE_DIR)/dist/partial-recall-$(PACKAGE_VERSION).tar\")"
 
 # -- Checks
 
@@ -30,9 +46,9 @@ test: .cask
 .PHONY: clean
 clean:
 	cask clean-elc
-	rm -f partial-recall-pkg.el
 	rm -rf dist
 
 .PHONY: clobber
 clobber: clean
+	rm -f partial-recall-pkg.el
 	rm -rf .cask
