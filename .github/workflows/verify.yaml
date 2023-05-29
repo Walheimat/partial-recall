@@ -4,11 +4,9 @@ on:
     branches:
       - trunk
     paths-ignore:
-      - '.dir-locals.el'
       - '.gitignore'
       - 'CHANGELOG.md'
       - 'README.org'
-      - 'assets/**'
 
 jobs:
   test:

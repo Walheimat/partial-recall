@@ -39,6 +39,7 @@ dist: .cask
 # Run tests using cask
 .PHONY: test
 test: .cask
+	mkdir -p coverage
 	cask exec ert-runner $(TEST_ARGS)
 
 # -- Clean-up

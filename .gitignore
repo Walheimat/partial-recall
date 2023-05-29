@@ -2,3 +2,7 @@
 .cask/
 dist/
 *.elc
+coverage/
+
+# Maintenance files
+partial-recall-tasks.org

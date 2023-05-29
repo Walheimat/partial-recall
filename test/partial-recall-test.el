@@ -231,4 +231,60 @@
 
       (was-called-n-times partial-recall--on-close 2))))
 
-;;; wal-windows-test.el ends here
+(ert-deftest pr--setup ()
+  (defvar tab-bar-tabs-function nil)
+  (defvar tab-bar-mode nil)
+
+  (let ((tab-bar-tabs-function (lambda () (list test-tab)))
+        (tab-bar-mode nil))
+
+    (with-mock (add-hook
+                (partial-recall--key . #'ignore)
+                partial-recall--on-create
+                (tab-bar-mode . (lambda (_) (setq tab-bar-mode t))))
+
+      (partial-recall-mode--setup)
+
+      (was-called partial-recall--on-create)
+      (was-called-n-times add-hook 5)
+      (was-called tab-bar-mode))))
+
+(ert-deftest pr--setup--messages-on-fail ()
+  (defvar tab-bar-tabs-function nil)
+  (defvar tab-bar-mode nil)
+
+  (let ((tab-bar-tabs-function (lambda () (list test-tab)))
+        (tab-bar-mode nil))
+
+    (with-mock (add-hook
+                (partial-recall--key . #'ignore)
+                partial-recall--on-create
+                tab-bar-mode
+                message)
+
+      (partial-recall-mode--setup)
+
+      (was-not-called partial-recall--on-create)
+      (was-called-n-times add-hook 5)
+      (was-called message))))
+
+(ert-deftest pr--teardown ()
+  (with-mock (remove-hook)
+
+      (partial-recall-mode--teardown)
+
+      (was-called-n-times remove-hook 5)))
+
+(ert-deftest pr-mode ()
+  (with-mock (partial-recall-mode--setup
+              partial-recall-mode--teardown)
+
+    (partial-recall-mode 1)
+
+    (was-called partial-recall-mode--setup)
+
+    (partial-recall-mode -1)
+
+    (was-called partial-recall-mode--teardown)))
+
+;;; partial-recall-test.el ends here
