@@ -1,5 +1,14 @@
 * partial-recall
 
+#+BEGIN_HTML
+<a href='https://coveralls.io/github/Walheimat/partial-recall?branch=trunk'>
+    <img
+        src='https://coveralls.io/repos/github/Walheimat/partial-recall/badge.svg?branch=trunk'
+        alt='Coverage Status'
+    />
+</a>
+#+END_HTML
+
 This package is my personal =tab-bar-mode=-based =consult= buffer source.
 
 =partial-recall= will keep track of a limited number of file buffers in
