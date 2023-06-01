@@ -15,7 +15,7 @@ endif
 
 .PHONY: package-install
 package-install: dist
-	$(EMACS) --batch -f package-initialize --eval "(package-install-file \"$(SOURCE_DIR)/dist/partial-recall-$(PACKAGE_VERSION).tar\")"
+	$(EMACS) --batch -f package-initialize --eval "(package-install-file \"$(SOURCE_DIR)/dist/partial-recall-$(PACKAGE_VERSION).el\")"
 
 .PHONY: clean-install
 clean-install: clean install
@@ -28,7 +28,6 @@ local: dist
 
 dist: .cask
 	cask build
-	cask pkg-file
 	cask package
 
 .cask:
@@ -51,5 +50,4 @@ clean:
 
 .PHONY: clobber
 clobber: clean
-	rm -f partial-recall-pkg.el
 	rm -rf .cask

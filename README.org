@@ -24,7 +24,7 @@ If you use =straight= or =quelpa=, you know what to do.
 If you're on Emacs >29, I recommend using =package-vc-install=.
 
 Alternatively, provided you have Cask, you can install the package
-with =make install=.
+with =make package-install=.
 
 ** Configuration
 
