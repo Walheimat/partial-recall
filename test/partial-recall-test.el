@@ -12,9 +12,9 @@
 
 (ert-deftest pr--create-hash-key ()
   (bydi-with-mock ((random . (lambda () 42))
-              (emacs-pid . (lambda () 1))
-              (recent-keys . (lambda () 'keys))
-              md5)
+                   (emacs-pid . (lambda () 1))
+                   (recent-keys . (lambda () 'keys))
+                   md5)
 
     (partial-recall--create-hash-key "test")
     (bydi-was-called-with md5 (list "test421keys"))))
@@ -43,9 +43,9 @@
 (ert-deftest pr-remember--remembers ()
   (with-tab-history
 
-   (partial-recall-remember)
+    (partial-recall-remember)
 
-   (should-not (null (gethash (alist-get 'pr test-tab) partial-recall--table)))))
+    (should-not (null (gethash (alist-get 'pr test-tab) partial-recall--table)))))
 
 (ert-deftest pr-remember--inserts-once ()
   (defvar partial-recall--table)
@@ -63,8 +63,8 @@
 (ert-deftest pr-remember--extends-ring ()
   (with-tab-history
     (bydi-with-mock ((partial-recall--at-capacity . #'always)
-                (partial-recall--should-extend-p . #'always)
-                ring-extend)
+                     (partial-recall--should-extend-p . #'always)
+                     ring-extend)
 
       (partial-recall-remember (current-buffer))
       (bydi-was-called ring-extend))))
@@ -142,8 +142,8 @@
 (ert-deftest pr--maybe-remember ()
   (with-tab-history
     (bydi-with-mock (partial-recall-remember
-                (buffer-live-p . #'always)
-                (partial-recall--known-buffer-p . #'ignore))
+                     (buffer-live-p . #'always)
+                     (partial-recall--known-buffer-p . #'ignore))
 
       (partial-recall--maybe-remember (current-buffer))
       (bydi-was-called partial-recall-remember))))
@@ -151,9 +151,9 @@
 (ert-deftest pr--maybe-remember--reclaims ()
   (with-tab-history
     (bydi-with-mock (partial-recall-remember
-                partial-recall-reclaim
-                (buffer-live-p . #'always)
-                (partial-recall--known-buffer-p . #'always))
+                     partial-recall-reclaim
+                     (buffer-live-p . #'always)
+                     (partial-recall--known-buffer-p . #'always))
 
       (partial-recall--maybe-remember (current-buffer))
       (bydi-was-called partial-recall-reclaim))))
@@ -166,7 +166,7 @@
         (partial-recall-remember)
 
         (bydi-with-mock ((partial-recall--current . (lambda () 'other))
-                    partial-recall-remember)
+                         partial-recall-remember)
 
           (partial-recall-reclaim nil (current-buffer))
 
@@ -210,9 +210,9 @@
   (let ((partial-recall--timer nil))
 
     (bydi-with-mock ((buffer-file-name . #'always)
-                (partial-recall--known-buffer-p . #'ignore)
-                cancel-timer
-                run-at-time)
+                     (partial-recall--known-buffer-p . #'ignore)
+                     cancel-timer
+                     run-at-time)
 
       (setq partial-recall--timer 'timer)
       (partial-recall--on-buffer-list-update)
@@ -239,9 +239,9 @@
         (tab-bar-mode nil))
 
     (bydi-with-mock (add-hook
-                (partial-recall--key . #'ignore)
-                partial-recall--on-create
-                (tab-bar-mode . (lambda (_) (setq tab-bar-mode t))))
+                     (partial-recall--key . #'ignore)
+                     partial-recall--on-create
+                     (tab-bar-mode . (lambda (_) (setq tab-bar-mode t))))
 
       (partial-recall-mode--setup)
 
@@ -257,10 +257,10 @@
         (tab-bar-mode nil))
 
     (bydi-with-mock (add-hook
-                (partial-recall--key . #'ignore)
-                partial-recall--on-create
-                tab-bar-mode
-                message)
+                     (partial-recall--key . #'ignore)
+                     partial-recall--on-create
+                     tab-bar-mode
+                     message)
 
       (partial-recall-mode--setup)
 
@@ -271,13 +271,13 @@
 (ert-deftest pr--teardown ()
   (bydi-with-mock (remove-hook)
 
-      (partial-recall-mode--teardown)
+    (partial-recall-mode--teardown)
 
-      (bydi-was-called-n-times remove-hook 5)))
+    (bydi-was-called-n-times remove-hook 5)))
 
 (ert-deftest pr-mode ()
   (bydi-with-mock (partial-recall-mode--setup
-              partial-recall-mode--teardown)
+                   partial-recall-mode--teardown)
 
     (partial-recall-mode 1)
 
