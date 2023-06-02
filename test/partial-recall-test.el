@@ -288,3 +288,7 @@
     (bydi-was-called partial-recall-mode--teardown)))
 
 ;;; partial-recall-test.el ends here
+
+;; Local Variables:
+;; no-byte-compile: t
+;; End:

@@ -21,3 +21,7 @@
 (bydi-ert-runner-setup)
 
 ;;; test-helper.el ends here
+
+;; Local Variables:
+;; no-byte-compile: t
+;; End:
