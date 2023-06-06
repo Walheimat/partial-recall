@@ -306,18 +306,22 @@ If no buffer is passed, the current buffer is used."
                                        :as #'buffer-name)))
   "Buffers that are recalled from the current tab.")
 
-(defun partial-recall-mode--setup ()
-  "Set up `partial-recall-mode'."
-  (unless tab-bar-mode
-    (tab-bar-mode 1))
-
+(defun partial-recall--fix-up-primary-tab ()
+  "Fix up the primary tab."
   (if-let* ((mode tab-bar-mode)
             (tabs (funcall tab-bar-tabs-function))
             (original (nth 0 tabs)))
 
       (unless (partial-recall--key original)
         (partial-recall--on-create original))
-    (message "Might have failed to set up original tab"))
+    (message "Might have failed to set up original tab")))
+
+(defun partial-recall-mode--setup ()
+  "Set up `partial-recall-mode'."
+  (unless tab-bar-mode
+    (tab-bar-mode 1))
+
+  (partial-recall--fix-up-primary-tab)
 
   (add-hook 'kill-buffer-hook 'partial-recall-forget)
   (add-hook 'buffer-list-update-hook 'partial-recall--on-buffer-list-update)
