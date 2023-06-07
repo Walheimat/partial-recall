@@ -62,8 +62,8 @@
 
 (ert-deftest pr-remember--extends-ring ()
   (with-tab-history
-    (bydi-with-mock ((partial-recall--at-capacity . #'always)
-                     (partial-recall--should-extend-p . #'always)
+    (bydi-with-mock ((:mock partial-recall--at-capacity :with always)
+                     (:mock partial-recall--should-extend-p :with always)
                      ring-extend)
 
       (partial-recall-remember (current-buffer))
@@ -142,8 +142,8 @@
 (ert-deftest pr--maybe-remember ()
   (with-tab-history
     (bydi-with-mock (partial-recall-remember
-                     (buffer-live-p . #'always)
-                     (partial-recall--known-buffer-p . #'ignore))
+                     (:mock buffer-live-p :with always)
+                     (:mock partial-recall--known-buffer-p :with ignore))
 
       (partial-recall--maybe-remember (current-buffer))
       (bydi-was-called partial-recall-remember))))
@@ -152,8 +152,8 @@
   (with-tab-history
     (bydi-with-mock (partial-recall-remember
                      partial-recall-reclaim
-                     (buffer-live-p . #'always)
-                     (partial-recall--known-buffer-p . #'always))
+                     (:mock buffer-live-p :with always)
+                     (:mock partial-recall--known-buffer-p :with always))
 
       (partial-recall--maybe-remember (current-buffer))
       (bydi-was-called partial-recall-reclaim))))
@@ -162,7 +162,7 @@
   (let ((seconds '(10 12))
         (partial-recall-reclaim-threshold 0))
     (with-tab-history
-      (bydi-with-mock ((time-to-seconds . (lambda (&rest _) (pop seconds))))
+      (bydi-with-mock ((:mock time-to-seconds :with (lambda (&rest _) (pop seconds))))
         (partial-recall-remember)
 
         (bydi-with-mock ((:mock partial-recall--current :return 'other)
@@ -189,7 +189,7 @@
         (partial-recall-threshold 2))
 
     (with-tab-history
-      (bydi-with-mock ((time-to-seconds . (lambda (&rest _) (pop seconds))))
+      (bydi-with-mock ((:mock time-to-seconds :with (lambda (&rest _) (pop seconds))))
 
         (partial-recall-remember)
 
@@ -209,8 +209,8 @@
 (ert-deftest pr--on-buffer-list-update--cancels-running-timer ()
   (let ((partial-recall--timer nil))
 
-    (bydi-with-mock ((buffer-file-name . #'always)
-                     (partial-recall--known-buffer-p . #'ignore)
+    (bydi-with-mock ((:mock buffer-file-name :with always)
+                     (:mock partial-recall--known-buffer-p :with ignore)
                      cancel-timer
                      run-at-time)
 
@@ -239,9 +239,9 @@
         (tab-bar-mode nil))
 
     (bydi-with-mock (add-hook
-                     (partial-recall--key . #'ignore)
+                     (:mock partial-recall--key :with ignore)
                      partial-recall--on-create
-                     (tab-bar-mode . (lambda (_) (setq tab-bar-mode t))))
+                     (:mock tab-bar-mode :with (lambda (_) (setq tab-bar-mode t))))
 
       (partial-recall-mode--setup)
 
@@ -257,7 +257,7 @@
         (tab-bar-mode nil))
 
     (bydi-with-mock (add-hook
-                     (partial-recall--key . #'ignore)
+                     (:mock partial-recall--key :with ignore)
                      partial-recall--on-create
                      tab-bar-mode
                      message)
