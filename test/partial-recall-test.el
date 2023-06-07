@@ -11,16 +11,16 @@
 (defvar test-tab '(current-tab (name . "test-tab") (explicit-name . t) (pr . "test-hash")))
 
 (ert-deftest pr--create-hash-key ()
-  (bydi-with-mock ((random . (lambda () 42))
-                   (emacs-pid . (lambda () 1))
-                   (recent-keys . (lambda () 'keys))
+  (bydi-with-mock ((:mock random :return 42)
+                   (:mock emacs-pid :return 1)
+                   (:mock recent-keys :return 'keys)
                    md5)
 
     (partial-recall--create-hash-key "test")
-    (bydi-was-called-with md5 (list "test421keys"))))
+    (bydi-was-called-with md5 "test421keys")))
 
 (ert-deftest pr--on-create--sets-cdr ()
-  (bydi-with-mock ((partial-recall--create-hash-key . (lambda (_) "test")))
+  (bydi-with-mock ((:mock partial-recall--create-hash-key :return "test"))
 
     (let ((tab '(current-tab (name . "test-tab") (explicit-name))))
 
@@ -29,13 +29,13 @@
       (should (string= "test" (alist-get 'pr tab))))))
 
 (ert-deftest pr--key--returns-if-set ()
-  (bydi-with-mock ((tab-bar--current-tab . (lambda (&rest _) test-tab)))
+  (bydi-with-mock ((:mock tab-bar--current-tab :return test-tab))
     (should (string= "test-hash" (partial-recall--key)))))
 
 (defmacro with-tab-history (&rest body)
   "Run BODY with a clear tab history and a temp buffer."
   (declare (indent 0))
-  `(bydi-with-mock ((tab-bar--current-tab . (lambda (&rest _) test-tab)))
+  `(bydi-with-mock ((:mock tab-bar--current-tab :return test-tab))
      (let ((partial-recall--table (make-hash-table)))
        (with-temp-buffer
          ,@body))))
@@ -165,7 +165,7 @@
       (bydi-with-mock ((time-to-seconds . (lambda (&rest _) (pop seconds))))
         (partial-recall-remember)
 
-        (bydi-with-mock ((partial-recall--current . (lambda () 'other))
+        (bydi-with-mock ((:mock partial-recall--current :return 'other)
                          partial-recall-remember)
 
           (partial-recall-reclaim nil (current-buffer))
