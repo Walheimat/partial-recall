@@ -44,7 +44,6 @@ test: .cask
 .PHONY: local-test
 local-test: test
 	cat coverage/results.txt
-	cask emacs --batch -f bydi-calculate-coverage
 
 # -- Clean-up
 

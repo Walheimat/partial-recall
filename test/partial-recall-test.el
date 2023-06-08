@@ -231,31 +231,55 @@
 
       (bydi-was-called-n-times partial-recall--on-close 2))))
 
+(ert-deftest pr--fix-up-primary-tab ()
+  (let ((tab-bar-mode nil)
+        (tab-bar-tabs-function (lambda () (list test-tab))))
+
+    (bydi (partial-recall--on-create
+           (:sometimes partial-recall--key))
+      (partial-recall--fix-up-primary-tab)
+      (bydi-was-not-called partial-recall--key)
+      (bydi-was-not-called partial-recall--on-create)
+
+      (bydi-clear-mocks)
+
+      (setq tab-bar-mode t)
+
+      (partial-recall--fix-up-primary-tab)
+      (bydi-was-called partial-recall--key)
+      (bydi-was-not-called partial-recall--on-create)
+
+      (bydi-clear-mocks)
+      (bydi-toggle-sometimes)
+
+      (partial-recall--fix-up-primary-tab)
+      (bydi-was-called partial-recall--key)
+      (bydi-was-called partial-recall--on-create))))
+
 (ert-deftest pr--setup ()
   (defvar tab-bar-tabs-function nil)
   (defvar tab-bar-mode nil)
 
   (let ((tab-bar-tabs-function (lambda () (list test-tab)))
-        (tab-bar-mode nil)
-        (daemon nil))
+        (tab-bar-mode nil))
 
     (bydi (add-hook
-           (:ignore partial-recall--key)
-           partial-recall--on-create
+           partial-recall--fix-up-primary-tab
            (:mock tab-bar-mode :with (lambda (_) (setq tab-bar-mode t)))
-           (:mock daemonp :with (lambda () daemon)))
+           (:sometimes daemonp))
 
       (partial-recall-mode--setup)
 
-      (bydi-was-called partial-recall--on-create)
-      (bydi-was-called-n-times add-hook 5)
+      (bydi-was-not-called partial-recall--fix-up-primary-tab)
+      (bydi-was-called-n-times add-hook 6)
       (bydi-was-called tab-bar-mode)
 
       (bydi-clear-mocks)
+      (bydi-toggle-sometimes)
 
-      (setq daemon t)
       (partial-recall-mode--setup)
-      (bydi-was-called-n-times add-hook 6))))
+      (bydi-was-called-n-times add-hook 5)
+      (bydi-was-called partial-recall--fix-up-primary-tab))))
 
 (ert-deftest pr--setup--messages-on-fail ()
   (defvar tab-bar-tabs-function nil)
