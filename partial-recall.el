@@ -321,7 +321,9 @@ If no buffer is passed, the current buffer is used."
   (unless tab-bar-mode
     (tab-bar-mode 1))
 
-  (partial-recall--fix-up-primary-tab)
+  (if (daemonp)
+      (add-hook 'server-after-make-frame-hook #'partial-recall--fix-up-primary-tab)
+    (partial-recall--fix-up-primary-tab))
 
   (add-hook 'kill-buffer-hook 'partial-recall-forget)
   (add-hook 'buffer-list-update-hook 'partial-recall--on-buffer-list-update)
@@ -331,6 +333,7 @@ If no buffer is passed, the current buffer is used."
 
 (defun partial-recall-mode--teardown ()
   "Tear down `partial-recall-mode'."
+  (remove-hook 'server-after-make-frame-hook #'partial-recall--fix-up-primary-tab)
   (remove-hook 'kill-buffer-hook 'partial-recall-forget)
   (remove-hook 'buffer-list-update-hook 'partial-recall--on-buffer-list-update)
   (remove-hook 'tab-bar-tab-pre-close-functions #'partial-recall--on-close)

@@ -236,18 +236,26 @@
   (defvar tab-bar-mode nil)
 
   (let ((tab-bar-tabs-function (lambda () (list test-tab)))
-        (tab-bar-mode nil))
+        (tab-bar-mode nil)
+        (daemon nil))
 
     (bydi (add-hook
            (:mock partial-recall--key :with ignore)
            partial-recall--on-create
-           (:mock tab-bar-mode :with (lambda (_) (setq tab-bar-mode t))))
+           (:mock tab-bar-mode :with (lambda (_) (setq tab-bar-mode t)))
+           (:mock daemonp :with (lambda () daemon)))
 
       (partial-recall-mode--setup)
 
       (bydi-was-called partial-recall--on-create)
       (bydi-was-called-n-times add-hook 5)
-      (bydi-was-called tab-bar-mode))))
+      (bydi-was-called tab-bar-mode)
+
+      (bydi-clear-mocks)
+
+      (setq daemon t)
+      (partial-recall-mode--setup)
+      (bydi-was-called-n-times add-hook 6))))
 
 (ert-deftest pr--setup--messages-on-fail ()
   (defvar tab-bar-tabs-function nil)
@@ -273,7 +281,7 @@
 
     (partial-recall-mode--teardown)
 
-    (bydi-was-called-n-times remove-hook 5)))
+    (bydi-was-called-n-times remove-hook 6)))
 
 (ert-deftest pr-mode ()
   (bydi (partial-recall-mode--setup
