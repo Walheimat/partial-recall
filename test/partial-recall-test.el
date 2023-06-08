@@ -62,8 +62,8 @@
 
 (ert-deftest pr-remember--extends-ring ()
   (with-tab-history
-   (bydi ((:mock partial-recall--at-capacity :with always)
-          (:mock partial-recall--should-extend-p :with always)
+   (bydi ((:always partial-recall--at-capacity)
+          (:always partial-recall--should-extend-p)
           ring-extend)
 
      (partial-recall-remember (current-buffer))
@@ -142,8 +142,8 @@
 (ert-deftest pr--maybe-remember ()
   (with-tab-history
    (bydi (partial-recall-remember
-          (:mock buffer-live-p :with always)
-          (:mock partial-recall--known-buffer-p :with ignore))
+          (:always buffer-live-p)
+          (:ignore partial-recall--known-buffer-p))
 
      (partial-recall--maybe-remember (current-buffer))
      (bydi-was-called partial-recall-remember))))
@@ -152,8 +152,8 @@
   (with-tab-history
    (bydi (partial-recall-remember
           partial-recall-reclaim
-          (:mock buffer-live-p :with always)
-          (:mock partial-recall--known-buffer-p :with always))
+          (:always buffer-live-p)
+          (:always partial-recall--known-buffer-p))
 
      (partial-recall--maybe-remember (current-buffer))
      (bydi-was-called partial-recall-reclaim))))
@@ -209,8 +209,8 @@
 (ert-deftest pr--on-buffer-list-update--cancels-running-timer ()
   (let ((partial-recall--timer nil))
 
-    (bydi ((:mock buffer-file-name :with always)
-           (:mock partial-recall--known-buffer-p :with ignore)
+    (bydi ((:always buffer-file-name)
+           (:ignore partial-recall--known-buffer-p)
            cancel-timer
            run-at-time)
 
@@ -240,7 +240,7 @@
         (daemon nil))
 
     (bydi (add-hook
-           (:mock partial-recall--key :with ignore)
+           (:ignore partial-recall--key)
            partial-recall--on-create
            (:mock tab-bar-mode :with (lambda (_) (setq tab-bar-mode t)))
            (:mock daemonp :with (lambda () daemon)))
@@ -265,7 +265,7 @@
         (tab-bar-mode nil))
 
     (bydi (add-hook
-           (:mock partial-recall--key :with ignore)
+           (:ignore partial-recall--key)
            partial-recall--on-create
            tab-bar-mode
            message)
