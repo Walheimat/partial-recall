@@ -145,7 +145,7 @@
           (:always buffer-live-p)
           (:ignore partial-recall--known-buffer-p))
 
-     (partial-recall--maybe-remember (current-buffer))
+     (partial-recall--handle-buffer (current-buffer))
      (bydi-was-called partial-recall-remember))))
 
 (ert-deftest pr--maybe-remember--reclaims ()
@@ -155,7 +155,7 @@
           (:always buffer-live-p)
           (:always partial-recall--known-buffer-p))
 
-     (partial-recall--maybe-remember (current-buffer))
+     (partial-recall--handle-buffer (current-buffer))
      (bydi-was-called partial-recall-reclaim))))
 
 (ert-deftest pr-reclaim--reclaims-from-other ()

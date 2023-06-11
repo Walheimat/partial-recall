@@ -29,19 +29,29 @@
 (defcustom partial-recall-limit 20
   "The amount of buffers to recall.
 
-This limit might be if adding buffers quickly with regards to
-`partial-recall-threshold'."
+This limit of a memory may increase if buffers are remembered in
+quick succession. See `partial-recall-threshold'."
   :type 'integer
   :group 'partial-recall)
 
 (defcustom partial-recall-threshold (* 5 60)
-  "Threshold in seconds that will allow a memory to grow."
+  "Threshold in seconds that will allow a memory to grow.
+
+If the oldest moment is younger than the threshold, the limit is
+increased and the buffer will remain."
   :type 'integer
   :group 'partial-recall)
 
 (defcustom partial-recall-reclaim-threshold (* 10 60)
-  "Threshold in seconds that when exceeded allows reclaiming."
+  "Threshold in seconds that when exceeded allows reclaiming.
+
+Has no effect if `partial-recall-reclaim' is nil."
   :type 'integer
+  :group 'partial-recall)
+
+(defcustom partial-recall-reclaim t
+  "Whether to automatically reclaim buffers from other memories."
+  :type 'boolean
   :group 'partial-recall)
 
 (defcustom partial-recall-mode-lighter " pr"
@@ -153,12 +163,13 @@ construction."
 
 (defvar partial-recall--last-checked nil)
 
-(defun partial-recall--maybe-remember (buffer)
+(defun partial-recall--handle-buffer (buffer)
   "Maybe remember BUFFER."
   (when (buffer-live-p buffer)
     (setq partial-recall--last-checked buffer)
 
-    (if (partial-recall--known-buffer-p buffer)
+    (if (and partial-recall-reclaim
+             (partial-recall--known-buffer-p buffer))
         (partial-recall-reclaim nil buffer)
       (partial-recall-remember buffer))))
 
@@ -216,7 +227,7 @@ Defaults to the current buffer."
         (setq partial-recall--timer nil))
 
       (setq partial-recall--timer
-            (run-at-time 0.5 nil #'partial-recall--maybe-remember buffer)))))
+            (run-at-time 0.5 nil #'partial-recall--handle-buffer buffer)))))
 
 (defun partial-recall--on-frame-delete (frame)
   "Clear hashes associated with FRAME."
@@ -259,9 +270,10 @@ If FORCE is t, will reclaim even if the threshold wasn't passed.."
              ((not (eq current-memory owner)))
              (ring (partial-recall--memory-ring owner))
              (moment (seq-find (lambda (it) (partial-recall--moment-buffer-p it buffer)) (ring-elements ring)))
-             ((or force (< partial-recall-reclaim-threshold
-                           (- (floor (time-to-seconds))
-                              (partial-recall--moment-timestamp moment)))))
+             ((or force
+                  (< partial-recall-reclaim-threshold
+                     (- (floor (time-to-seconds))
+                        (partial-recall--moment-timestamp moment)))))
              (index (partial-recall--ring-member ring buffer)))
 
     ;; Forget in the old memory.
