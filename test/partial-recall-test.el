@@ -304,29 +304,33 @@
 
 (ert-deftest pr--api ()
   (let ((partial-recall-mode nil))
+
     (bydi (partial-recall--remember
            partial-recall--reclaim
-           partial-recall--forget)
+           partial-recall--forget
+           partial-recall--complete-foreign)
 
       (partial-recall-remember)
       (partial-recall-reclaim)
       (partial-recall-forget)
-
-      (bydi-was-not-called partial-recall--remember)
-      (bydi-was-not-called partial-recall--reclaim)
-      (bydi-was-not-called partial-recall--forget)
-
-      (bydi-clear-mocks)
-
-      (setq partial-recall-mode t)
-
-      (partial-recall-remember)
-      (partial-recall-reclaim)
-      (partial-recall-forget)
+      (call-interactively 'partial-recall-steal)
 
       (bydi-was-called partial-recall--remember)
       (bydi-was-called partial-recall--reclaim)
-      (bydi-was-called partial-recall--forget))))
+      (bydi-was-called partial-recall--forget)
+      (bydi-was-called partial-recall--complete-foreign))))
+
+(ert-deftest pr--complete-foreign ()
+  (bydi-with-mock ((:mock completing-read :return "second")
+                   (:ignore partial-recall--owns)
+                   (:mock partial-recall--known-buffers :return '("first" "second" "third"))
+                   (:mock buffer-name :with bydi-rf))
+    (should (string= "second" (partial-recall--complete-foreign "Some prompt: ")))))
+
+(ert-deftest pr--owns ()
+  (with-tab-history
+    (partial-recall--remember)
+    (should (partial-recall--owns (current-buffer)))))
 
 ;;; partial-recall-test.el ends here
 

@@ -133,12 +133,16 @@ construction."
 
     (not (ring-empty-p moments))))
 
+(defun partial-recall--known-buffers ()
+  "Get all known buffers."
+  (let ((known (cl-loop for _k being the hash-keys of partial-recall--table
+                        using (hash-values memory)
+                        append (ring-elements (partial-recall--memory-ring memory)))))
+    (mapcar #'partial-recall--moment-buffer known)))
+
 (defun partial-recall--known-buffer-p (buffer)
   "Check if BUFFER is recalled at all."
-  (let* ((known (cl-loop for _k being the hash-keys of partial-recall--table
-                         using (hash-values memory)
-                         append (ring-elements (partial-recall--memory-ring memory))))
-         (buffers (mapcar #'partial-recall--moment-buffer known)))
+  (let ((buffers (partial-recall--known-buffers)))
 
     (memq buffer buffers)))
 
@@ -196,6 +200,21 @@ Defaults to the current buffer."
          (memories (hash-table-values partial-recall--table)))
 
     (seq-find (lambda (it) (partial-recall--memory-buffer-p it buffer)) memories)))
+
+(defun partial-recall--owns (&optional buffer)
+  "Check if the current memory owns BUFFER."
+  (let ((memory (partial-recall--current)))
+
+    (partial-recall--memory-buffer-p memory buffer)))
+
+(defun partial-recall--complete-foreign (prompt)
+  "Complete foreign buffer using PROMPT."
+  (let* ((buffers (partial-recall--known-buffers))
+         (other-buffers (seq-filter (lambda (it) (not (partial-recall--owns it))) buffers))
+         (a (mapcar (lambda (it) (cons (buffer-name it) it)) other-buffers))
+         (selection (completing-read prompt a nil t)))
+
+    (cdr-safe (assoc selection a ))))
 
 ;; Handlers
 
@@ -361,8 +380,7 @@ If no buffer is passed, the current buffer is used."
   "Remember this buffer."
   (interactive)
 
-  (when partial-recall-mode
-    (partial-recall--remember (current-buffer))))
+  (partial-recall--remember (current-buffer)))
 
 ;;;###autoload
 (defun partial-recall-reclaim (&optional force)
@@ -371,16 +389,21 @@ If no buffer is passed, the current buffer is used."
 If FORCE is t, will reclaim even if the threshold wasn't passed.."
   (interactive "P")
 
-  (when partial-recall-mode
-    (partial-recall--reclaim (current-buffer) force)))
+  (partial-recall--reclaim (current-buffer) force))
+
+;;;###autoload
+(defun partial-recall-steal (buffer)
+  "Steal BUFFER from another memory."
+  (interactive (list (partial-recall--complete-foreign "Select buffer to steal: ")))
+
+  (partial-recall--reclaim buffer t))
 
 ;;;###autoload
 (defun partial-recall-forget ()
   "Forget current buffer."
   (interactive)
 
-  (when partial-recall-mode
-    (partial-recall--forget (current-buffer))))
+  (partial-recall--forget (current-buffer)))
 
 (provide 'partial-recall)
 
