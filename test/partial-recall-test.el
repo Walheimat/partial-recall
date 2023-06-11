@@ -308,24 +308,36 @@
     (bydi (partial-recall--remember
            partial-recall--reclaim
            partial-recall--forget
-           partial-recall--complete-dream)
+           partial-recall--complete-dream
+           partial-recall--complete-reality
+           switch-to-buffer)
 
       (partial-recall-remember)
       (partial-recall-reclaim)
       (partial-recall-forget)
       (call-interactively 'partial-recall-steal)
+      (call-interactively 'partial-recall-switch-to-buffer)
 
       (bydi-was-called partial-recall--remember)
       (bydi-was-called partial-recall--reclaim)
       (bydi-was-called partial-recall--forget)
-      (bydi-was-called partial-recall--complete-dream))))
+      (bydi-was-called partial-recall--complete-dream)
+      (bydi-was-called partial-recall--complete-reality)
+      (bydi-was-called switch-to-buffer))))
 
-(ert-deftest pr--complete-foreign ()
+(ert-deftest pr--complete-dream ()
   (bydi-with-mock ((:mock completing-read :return "second")
                    (:ignore partial-recall--reality-owns-buffer-p)
                    (:mock partial-recall--mapped-buffers :return '("first" "second" "third"))
                    (:mock buffer-name :with bydi-rf))
     (should (string= "second" (partial-recall--complete-dream "Some prompt: ")))))
+
+(ert-deftest pr--complete-reality ()
+  (bydi-with-mock ((:mock completing-read :return "second")
+                   (:always partial-recall--reality-owns-buffer-p)
+                   (:mock partial-recall--mapped-buffers :return '("first" "second" "third"))
+                   (:mock buffer-name :with bydi-rf))
+    (should (string= "second" (partial-recall--complete-reality "Some prompt: ")))))
 
 (ert-deftest pr--owns ()
   (with-tab-history

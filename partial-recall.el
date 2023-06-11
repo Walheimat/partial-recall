@@ -206,6 +206,15 @@ Defaults to the current buffer."
 
     (cdr-safe (assoc selection a ))))
 
+(defun partial-recall--complete-reality (prompt)
+  "Complete reality buffer using PROMPT."
+  (let* ((buffers (partial-recall--mapped-buffers))
+         (other-buffers (seq-filter #'partial-recall--reality-owns-buffer-p buffers))
+         (a (mapcar (lambda (it) (cons (buffer-name it) it)) other-buffers))
+         (selection (completing-read prompt a nil t)))
+
+    (cdr-safe (assoc selection a ))))
+
 (defun partial-recall--warn (message)
   "Warn about MESSAGE."
   (display-warning 'partial-recall message :warning))
@@ -379,6 +388,7 @@ If BUFFER is nil, forget the current buffer."
 (defvar partial-recall-command-map
   (let ((map (make-sparse-keymap)))
 
+    (define-key map (kbd "b") 'partial-recall-switch-to-buffer)
     (define-key map (kbd "r") 'partial-recall-remember)
     (define-key map (kbd "c") 'partial-recall-reclaim)
     (define-key map (kbd "s") 'partial-recall-steal)
@@ -394,6 +404,12 @@ If BUFFER is nil, forget the current buffer."
   (if partial-recall-mode
       (partial-recall-mode--setup)
     (partial-recall-mode--teardown)))
+
+(defun partial-recall-switch-to-buffer (buffer)
+  "Switch to BUFFER."
+  (interactive (list (partial-recall--complete-reality "Switch to buffer: ")))
+
+  (switch-to-buffer buffer))
 
 ;;;###autoload
 (defun partial-recall-remember ()

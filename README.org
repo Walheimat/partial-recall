@@ -9,13 +9,14 @@
 </a>
 #+END_HTML
 
-This package is my personal =tab-bar-mode=-based =consult= buffer source.
-
-=partial-recall= will keep track of a limited number of file buffers in
-a ring for the tab they were visited in. Buffers are time-stamped to
-(1) allow for the memory to grow if the oldest one is still relatively
-new and (2) to allow reclaiming buffers from other tabs if they're
-relatively old.
+=partial-recall= provides a narrow buffer scope built on top of
+=tab-bar-mode=. It turns each tab into a living (that is: forgetful)
+workspace. Each file buffer that is first visited in a tab will be
+associated with that tab until a limit is met whereupon the oldest
+buffer is forgotten. If a newly visited buffer is already associated
+with another tab, it may be reclaimed (automatically or manually). If
+all buffers were visited relatively recently, the size of the limit
+increases (for that tab).
 
 ** Installation
 
@@ -28,20 +29,29 @@ with =make package-install=.
 
 ** Configuration
 
-I mainly wrote this to have a tab-scoped list of buffers.
+=partial-recall= will turn on =tab-bar-mode= if it isn't already turned
+on. =partial-recall-mode= will make sure all newly created frames are
+taken into account.
 
 #+begin_src emacs-lisp
 (use-package partial-recall
   :custom
   (partial-recall-buffer-limit 20) ;; The number of buffers in the ring.
-  (partial-recall-max-age 100) ;; The age (in seconds) that will allow the ring to grow.
-  (partial-recall-reclaim-min-age 100) ;; The age (in seconds) that will allow reclaiming.
+  (partial-recall-max-age 300) ;; The age (in seconds) that will allow the ring to grow.
+  (partial-recall-reclaim-min-age 600) ;; The age (in seconds) that will allow reclaiming.
 
   :config
   (partial-recall-mode)
 
+  ;; If you use `consult', you can add the provided buffer source.
   (with-eval-after-load 'consult
     (add-to-list
      'consult-buffer-sources
-     'partial-recall--consult-buffer-source)))
+     'partial-recall--consult-buffer-source))
+
+  :bind
+  (("C-c b" . partial-recall-switch-to-buffer))
+
+  :bind-keymap
+  (("C-c B" . partial-recall-command-map)))
 #+end_src
