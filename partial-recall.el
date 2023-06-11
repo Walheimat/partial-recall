@@ -192,7 +192,7 @@ Defaults to the current buffer."
 
 (defun partial-recall--owns (&optional buffer)
   "Check if the current memory owns BUFFER."
-  (let ((memory (partial-recall--current)))
+  (when-let ((memory (partial-recall--current)))
 
     (partial-recall--memory-buffer-p memory buffer)))
 
