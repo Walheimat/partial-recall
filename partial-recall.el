@@ -11,11 +11,12 @@
 ;; Short-term (buffer) memory for `tab-bar-mode' tabs.
 ;;
 ;;`partial-recall' will keep track of file buffers opened in a tab in
-;; a ring (these rings are called memories in the context of this
-;; package). Buffers are time-stamped to (1) allow for the memory to
+;; a ring. These rings are called memories in the context of this
+;; package; the current memory is called reality, all other memories
+;; are dreams. Buffers are time-stamped to (1) allow for the memory to
 ;; grow if the oldest one is still relatively recent and (2) to allow
-;; reclaiming buffers from other tabs if they're relatively old
-;; (buffers are called moments in the context of this package).
+;; reclaiming buffers from other tabs if they're relatively old.
+;; Buffers are called moments in the context of this package.
 
 ;;; Code:
 
@@ -27,15 +28,15 @@
   "Short-term (buffer) memory."
   :group 'partial-recall)
 
-(defcustom partial-recall-limit 20
+(defcustom partial-recall-buffer-limit 20
   "The amount of buffers to recall.
 
 This limit of a memory may increase if buffers are remembered in
-quick succession. See `partial-recall-threshold'."
+quick succession. See `partial-recall-max-age'."
   :type 'integer
   :group 'partial-recall)
 
-(defcustom partial-recall-threshold (* 5 60)
+(defcustom partial-recall-max-age (* 5 60)
   "Threshold in seconds that will allow a memory to grow.
 
 If the oldest moment is younger than the threshold, the limit is
@@ -43,16 +44,16 @@ increased and the buffer will remain."
   :type 'integer
   :group 'partial-recall)
 
-(defcustom partial-recall-reclaim-threshold (* 10 60)
+(defcustom partial-recall-reclaim t
+  "Whether to automatically reclaim buffers from other memories."
+  :type 'boolean
+  :group 'partial-recall)
+
+(defcustom partial-recall-reclaim-min-age (* 10 60)
   "Threshold in seconds that when exceeded allows reclaiming.
 
 Has no effect if `partial-recall-reclaim' is nil."
   :type 'integer
-  :group 'partial-recall)
-
-(defcustom partial-recall-reclaim t
-  "Whether to automatically reclaim buffers from other memories."
-  :type 'boolean
   :group 'partial-recall)
 
 (defcustom partial-recall-mode-lighter " pr"
@@ -70,7 +71,7 @@ Has no effect if `partial-recall-reclaim' is nil."
               (key (alist-get 'pr tab)))
     key))
 
-(defun partial-recall--create-hash-key (tab)
+(defun partial-recall--create-key (tab)
   "Create the key for TAB.
 
 This uses a message digest of the tab, a random number, the Emacs
@@ -93,8 +94,8 @@ was remembered."
 (cl-defstruct (partial-recall--memory
                (:constructor partial-recall--memory-create
                              (&aux
-                              (ring (make-ring partial-recall-limit))
-                              (orig-size partial-recall-limit))))
+                              (ring (make-ring partial-recall-buffer-limit))
+                              (orig-size partial-recall-buffer-limit))))
   "A memory of partial recall.
 
 A memory is a ring of moments and the size it had upon
@@ -108,7 +109,7 @@ construction."
       (when (equal buffer (partial-recall--moment-buffer (ring-ref ring ind)))
         (throw 'found ind)))))
 
-(defun partial-recall--at-capacity (memory)
+(defun partial-recall--memory-at-capacity-p (memory)
   "Check if MEMORY is at capacity."
   (let ((ring (partial-recall--memory-ring memory)))
     (eq (ring-length ring) (ring-size ring))))
@@ -122,39 +123,39 @@ construction."
 
     (partial-recall--memory-ring memory)))
 
-(defun partial-recall--current-p (buffer)
-  "Check if BUFFER belongs to the current tab."
+(defun partial-recall--reality-buffer-p (buffer)
+  "Check if BUFFER belongs to the current memory."
   (when-let ((moments (partial-recall--moments)))
 
     (partial-recall--ring-member moments buffer)))
 
 (defun partial-recall--has-buffers-p ()
-  "Check if there are buffers associated with the current tab."
+  "Check if the current memory has buffers."
   (when-let ((moments (partial-recall--moments)))
 
     (not (ring-empty-p moments))))
 
-(defun partial-recall--known-buffers ()
-  "Get all known buffers."
-  (let ((known (cl-loop for _k being the hash-keys of partial-recall--table
+(defun partial-recall--mapped-buffers ()
+  "Get all mapped buffers."
+  (let ((mapped (cl-loop for _k being the hash-keys of partial-recall--table
                         using (hash-values memory)
                         append (ring-elements (partial-recall--memory-ring memory)))))
-    (mapcar #'partial-recall--moment-buffer known)))
+    (mapcar #'partial-recall--moment-buffer mapped)))
 
-(defun partial-recall--known-buffer-p (buffer)
-  "Check if BUFFER is known."
-  (let ((buffers (partial-recall--known-buffers)))
+(defun partial-recall--mapped-buffer-p (buffer)
+  "Check if BUFFER is mapped."
+  (let ((buffers (partial-recall--mapped-buffers)))
 
     (memq buffer buffers)))
 
 (defun partial-recall--memory-buffer-p (memory buffer)
-  "Check if BUFFER belongs to MEMORY."
+  "Check if MEMORY owns BUFFER."
   (partial-recall--ring-member
    (partial-recall--memory-ring memory)
    buffer))
 
 (defun partial-recall--moment-buffer-p (moment buffer)
-  "Check if BUFFER belongs to MOMENT."
+  "Check if MOMENT owns BUFFER."
   (eq (partial-recall--moment-buffer moment) buffer))
 
 (defun partial-recall--get-or-create-memory (tab-key)
@@ -168,20 +169,16 @@ construction."
 
 ;; Helpers
 
-(defun partial-recall--should-extend-p (memory)
+(defun partial-recall--should-extend-memory-p (memory)
   "Check if MEMORY should extend its ring size."
   (when-let* ((ring (partial-recall--memory-ring memory))
               (to-remove (ring-ref ring (1- (ring-length ring)))))
 
-    (> partial-recall-threshold
+    (> partial-recall-max-age
        (- (floor (time-to-seconds))
           (partial-recall--moment-timestamp to-remove)))))
 
-(defun partial-recall--current ()
-  "Get the current memory."
-  (gethash (partial-recall--key) partial-recall--table))
-
-(defun partial-recall--owner (&optional buffer)
+(defun partial-recall--buffer-owner (&optional buffer)
   "Return the memory that owns BUFFER.
 
 Defaults to the current buffer."
@@ -190,38 +187,48 @@ Defaults to the current buffer."
 
     (seq-find (lambda (it) (partial-recall--memory-buffer-p it buffer)) memories)))
 
-(defun partial-recall--owns (&optional buffer)
-  "Check if the current memory owns BUFFER."
-  (when-let ((memory (partial-recall--current)))
+(defun partial-recall--reality ()
+  "Get the current memory."
+  (gethash (partial-recall--key) partial-recall--table))
+
+(defun partial-recall--reality-owns-buffer-p (&optional buffer)
+  "Check if reality owns BUFFER."
+  (when-let ((memory (partial-recall--reality)))
 
     (partial-recall--memory-buffer-p memory buffer)))
 
-(defun partial-recall--complete-foreign (prompt)
-  "Complete foreign buffer using PROMPT."
-  (let* ((buffers (partial-recall--known-buffers))
-         (other-buffers (seq-filter (lambda (it) (not (partial-recall--owns it))) buffers))
+(defun partial-recall--complete-dream (prompt)
+  "Complete dream buffer using PROMPT."
+  (let* ((buffers (partial-recall--mapped-buffers))
+         (other-buffers (seq-filter (lambda (it) (not (partial-recall--reality-owns-buffer-p it))) buffers))
          (a (mapcar (lambda (it) (cons (buffer-name it) it)) other-buffers))
          (selection (completing-read prompt a nil t)))
 
     (cdr-safe (assoc selection a ))))
+
+(defun partial-recall--warn (message)
+  "Warn about MESSAGE."
+  (display-warning 'partial-recall message :warning))
 
 ;; Handlers
 
 (defvar partial-recall--last-checked nil)
 
 (defun partial-recall--handle-buffer (buffer)
-  "Maybe remember BUFFER."
+  "Handle BUFFER.
+
+This will remember new buffers and maybe reclaim mapped buffers."
   (when (buffer-live-p buffer)
     (setq partial-recall--last-checked buffer)
 
     (if (and partial-recall-reclaim
-             (partial-recall--known-buffer-p buffer))
+             (partial-recall--mapped-buffer-p buffer))
         (partial-recall--reclaim buffer)
       (partial-recall--remember buffer))))
 
 (defun partial-recall--on-create (tab)
   "Equip TAB with a unique hash key."
-  (let ((key (partial-recall--create-hash-key tab))
+  (let ((key (partial-recall--create-key tab))
         (state (cdr tab)))
 
     (setcdr tab (push (cons 'pr key) state))))
@@ -266,8 +273,8 @@ Defaults to the current buffer."
               (ring (partial-recall--memory-ring memory)))
 
     (unless (partial-recall--ring-member ring buffer)
-      (when (and (partial-recall--at-capacity memory)
-                 (partial-recall--should-extend-p memory))
+      (when (and (partial-recall--memory-at-capacity-p memory)
+                 (partial-recall--should-extend-memory-p memory))
         (ring-extend ring 1))
 
       (ring-insert ring (partial-recall--moment-create buffer)))))
@@ -275,15 +282,16 @@ Defaults to the current buffer."
 (defun partial-recall--reclaim (&optional buffer force)
   "Reclaim BUFFER if possible.
 
-If FORCE is t, will reclaim even if the threshold wasn't passed."
+If BUFFER is nil, reclaim the current buffer. If FORCE is t, will
+reclaim even if the threshold wasn't passed."
   (and-let* ((buffer (or buffer (current-buffer)))
-             (current-memory (partial-recall--current))
-             (owner (partial-recall--owner buffer))
-             ((not (eq current-memory owner)))
+             (reality (partial-recall--reality))
+             (owner (partial-recall--buffer-owner buffer))
+             ((not (eq reality owner)))
              (ring (partial-recall--memory-ring owner))
              (moment (seq-find (lambda (it) (partial-recall--moment-buffer-p it buffer)) (ring-elements ring)))
              ((or force
-                  (< partial-recall-reclaim-threshold
+                  (< partial-recall-reclaim-min-age
                      (- (floor (time-to-seconds))
                         (partial-recall--moment-timestamp moment)))))
              (index (partial-recall--ring-member ring buffer)))
@@ -297,7 +305,7 @@ If FORCE is t, will reclaim even if the threshold wasn't passed."
 (defun partial-recall--forget (&optional buffer)
   "Forget BUFFER.
 
-If no buffer is passed, the current buffer is used."
+If BUFFER is nil, forget the current buffer."
   (let* ((buffer (or buffer (current-buffer)))
 
          (table partial-recall--table)
@@ -322,7 +330,7 @@ If no buffer is passed, the current buffer is used."
         :history 'buffer-name-history
         :items
         #'(lambda () (consult--buffer-query :sort 'visibility
-                                       :predicate #'partial-recall--current-p
+                                       :predicate #'partial-recall--reality-buffer-p
                                        :as #'buffer-name)))
   "Buffers that are recalled from the current tab.")
 
@@ -336,7 +344,7 @@ If no buffer is passed, the current buffer is used."
 
       (unless (partial-recall--key original)
         (partial-recall--on-create original))
-    (message "Might have failed to set up original tab")))
+    (partial-recall--warn "Might have failed to set up original tab")))
 
 (defun partial-recall--queue-fix-up (&rest _r)
   "Queue a fix-up of the original tab."
@@ -406,7 +414,7 @@ If FORCE is t, will reclaim even if the threshold wasn't passed."
 ;;;###autoload
 (defun partial-recall-steal (buffer)
   "Steal BUFFER from another memory."
-  (interactive (list (partial-recall--complete-foreign "Select buffer to steal: ")))
+  (interactive (list (partial-recall--complete-dream "Select buffer to steal: ")))
 
   (partial-recall--reclaim buffer t))
 

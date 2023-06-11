@@ -16,11 +16,11 @@
          (:mock recent-keys :return 'keys)
          md5)
 
-    (partial-recall--create-hash-key "test")
+    (partial-recall--create-key "test")
     (bydi-was-called-with md5 "test421keys")))
 
 (ert-deftest pr--on-create--sets-cdr ()
-  (bydi ((:mock partial-recall--create-hash-key :return "test"))
+  (bydi ((:mock partial-recall--create-key :return "test"))
 
     (let ((tab '(current-tab (name . "test-tab") (explicit-name))))
 
@@ -62,8 +62,8 @@
 
 (ert-deftest pr-remember--extends-ring ()
   (with-tab-history
-   (bydi ((:always partial-recall--at-capacity)
-          (:always partial-recall--should-extend-p)
+   (bydi ((:always partial-recall--memory-at-capacity-p)
+          (:always partial-recall--should-extend-memory-p)
           ring-extend)
 
      (partial-recall--remember)
@@ -105,7 +105,7 @@
 (ert-deftest pr--current-p ()
   (with-tab-history
    (partial-recall--remember)
-   (should (partial-recall--current-p (current-buffer)))))
+   (should (partial-recall--reality-buffer-p (current-buffer)))))
 
 (ert-deftest pr--has-buffers-p ()
   (with-tab-history
@@ -115,11 +115,11 @@
 
    (should (partial-recall--has-buffers-p))))
 
-(ert-deftest pr--known-buffer-p ()
+(ert-deftest pr--mapped-buffer-p ()
   (with-tab-history
    (partial-recall--remember)
 
-   (should (partial-recall--known-buffer-p (current-buffer)))))
+   (should (partial-recall--mapped-buffer-p (current-buffer)))))
 
 (ert-deftest pr--memory-buffer-p ()
   (with-tab-history
@@ -143,7 +143,7 @@
   (with-tab-history
    (bydi (partial-recall--remember
           (:always buffer-live-p)
-          (:ignore partial-recall--known-buffer-p))
+          (:ignore partial-recall--mapped-buffer-p))
 
      (partial-recall--handle-buffer (current-buffer))
      (bydi-was-called partial-recall--remember))))
@@ -153,19 +153,19 @@
    (bydi (partial-recall--remember
           partial-recall--reclaim
           (:always buffer-live-p)
-          (:always partial-recall--known-buffer-p))
+          (:always partial-recall--mapped-buffer-p))
 
      (partial-recall--handle-buffer (current-buffer))
      (bydi-was-called partial-recall--reclaim))))
 
 (ert-deftest pr-reclaim--reclaims-from-other ()
   (let ((seconds '(10 12))
-        (partial-recall-reclaim-threshold 0))
+        (partial-recall-reclaim-min-age 0))
     (with-tab-history
      (bydi ((:mock time-to-seconds :with (lambda (&rest _) (pop seconds))))
        (partial-recall--remember)
 
-       (bydi ((:mock partial-recall--current :return 'other)
+       (bydi ((:mock partial-recall--reality :return 'other)
               partial-recall--remember)
 
          (partial-recall--reclaim)
@@ -186,7 +186,7 @@
 (ert-deftest pr--should-extend-p ()
   (let ((seconds '(10 11 12))
         (partial-recall-limit 1)
-        (partial-recall-threshold 2))
+        (partial-recall-max-age 2))
 
     (with-tab-history
      (bydi ((:mock time-to-seconds :with (lambda (&rest _) (pop seconds))))
@@ -195,8 +195,8 @@
 
        (let ((memory (partial-recall--get-or-create-memory (partial-recall--key))))
 
-         (should (partial-recall--should-extend-p memory))
-         (should-not (partial-recall--should-extend-p memory)))))))
+         (should (partial-recall--should-extend-memory-p memory))
+         (should-not (partial-recall--should-extend-memory-p memory)))))))
 
 (ert-deftest pr-recall--owner ()
   (with-tab-history
@@ -204,13 +204,13 @@
 
    (let ((memory (partial-recall--get-or-create-memory (partial-recall--key))))
 
-     (should (eq memory (partial-recall--owner))))))
+     (should (eq memory (partial-recall--buffer-owner))))))
 
 (ert-deftest pr--on-buffer-list-update--cancels-running-timer ()
   (let ((partial-recall--timer nil))
 
     (bydi ((:always buffer-file-name)
-           (:ignore partial-recall--known-buffer-p)
+           (:ignore partial-recall--mapped-buffer-p)
            cancel-timer
            run-at-time)
 
@@ -236,12 +236,12 @@
         (tab-bar-tabs-function (lambda () (list test-tab))))
 
     (bydi (partial-recall--on-create
-           (:sometimes partial-recall--key))
+           (:sometimes partial-recall--key)
+           partial-recall--warn)
 
-      (ert-with-message-capture messages
-        (partial-recall--fix-up-primary-tab)
-        (should (string= "Might have failed to set up original tab\n" messages)))
+      (partial-recall--fix-up-primary-tab)
 
+      (bydi-was-called partial-recall--warn)
       (bydi-was-not-called partial-recall--key)
       (bydi-was-not-called partial-recall--on-create)
 
@@ -308,7 +308,7 @@
     (bydi (partial-recall--remember
            partial-recall--reclaim
            partial-recall--forget
-           partial-recall--complete-foreign)
+           partial-recall--complete-dream)
 
       (partial-recall-remember)
       (partial-recall-reclaim)
@@ -318,19 +318,24 @@
       (bydi-was-called partial-recall--remember)
       (bydi-was-called partial-recall--reclaim)
       (bydi-was-called partial-recall--forget)
-      (bydi-was-called partial-recall--complete-foreign))))
+      (bydi-was-called partial-recall--complete-dream))))
 
 (ert-deftest pr--complete-foreign ()
   (bydi-with-mock ((:mock completing-read :return "second")
-                   (:ignore partial-recall--owns)
-                   (:mock partial-recall--known-buffers :return '("first" "second" "third"))
+                   (:ignore partial-recall--reality-owns-buffer-p)
+                   (:mock partial-recall--mapped-buffers :return '("first" "second" "third"))
                    (:mock buffer-name :with bydi-rf))
-    (should (string= "second" (partial-recall--complete-foreign "Some prompt: ")))))
+    (should (string= "second" (partial-recall--complete-dream "Some prompt: ")))))
 
 (ert-deftest pr--owns ()
   (with-tab-history
     (partial-recall--remember)
-    (should (partial-recall--owns (current-buffer)))))
+    (should (partial-recall--reality-owns-buffer-p (current-buffer)))))
+
+(ert-deftest pr--warn ()
+  (bydi (display-warning)
+    (partial-recall--warn "Testing")
+    (bydi-was-called-with display-warning (list 'partial-recall "Testing" :warning))))
 
 ;;; partial-recall-test.el ends here
 
