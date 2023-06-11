@@ -59,6 +59,8 @@ Has no effect if `partial-recall-reclaim' is nil."
   :type 'string
   :group 'partial-recall)
 
+;; Hash table
+
 (defvar partial-recall--table (make-hash-table))
 
 (defun partial-recall--key (&optional tab)
@@ -76,7 +78,7 @@ PID and `recent-keys' vector."
 
     (md5 object)))
 
-;; Structures:
+;; Structures
 
 (cl-defstruct (partial-recall--moment
                (:constructor partial-recall--moment-create
@@ -159,7 +161,7 @@ construction."
       (puthash tab-key new-memory table)
       new-memory)))
 
-;; Helpers:
+;; Helpers
 
 (defvar partial-recall--last-checked nil)
 
@@ -170,8 +172,8 @@ construction."
 
     (if (and partial-recall-reclaim
              (partial-recall--known-buffer-p buffer))
-        (partial-recall-reclaim nil buffer)
-      (partial-recall-remember buffer))))
+        (partial-recall--reclaim buffer)
+      (partial-recall--remember buffer))))
 
 (defun partial-recall--should-extend-p (memory)
   "Check if MEMORY should extend its ring size."
@@ -195,7 +197,7 @@ Defaults to the current buffer."
 
     (seq-find (lambda (it) (partial-recall--memory-buffer-p it buffer)) memories)))
 
-;; Handlers:
+;; Handlers
 
 (defun partial-recall--on-create (tab)
   "Equip TAB with a unique hash key."
@@ -236,18 +238,10 @@ Defaults to the current buffer."
     (dolist (tab tabs)
       (partial-recall--on-close tab nil))))
 
-;; API
-
-(defun partial-recall-remember (&optional buffer)
-  "Remember the BUFFER for this tab.
-
-If no buffer is passed, the current buffer is used."
-  (interactive)
-
+(defun partial-recall--remember (&optional buffer)
+  "Remember the BUFFER for this tab."
   (when-let* ((tab-key (partial-recall--key))
-
               (buffer (or buffer (current-buffer)))
-
               (memory (partial-recall--get-or-create-memory tab-key))
               (ring (partial-recall--memory-ring memory)))
 
@@ -258,12 +252,10 @@ If no buffer is passed, the current buffer is used."
 
       (ring-insert ring (partial-recall--moment-create buffer)))))
 
-(defun partial-recall-reclaim (&optional force buffer)
+(defun partial-recall--reclaim (&optional buffer force)
   "Reclaim BUFFER if possible.
 
-If FORCE is t, will reclaim even if the threshold wasn't passed.."
-  (interactive "P")
-
+If FORCE is t, will reclaim even if the threshold wasn't passed."
   (and-let* ((buffer (or buffer (current-buffer)))
              (current-memory (partial-recall--current))
              (owner (partial-recall--owner buffer))
@@ -280,28 +272,24 @@ If FORCE is t, will reclaim even if the threshold wasn't passed.."
     (ring-remove ring index)
 
     ;; Remember in the current one.
-    (partial-recall-remember buffer)
-    (message "Reclaimed %s" buffer)))
+    (partial-recall--remember buffer)))
 
-(defun partial-recall-forget (&optional buffer)
+(defun partial-recall--forget (&optional buffer)
   "Forget BUFFER.
 
 If no buffer is passed, the current buffer is used."
-  (interactive)
-
   (let* ((buffer (or buffer (current-buffer)))
 
          (table partial-recall--table)
-         (maybe-remove (lambda (key memory)
+         (maybe-remove (lambda (_key memory)
                          (when-let* ((ring (partial-recall--memory-ring memory))
                                      (index (partial-recall--ring-member ring buffer)))
 
-                           (message "Removed %s from %s" buffer key)
                            (ring-remove ring index)))))
 
     (maphash maybe-remove table)))
 
-;; `consult' integration:
+;; Integration
 
 (declare-function consult--buffer-state "ext:consult.el")
 (declare-function consult--buffer-query "ext:consult.el")
@@ -317,6 +305,8 @@ If no buffer is passed, the current buffer is used."
                                        :predicate #'partial-recall--current-p
                                        :as #'buffer-name)))
   "Buffers that are recalled from the current tab.")
+
+;; Setup
 
 (defun partial-recall--fix-up-primary-tab ()
   "Fix up the primary tab."
@@ -337,7 +327,7 @@ If no buffer is passed, the current buffer is used."
       (add-hook 'server-after-make-frame-hook #'partial-recall--fix-up-primary-tab)
     (partial-recall--fix-up-primary-tab))
 
-  (add-hook 'kill-buffer-hook 'partial-recall-forget)
+  (add-hook 'kill-buffer-hook 'partial-recall--forget)
   (add-hook 'buffer-list-update-hook 'partial-recall--on-buffer-list-update)
   (add-hook 'tab-bar-tab-pre-close-functions #'partial-recall--on-close)
   (add-hook 'tab-bar-tab-post-open-functions #'partial-recall--on-create)
@@ -346,11 +336,13 @@ If no buffer is passed, the current buffer is used."
 (defun partial-recall-mode--teardown ()
   "Tear down `partial-recall-mode'."
   (remove-hook 'server-after-make-frame-hook #'partial-recall--fix-up-primary-tab)
-  (remove-hook 'kill-buffer-hook 'partial-recall-forget)
+  (remove-hook 'kill-buffer-hook 'partial-recall--forget)
   (remove-hook 'buffer-list-update-hook 'partial-recall--on-buffer-list-update)
   (remove-hook 'tab-bar-tab-pre-close-functions #'partial-recall--on-close)
   (remove-hook 'tab-bar-tab-post-open-functions #'partial-recall--on-create)
   (remove-hook 'delete-frame-functions #'partial-recall--on-frame-delete))
+
+;; API
 
 ;;;###autoload
 (define-minor-mode partial-recall-mode
@@ -360,6 +352,32 @@ If no buffer is passed, the current buffer is used."
   (if partial-recall-mode
       (partial-recall-mode--setup)
     (partial-recall-mode--teardown)))
+
+;;;###autoload
+(defun partial-recall-remember ()
+  "Remember this buffer."
+  (interactive)
+
+  (when partial-recall-mode
+    (partial-recall--remember (current-buffer))))
+
+;;;###autoload
+(defun partial-recall-reclaim (&optional force)
+  "Reclaim BUFFER if possible.
+
+If FORCE is t, will reclaim even if the threshold wasn't passed.."
+  (interactive "P")
+
+  (when partial-recall-mode
+    (partial-recall--reclaim (current-buffer) force)))
+
+;;;###autoload
+(defun partial-recall-forget ()
+  "Forget current buffer."
+  (interactive)
+
+  (when partial-recall-mode
+    (partial-recall--forget (current-buffer))))
 
 (provide 'partial-recall)
 
