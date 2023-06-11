@@ -264,22 +264,22 @@
         (tab-bar-mode nil))
 
     (bydi (add-hook
-           partial-recall--fix-up-primary-tab
+           partial-recall--queue-fix-up
            (:mock tab-bar-mode :with (lambda (_) (setq tab-bar-mode t)))
            (:sometimes daemonp))
 
       (partial-recall-mode--setup)
 
-      (bydi-was-not-called partial-recall--fix-up-primary-tab)
-      (bydi-was-called-n-times add-hook 6)
+      (bydi-was-not-called partial-recall--queue-fix-up)
+      (bydi-was-called-n-times add-hook 7)
       (bydi-was-called tab-bar-mode)
 
       (bydi-clear-mocks)
       (bydi-toggle-sometimes)
 
       (partial-recall-mode--setup)
-      (bydi-was-called-n-times add-hook 5)
-      (bydi-was-called partial-recall--fix-up-primary-tab))))
+      (bydi-was-called-n-times add-hook 6)
+      (bydi-was-called partial-recall--queue-fix-up))))
 
 (ert-deftest pr--setup--messages-on-fail ()
   (defvar tab-bar-tabs-function nil)
@@ -291,21 +291,19 @@
     (bydi (add-hook
            (:ignore partial-recall--key)
            partial-recall--on-create
-           tab-bar-mode
-           message)
+           tab-bar-mode)
 
       (partial-recall-mode--setup)
 
       (bydi-was-not-called partial-recall--on-create)
-      (bydi-was-called-n-times add-hook 5)
-      (bydi-was-called message))))
+      (bydi-was-called-n-times add-hook 6))))
 
 (ert-deftest pr--teardown ()
   (bydi (remove-hook)
 
     (partial-recall-mode--teardown)
 
-    (bydi-was-called-n-times remove-hook 6)))
+    (bydi-was-called-n-times remove-hook 7)))
 
 (ert-deftest pr-mode ()
   (bydi (partial-recall-mode--setup
