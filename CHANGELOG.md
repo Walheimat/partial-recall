@@ -9,9 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- If Emacs process is a daemon, fixing up the first tab is bound to
-  `server-after-make-frame-hook`.
 - The defaults for custom variables have been vastly increased.
+
+### Fixed
+
+- `partial-recall` will fix up the original tab of the current frame
+  after a delay.
 
 ## [v0.1.0]
 

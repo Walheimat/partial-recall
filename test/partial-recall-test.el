@@ -237,7 +237,11 @@
 
     (bydi (partial-recall--on-create
            (:sometimes partial-recall--key))
-      (partial-recall--fix-up-primary-tab)
+
+      (ert-with-message-capture messages
+        (partial-recall--fix-up-primary-tab)
+        (should (string= "Might have failed to set up original tab\n" messages)))
+
       (bydi-was-not-called partial-recall--key)
       (bydi-was-not-called partial-recall--on-create)
 
@@ -272,6 +276,12 @@
       (bydi-was-called partial-recall--queue-fix-up)
       (bydi-was-called-n-times add-hook 6)
       (bydi-was-called tab-bar-mode))))
+
+(ert-deftest pr--queue-fix-up ()
+  (bydi (run-at-time)
+    (partial-recall--queue-fix-up)
+
+    (bydi-was-called-with run-at-time (list 1.0 nil #'partial-recall--fix-up-primary-tab))))
 
 (ert-deftest pr--teardown ()
   (bydi (remove-hook)
