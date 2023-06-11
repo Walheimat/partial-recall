@@ -33,9 +33,9 @@ I mainly wrote this to have a tab-scoped list of buffers.
 #+begin_src emacs-lisp
 (use-package partial-recall
   :custom
-  (partial-recall-limit 20) ;; The number of buffers in the ring.
-  (partial-recall-threshold 600) ;; The age (in seconds) that will allow the ring to grow.
-  (partial-recall-reclaim-threshold 100) ;; The age (in seconds) that will allow reclaiming.
+  (partial-recall-buffer-limit 20) ;; The number of buffers in the ring.
+  (partial-recall-max-age 100) ;; The age (in seconds) that will allow the ring to grow.
+  (partial-recall-reclaim-min-age 100) ;; The age (in seconds) that will allow reclaiming.
 
   :config
   (partial-recall-mode)
