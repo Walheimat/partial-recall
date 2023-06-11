@@ -318,7 +318,7 @@ If no buffer is passed, the current buffer is used."
         (partial-recall--on-create original))
     (message "Might have failed to set up original tab")))
 
-(defun partial-recall--queue-fix-up ()
+(defun partial-recall--queue-fix-up (&rest _r)
   "Queue a fix-up of the original tab."
   (run-at-time 1.0 nil #'partial-recall--fix-up-primary-tab))
 
@@ -327,11 +327,9 @@ If no buffer is passed, the current buffer is used."
   (unless tab-bar-mode
     (tab-bar-mode 1))
 
-  (if (daemonp)
-      (add-hook 'server-after-make-frame-hook #'partial-recall--queue-fix-up)
-    (partial-recall--queue-fix-up))
+  (partial-recall--queue-fix-up)
 
-  (add-hook 'after-make-frame-functions #'partial-recall--fix-up-primary-tab)
+  (add-hook 'after-make-frame-functions #'partial-recall--queue-fix-up)
   (add-hook 'kill-buffer-hook #'partial-recall--forget)
   (add-hook 'buffer-list-update-hook #'partial-recall--on-buffer-list-update)
   (add-hook 'tab-bar-tab-pre-close-functions #'partial-recall--on-close)
@@ -340,8 +338,7 @@ If no buffer is passed, the current buffer is used."
 
 (defun partial-recall-mode--teardown ()
   "Tear down `partial-recall-mode'."
-  (remove-hook 'server-after-make-frame-hook #'partial-recall--fix-up-primary-tab)
-  (remove-hook 'after-make-frame-functions #'partial-recall--fix-up-primary-tab)
+  (remove-hook 'after-make-frame-functions #'partial-recall--queue-fix-up)
   (remove-hook 'kill-buffer-hook #'partial-recall--forget)
   (remove-hook 'buffer-list-update-hook #'partial-recall--on-buffer-list-update)
   (remove-hook 'tab-bar-tab-pre-close-functions #'partial-recall--on-close)
