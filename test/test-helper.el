@@ -6,7 +6,6 @@
 
 ;;; Code:
 
-(require 'ert-x)
 (require 'bydi nil t)
 
 (declare-function bydi-path-setup "ext:bydi.el")

@@ -3,6 +3,7 @@ SOURCE_DIR?=$(CURDIR)
 PACKAGE_VERSION=$(shell cask version)
 TEST_ARGS=
 TEST_PRE_ARGS=
+UPDATE_VERSION=./tools/update-version.sh
 
 # Run `make V=1 {cmd}` to print commands
 $(V).SILENT:
@@ -61,3 +62,10 @@ clean:
 .PHONY: clobber
 clobber: clean
 	rm -rf .cask
+
+# -- Utility
+
+.PHONY: update-version
+update-version:
+	$(UPDATE_VERSION) Cask
+	$(UPDATE_VERSION) partial-recall.el
