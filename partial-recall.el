@@ -368,10 +368,22 @@ If no buffer is passed, the current buffer is used."
 ;; API
 
 ;;;###autoload
+(defvar partial-recall-mode-map
+  (let ((map (make-sparse-keymap)))
+
+    (define-key map (kbd "r") 'partial-recall-remember)
+    (define-key map (kbd "c") 'partial-recall-reclaim)
+    (define-key map (kbd "s") 'partial-recall-steal)
+    (define-key map (kbd "f") 'partial-recall-forget)
+    map)
+  "Key-map used for `partial-recall-mode'.")
+
+;;;###autoload
 (define-minor-mode partial-recall-mode
   "Keep track of buffers opened in a tab."
   :lighter partial-recall-mode-lighter
   :global t
+  :keymap partial-recall-mode-map
   (if partial-recall-mode
       (partial-recall-mode--setup)
     (partial-recall-mode--teardown)))
