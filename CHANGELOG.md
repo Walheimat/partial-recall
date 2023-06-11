@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - If Emacs process is a daemon, fixing up the first tab is bound to
   `server-after-make-frame-hook`.
+- The defaults for custom variables have been vastly increased.
 
 ## [v0.1.0]
 

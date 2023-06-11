@@ -26,7 +26,7 @@
   "Partially recallable tab buffers."
   :group 'partial-recall)
 
-(defcustom partial-recall-limit 10
+(defcustom partial-recall-limit 20
   "The amount of buffers to recall.
 
 This limit might be if adding buffers quickly with regards to
@@ -34,12 +34,12 @@ This limit might be if adding buffers quickly with regards to
   :type 'integer
   :group 'partial-recall)
 
-(defcustom partial-recall-threshold 60
+(defcustom partial-recall-threshold (* 5 60)
   "Threshold in seconds that will allow a memory to grow."
   :type 'integer
   :group 'partial-recall)
 
-(defcustom partial-recall-reclaim-threshold (* 5 60)
+(defcustom partial-recall-reclaim-threshold (* 10 60)
   "Threshold in seconds that when exceeded allows reclaiming."
   :type 'integer
   :group 'partial-recall)
