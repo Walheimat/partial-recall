@@ -337,6 +337,7 @@ If BUFFER is nil, forget the current buffer."
         :category 'buffer
         :state #'consult--buffer-state
         :history 'buffer-name-history
+        :require-match t
         :items
         #'(lambda () (consult--buffer-query :sort 'visibility
                                        :predicate #'partial-recall--reality-buffer-p
