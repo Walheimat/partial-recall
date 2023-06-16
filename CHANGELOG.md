@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - The defaults for custom variables have been vastly increased.
+- Switched to using `dinghy`.
 
 ### Fixed
 
