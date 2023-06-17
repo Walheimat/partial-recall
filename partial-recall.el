@@ -121,15 +121,10 @@ construction."
         (puthash key new-memory table)
         new-memory))))
 
-(defun partial-recall--reality-moments ()
-  "Get the moments from the current memory."
-  (when-let ((reality (partial-recall--reality)))
-
-    (partial-recall--memory-ring reality)))
-
 (defun partial-recall--reality-buffer-p (buffer)
   "Check if BUFFER belongs to the current memory."
-  (when-let ((moments (partial-recall--reality-moments)))
+  (when-let* ((reality (partial-recall--reality))
+              (moments (partial-recall--memory-ring reality)))
 
     (partial-recall--ring-member moments buffer)))
 
@@ -148,7 +143,8 @@ construction."
 
 (defun partial-recall--has-buffers-p ()
   "Check if the current memory has buffers."
-  (when-let ((moments (partial-recall--reality-moments)))
+  (when-let* ((reality (partial-recall--reality))
+              (moments (partial-recall--memory-ring reality)))
 
     (not (ring-empty-p moments))))
 
@@ -227,7 +223,8 @@ Defaults to the current buffer."
 (defun partial-recall--update-count (&optional buffer)
   "Get the update count of BUFFER."
   (when-let* ((buffer (or buffer (current-buffer)))
-              (moments (partial-recall--reality-moments))
+              (reality (partial-recall--reality))
+              (moments (partial-recall--memory-ring reality))
               (index (partial-recall--ring-member moments buffer))
               (moment (ring-ref moments index)))
 
@@ -329,7 +326,7 @@ re-inserted and its timestamp updated.
 If FORCE is t, re-insertion and update will always be performed."
   (and-let* ((reality (partial-recall--reality))
              ((or force (partial-recall--memory-at-capacity-p reality)))
-             (moments (partial-recall--reality-moments))
+             (moments (partial-recall--memory-ring reality))
              (index (partial-recall--ring-member moments buffer))
              (moment (ring-ref moments index))
              (count (partial-recall--moment-update-count moment)))

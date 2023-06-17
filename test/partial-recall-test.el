@@ -40,10 +40,6 @@ If PRE is t, pre-remember the current buffer."
 
 ;; Structures
 
-(ert-deftest pr--moments ()
-  (with-tab-history
-    (should (partial-recall--reality-moments))))
-
 (ert-deftest pr--reality-buffer-p ()
   (with-tab-history :pre t
     (should (partial-recall--reality-buffer-p (current-buffer)))))
@@ -269,7 +265,8 @@ If PRE is t, pre-remember the current buffer."
   (with-tab-history
     (let ((count nil)
           (get-count (lambda ()
-                       (let* ((moments (partial-recall--reality-moments))
+                       (let* ((reality (partial-recall--reality))
+                              (moments (partial-recall--memory-ring reality))
                               (buffer (current-buffer))
                               (moment (ring-ref moments (partial-recall--ring-member moments buffer))))
                          (partial-recall--moment-update-count moment)))))
