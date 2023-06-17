@@ -84,12 +84,15 @@ PID and `recent-keys' vector."
 
 (cl-defstruct (partial-recall--moment
                (:constructor partial-recall--moment-create
-                             (buffer &aux (timestamp (floor (time-to-seconds))))))
+                             (buffer
+                              &aux
+                              (timestamp (floor (time-to-seconds)))
+                              (update-count 0))))
   "A moment of partial recall.
 
 A moment is defined by a buffer and a timestamp when that buffer
 was remembered."
-  buffer timestamp)
+  buffer timestamp update-count)
 
 (cl-defstruct (partial-recall--memory
                (:constructor partial-recall--memory-create
@@ -114,24 +117,21 @@ construction."
   (let ((ring (partial-recall--memory-ring memory)))
     (eq (ring-length ring) (ring-size ring))))
 
-(defun partial-recall--moments ()
+(defun partial-recall--reality-moments ()
   "Get the moments from the current memory."
-  (when-let* ((tab-key (partial-recall--key))
+  (when-let ((reality (partial-recall--reality)))
 
-              (table partial-recall--table)
-              (memory (gethash tab-key table)))
-
-    (partial-recall--memory-ring memory)))
+    (partial-recall--memory-ring reality)))
 
 (defun partial-recall--reality-buffer-p (buffer)
   "Check if BUFFER belongs to the current memory."
-  (when-let ((moments (partial-recall--moments)))
+  (when-let ((moments (partial-recall--reality-moments)))
 
     (partial-recall--ring-member moments buffer)))
 
 (defun partial-recall--has-buffers-p ()
   "Check if the current memory has buffers."
-  (when-let ((moments (partial-recall--moments)))
+  (when-let ((moments (partial-recall--reality-moments)))
 
     (not (ring-empty-p moments))))
 
@@ -296,9 +296,21 @@ This will remember new buffers and maybe reclaim mapped buffers."
 (defun partial-recall--reinforce (buffer)
   "Reinforce the BUFFER.
 
-This will forget and remember the buffer."
-  (partial-recall--forget buffer)
-  (partial-recall--remember buffer))
+If the buffer is close to being lost to the memory, it is
+re-inserted and its timestamp updated."
+  (and-let* ((reality (partial-recall--reality))
+             (moments (partial-recall--reality-moments))
+             (index (partial-recall--ring-member moments buffer))
+             (moment (ring-ref moments index))
+             (count (partial-recall--moment-update-count moment))
+             (size (ring-size moments))
+             ((>= index (1- size))))
+
+    (ring-remove+insert+extend moments (ring-ref moments index) t)
+
+    ;; Update timestamp and update count.
+    (setf (partial-recall--moment-timestamp moment) (floor (time-to-seconds)))
+    (setf (partial-recall--moment-update-count moment) (1+ count))))
 
 (defun partial-recall--reclaim (buffer &optional force)
   "Reclaim BUFFER if possible.

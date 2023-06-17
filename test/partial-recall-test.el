@@ -37,11 +37,11 @@
 
 (ert-deftest pr--moments ()
   (with-tab-history
-   (should-not (partial-recall--moments))
+   (should-not (partial-recall--reality-moments))
 
    (partial-recall--remember (current-buffer))
 
-   (should (partial-recall--moments))))
+   (should (partial-recall--reality-moments))))
 
 (ert-deftest pr--reality-buffer-p ()
   (with-tab-history
@@ -248,12 +248,31 @@
       (partial-recall--recollect (current-buffer))
       (bydi-was-not-called partial-recall--reclaim))))
 
-(ert-deftest pr-reinforce--forgets-and-remembers ()
-  (bydi (partial-recall--forget partial-recall--remember)
-    (partial-recall--reinforce (current-buffer))
+(ert-deftest pr-reinforce--reinforces-old-buffers ()
+  (with-tab-history
+    (partial-recall--remember (current-buffer))
+    (should-not (partial-recall--reinforce (current-buffer))))
 
-    (bydi-was-called partial-recall--forget)
-    (bydi-was-called partial-recall--remember)))
+  (with-tab-history
+    (let ((count nil)
+          (get-count (lambda ()
+                       (let* ((moments (partial-recall--reality-moments))
+                              (buffer (current-buffer))
+                              (moment (ring-ref moments (partial-recall--ring-member moments buffer))))
+                         (partial-recall--moment-update-count moment)))))
+
+      (setq partial-recall-buffer-limit 2)
+      (partial-recall--remember (current-buffer))
+
+      (setq count (funcall get-count))
+
+      (let ((another-temp (generate-new-buffer " *temp*" t)))
+
+        (partial-recall--remember another-temp)
+        (should (partial-recall--reinforce (current-buffer)))
+        (kill-buffer another-temp)
+
+        (should-not (eq count (funcall get-count)))))))
 
 (ert-deftest pr-reclaim--reclaims-from-other ()
   (let ((seconds '(10 12))
