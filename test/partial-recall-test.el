@@ -129,6 +129,20 @@
     (partial-recall--warn "Testing")
     (bydi-was-called-with display-warning (list 'partial-recall "Testing" :warning))))
 
+(ert-deftest pr--update-count ()
+  (with-tab-history
+    (setq partial-recall-buffer-limit 2)
+
+    (partial-recall--remember (current-buffer))
+
+    (let ((another-temp (generate-new-buffer " *temp*" t)))
+
+      (partial-recall--remember another-temp)
+      (partial-recall--reinforce (current-buffer))
+
+      (should (eq 1 (partial-recall--update-count)))
+      (kill-buffer another-temp))))
+
 ;; Handlers
 
 (ert-deftest pr--handle-buffer ()

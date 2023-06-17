@@ -219,6 +219,15 @@ Defaults to the current buffer."
   "Warn about MESSAGE."
   (display-warning 'partial-recall message :warning))
 
+(defun partial-recall--update-count (&optional buffer)
+  "Get the udpate count of BUFFER."
+  (let* ((buffer (or buffer (current-buffer)))
+         (moments (partial-recall--reality-moments))
+         (index (partial-recall--ring-member moments buffer))
+         (moment (ring-ref moments index)))
+
+    (partial-recall--moment-update-count moment)))
+
 ;; Handlers
 
 (defvar partial-recall--last-checked nil)
