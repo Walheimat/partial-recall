@@ -107,27 +107,6 @@ A memory is a ring of moments and the size it had upon
 construction."
   key ring orig-size)
 
-;; Functionality
-
-(defun partial-recall--reality ()
-  "Get the current memory."
-  (if-let* ((table partial-recall--table)
-            (key (partial-recall--key))
-            (memory (gethash key table)))
-      memory
-    (let ((new-memory (partial-recall--memory-create key)))
-
-      (when key
-        (puthash key new-memory table)
-        new-memory))))
-
-(defun partial-recall--reality-buffer-p (buffer)
-  "Check if BUFFER belongs to the current memory."
-  (when-let* ((reality (partial-recall--reality))
-              (moments (partial-recall--memory-ring reality)))
-
-    (partial-recall--ring-member moments buffer)))
-
 (defun partial-recall--ring-member (ring buffer)
   "Check if BUFFER is a member of RING."
   (catch 'found
@@ -140,13 +119,6 @@ construction."
   (when-let ((ring (partial-recall--memory-ring memory)))
 
     (eq (ring-length ring) (ring-size ring))))
-
-(defun partial-recall--has-buffers-p ()
-  "Check if the current memory has buffers."
-  (when-let* ((reality (partial-recall--reality))
-              (moments (partial-recall--memory-ring reality)))
-
-    (not (ring-empty-p moments))))
 
 (defun partial-recall--mapped-buffers ()
   "Get all mapped buffers."
@@ -173,6 +145,31 @@ construction."
 
 ;; Helpers
 
+(defun partial-recall--reality ()
+  "Get the current memory."
+  (if-let* ((table partial-recall--table)
+            (key (partial-recall--key))
+            (memory (gethash key table)))
+      memory
+    (let ((new-memory (partial-recall--memory-create key)))
+
+      (when key
+        (puthash key new-memory table)
+        new-memory))))
+
+(defun partial-recall--reality-buffer-p (buffer)
+  "Check if BUFFER belongs to the current memory."
+  (when-let* ((reality (partial-recall--reality))
+              (moments (partial-recall--memory-ring reality)))
+
+    (partial-recall--ring-member moments buffer)))
+
+(defun partial-recall--reality-owns-buffer-p (&optional buffer)
+  "Check if reality owns BUFFER."
+  (when-let ((memory (partial-recall--reality)))
+
+    (partial-recall--memory-buffer-p memory buffer)))
+
 (defun partial-recall--should-extend-memory-p (memory)
   "Check if MEMORY should extend its ring size."
   (when-let* ((ring (partial-recall--memory-ring memory))
@@ -181,6 +178,13 @@ construction."
     (> partial-recall-max-age
        (- (floor (time-to-seconds))
           (partial-recall--moment-timestamp to-remove)))))
+
+(defun partial-recall--has-buffers-p (&optional memory)
+  "Check if the MEMORY has buffers."
+  (when-let* ((memory (or memory (partial-recall--reality)))
+              (moments (partial-recall--memory-ring memory)))
+
+    (not (ring-empty-p moments))))
 
 (defun partial-recall--buffer-owner (&optional buffer)
   "Return the memory that owns BUFFER.
@@ -191,12 +195,7 @@ Defaults to the current buffer."
 
     (seq-find (lambda (it) (partial-recall--memory-buffer-p it buffer)) memories)))
 
-
-(defun partial-recall--reality-owns-buffer-p (&optional buffer)
-  "Check if reality owns BUFFER."
-  (when-let ((memory (partial-recall--reality)))
-
-    (partial-recall--memory-buffer-p memory buffer)))
+;; Completion
 
 (defun partial-recall--complete-dream (prompt)
   "Complete dream buffer using PROMPT."
@@ -216,20 +215,6 @@ Defaults to the current buffer."
 
     (cdr-safe (assoc selection a ))))
 
-(defun partial-recall--warn (message)
-  "Warn about MESSAGE."
-  (display-warning 'partial-recall message :warning))
-
-(defun partial-recall--update-count (&optional buffer)
-  "Get the update count of BUFFER."
-  (when-let* ((buffer (or buffer (current-buffer)))
-              (reality (partial-recall--reality))
-              (moments (partial-recall--memory-ring reality))
-              (index (partial-recall--ring-member moments buffer))
-              (moment (ring-ref moments index)))
-
-    (partial-recall--moment-update-count moment)))
-
 (defun partial-recall--tab (memory)
   "Get the tab for MEMORY."
   (when-let ((key (partial-recall--memory-key memory))
@@ -243,6 +228,20 @@ Defaults to the current buffer."
              (tab (partial-recall--tab memory)))
 
     (alist-get 'name tab)))
+
+(defun partial-recall--update-count (&optional buffer)
+  "Get the update count of BUFFER."
+  (when-let* ((buffer (or buffer (current-buffer)))
+              (reality (partial-recall--reality))
+              (moments (partial-recall--memory-ring reality))
+              (index (partial-recall--ring-member moments buffer))
+              (moment (ring-ref moments index)))
+
+    (partial-recall--moment-update-count moment)))
+
+(defun partial-recall--warn (message)
+  "Warn about MESSAGE."
+  (display-warning 'partial-recall message :warning))
 
 ;; Handlers
 

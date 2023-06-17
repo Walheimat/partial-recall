@@ -25,6 +25,10 @@ If PRE is t, pre-remember the current buffer."
 
 ;; Hash table
 
+(ert-deftest pr--key--returns-if-set ()
+  (bydi ((:mock tab-bar--current-tab :return test-tab))
+    (should (string= "test-hash" (partial-recall--key)))))
+
 (ert-deftest pr--create-key ()
   (bydi ((:mock random :return 42)
          (:mock emacs-pid :return 1)
@@ -34,23 +38,7 @@ If PRE is t, pre-remember the current buffer."
     (partial-recall--create-key "test")
     (bydi-was-called-with md5 "test421keys")))
 
-(ert-deftest pr--key--returns-if-set ()
-  (bydi ((:mock tab-bar--current-tab :return test-tab))
-    (should (string= "test-hash" (partial-recall--key)))))
-
-;; Structures
-
-(ert-deftest pr--reality-buffer-p ()
-  (with-tab-history :pre t
-    (should (partial-recall--reality-buffer-p (current-buffer)))))
-
-(ert-deftest pr--has-buffers-p ()
-  (with-tab-history
-    (should-not (partial-recall--has-buffers-p))
-
-    (partial-recall--remember (current-buffer))
-
-    (should (partial-recall--has-buffers-p))))
+;; Structure
 
 (ert-deftest pr--mapped-buffer-p ()
   (with-tab-history :pre t
@@ -76,6 +64,23 @@ If PRE is t, pre-remember the current buffer."
 
 ;; Helpers
 
+(ert-deftest pr--reality-buffer-p ()
+  (with-tab-history :pre t
+    (should (partial-recall--reality-buffer-p (current-buffer)))))
+
+(ert-deftest pr--reality-owns-buffer-p ()
+  (with-tab-history :pre t
+    (should (partial-recall--reality-owns-buffer-p (current-buffer)))))
+
+
+(ert-deftest pr--has-buffers-p ()
+  (with-tab-history
+    (should-not (partial-recall--has-buffers-p))
+
+    (partial-recall--remember (current-buffer))
+
+    (should (partial-recall--has-buffers-p))))
+
 (ert-deftest pr--should-extend-memory-p ()
   (let ((seconds '(10 11 12))
         (partial-recall-limit 1)
@@ -98,9 +103,7 @@ If PRE is t, pre-remember the current buffer."
 
       (should (eq memory (partial-recall--buffer-owner))))))
 
-(ert-deftest pr--reality-owns-buffer-p ()
-  (with-tab-history :pre t
-    (should (partial-recall--reality-owns-buffer-p (current-buffer)))))
+;; Completion
 
 (ert-deftest pr--complete-dream ()
   (bydi-with-mock ((:mock completing-read :return "second")
@@ -116,10 +119,9 @@ If PRE is t, pre-remember the current buffer."
                    (:mock buffer-name :with bydi-rf))
     (should (string= "second" (partial-recall--complete-reality "Some prompt: ")))))
 
-(ert-deftest pr--warn ()
-  (bydi (display-warning)
-    (partial-recall--warn "Testing")
-    (bydi-was-called-with display-warning (list 'partial-recall "Testing" :warning))))
+(ert-deftest pr--tab ()
+  (with-tab-history :pre t
+    (should (string= (partial-recall--tab-name) "test-tab"))))
 
 (ert-deftest pr--update-count ()
   (with-tab-history
@@ -135,9 +137,10 @@ If PRE is t, pre-remember the current buffer."
       (should (eq 1 (partial-recall--update-count)))
       (kill-buffer another-temp))))
 
-(ert-deftest pr--tab ()
-  (with-tab-history :pre t
-    (should (string= (partial-recall--tab-name) "test-tab"))))
+(ert-deftest pr--warn ()
+  (bydi (display-warning)
+    (partial-recall--warn "Testing")
+    (bydi-was-called-with display-warning (list 'partial-recall "Testing" :warning))))
 
 ;; Handlers
 
@@ -150,15 +153,6 @@ If PRE is t, pre-remember the current buffer."
       (partial-recall--handle-buffer (current-buffer))
       (bydi-was-called partial-recall--remember))))
 
-(ert-deftest pr--on-create--sets-cdr ()
-  (bydi ((:mock partial-recall--create-key :return "test"))
-
-    (let ((tab '(current-tab (name . "test-tab") (explicit-name))))
-
-      (partial-recall--on-create tab)
-
-      (should (string= "test" (alist-get 'pr tab))))))
-
 (ert-deftest pr--handle-buffer--reclaims ()
   (with-tab-history
     (bydi (partial-recall--remember
@@ -168,6 +162,15 @@ If PRE is t, pre-remember the current buffer."
 
       (partial-recall--handle-buffer (current-buffer))
       (bydi-was-called partial-recall--recollect))))
+
+(ert-deftest pr--on-create--sets-cdr ()
+  (bydi ((:mock partial-recall--create-key :return "test"))
+
+    (let ((tab '(current-tab (name . "test-tab") (explicit-name))))
+
+      (partial-recall--on-create tab)
+
+      (should (string= "test" (alist-get 'pr tab))))))
 
 (ert-deftest pr--on-close ()
   (with-tab-history :pre t
@@ -348,6 +351,12 @@ If PRE is t, pre-remember the current buffer."
       (bydi-was-called partial-recall--key)
       (bydi-was-called partial-recall--on-create))))
 
+(ert-deftest pr--queue-fix-up ()
+  (bydi (run-at-time)
+    (partial-recall--queue-fix-up)
+
+    (bydi-was-called-with run-at-time (list 1.0 nil #'partial-recall--fix-up-primary-tab))))
+
 (ert-deftest pr--setup ()
   (defvar tab-bar-tabs-function nil)
   (defvar tab-bar-mode nil)
@@ -364,12 +373,6 @@ If PRE is t, pre-remember the current buffer."
       (bydi-was-called partial-recall--queue-fix-up)
       (bydi-was-called-n-times add-hook 6)
       (bydi-was-called tab-bar-mode))))
-
-(ert-deftest pr--queue-fix-up ()
-  (bydi (run-at-time)
-    (partial-recall--queue-fix-up)
-
-    (bydi-was-called-with run-at-time (list 1.0 nil #'partial-recall--fix-up-primary-tab))))
 
 (ert-deftest pr--teardown ()
   (bydi (remove-hook)
