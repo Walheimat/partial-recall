@@ -230,9 +230,8 @@ This will remember new buffers and maybe reclaim mapped buffers."
   (when (buffer-live-p buffer)
     (setq partial-recall--last-checked buffer)
 
-    (if (and partial-recall-reclaim
-             (partial-recall--mapped-buffer-p buffer))
-        (partial-recall--reclaim buffer)
+    (if (partial-recall--mapped-buffer-p buffer)
+        (partial-recall--recollect buffer)
       (partial-recall--remember buffer))))
 
 (defun partial-recall--on-create (tab)
@@ -274,10 +273,9 @@ This will remember new buffers and maybe reclaim mapped buffers."
     (dolist (tab tabs)
       (partial-recall--on-close tab nil))))
 
-(defun partial-recall--remember (&optional buffer)
+(defun partial-recall--remember (buffer)
   "Remember the BUFFER for this tab."
   (when-let* ((tab-key (partial-recall--key))
-              (buffer (or buffer (current-buffer)))
               (memory (partial-recall--get-or-create-memory tab-key))
               (ring (partial-recall--memory-ring memory)))
 
@@ -288,13 +286,26 @@ This will remember new buffers and maybe reclaim mapped buffers."
 
       (ring-insert ring (partial-recall--moment-create buffer)))))
 
-(defun partial-recall--reclaim (&optional buffer force)
+(defun partial-recall--recollect (buffer)
+  "Recollect the BUFFER."
+  (if (partial-recall--reality-buffer-p buffer)
+      (partial-recall--reinforce buffer)
+    (when partial-recall-reclaim
+      (partial-recall--reclaim buffer))))
+
+(defun partial-recall--reinforce (buffer)
+  "Reinforce the BUFFER.
+
+This will forget and remember the buffer."
+  (partial-recall--forget buffer)
+  (partial-recall--remember buffer))
+
+(defun partial-recall--reclaim (buffer &optional force)
   "Reclaim BUFFER if possible.
 
 If BUFFER is nil, reclaim the current buffer. If FORCE is t, will
 reclaim even if the threshold wasn't passed."
-  (and-let* ((buffer (or buffer (current-buffer)))
-             (reality (partial-recall--reality))
+  (and-let* ((reality (partial-recall--reality))
              (owner (partial-recall--buffer-owner buffer))
              ((not (eq reality owner)))
              (ring (partial-recall--memory-ring owner))
@@ -312,11 +323,8 @@ reclaim even if the threshold wasn't passed."
     (partial-recall--remember buffer)))
 
 (defun partial-recall--forget (&optional buffer)
-  "Forget BUFFER.
-
-If BUFFER is nil, forget the current buffer."
+  "Forget BUFFER."
   (let* ((buffer (or buffer (current-buffer)))
-
          (table partial-recall--table)
          (maybe-remove (lambda (_key memory)
                          (when-let* ((ring (partial-recall--memory-ring memory))
@@ -390,7 +398,7 @@ If BUFFER is nil, forget the current buffer."
   (let ((map (make-sparse-keymap)))
 
     (define-key map (kbd "b") 'partial-recall-switch-to-buffer)
-    (define-key map (kbd "r") 'partial-recall-remember)
+    (define-key map (kbd "r") 'partial-recall-reinforce)
     (define-key map (kbd "c") 'partial-recall-reclaim)
     (define-key map (kbd "s") 'partial-recall-steal)
     (define-key map (kbd "f") 'partial-recall-forget)
@@ -413,20 +421,18 @@ If BUFFER is nil, forget the current buffer."
   (switch-to-buffer buffer))
 
 ;;;###autoload
-(defun partial-recall-remember ()
-  "Remember this buffer."
+(defun partial-recall-reinforce ()
+  "Reinforce this buffer."
   (interactive)
 
-  (partial-recall--remember (current-buffer)))
+  (partial-recall--reinforce (current-buffer)))
 
 ;;;###autoload
-(defun partial-recall-reclaim (&optional force)
+(defun partial-recall-reclaim ()
   "Reclaim BUFFER.
 
-If FORCE is t, will reclaim even if the threshold wasn't passed."
-  (interactive "P")
-
-  (partial-recall--reclaim (current-buffer) force))
+This will always force-reclaim."
+(partial-recall--reclaim (current-buffer) t))
 
 ;;;###autoload
 (defun partial-recall-steal (buffer)

@@ -39,32 +39,32 @@
   (with-tab-history
    (should-not (partial-recall--moments))
 
-   (partial-recall--remember)
+   (partial-recall--remember (current-buffer))
 
    (should (partial-recall--moments))))
 
 (ert-deftest pr--reality-buffer-p ()
   (with-tab-history
-   (partial-recall--remember)
+   (partial-recall--remember (current-buffer))
    (should (partial-recall--reality-buffer-p (current-buffer)))))
 
 (ert-deftest pr--has-buffers-p ()
   (with-tab-history
    (should-not (partial-recall--has-buffers-p))
 
-   (partial-recall--remember)
+   (partial-recall--remember (current-buffer))
 
    (should (partial-recall--has-buffers-p))))
 
 (ert-deftest pr--mapped-buffer-p ()
   (with-tab-history
-   (partial-recall--remember)
+   (partial-recall--remember (current-buffer))
 
    (should (partial-recall--mapped-buffer-p (current-buffer)))))
 
 (ert-deftest pr--memory-buffer-p ()
   (with-tab-history
-   (partial-recall--remember)
+   (partial-recall--remember (current-buffer))
 
    (let ((memory (gethash (alist-get 'pr test-tab) partial-recall--table)))
 
@@ -72,7 +72,7 @@
 
 (ert-deftest pr-moment-buffer-p ()
   (with-tab-history
-   (partial-recall--remember)
+   (partial-recall--remember (current-buffer))
 
    (let* ((memory (gethash (alist-get 'pr test-tab) partial-recall--table))
           (ring (partial-recall--memory-ring memory))
@@ -90,7 +90,7 @@
     (with-tab-history
      (bydi ((:mock time-to-seconds :with (lambda (&rest _) (pop seconds))))
 
-       (partial-recall--remember)
+       (partial-recall--remember (current-buffer))
 
        (let ((memory (partial-recall--get-or-create-memory (partial-recall--key))))
 
@@ -99,7 +99,7 @@
 
 (ert-deftest pr-recall--buffer-owner ()
   (with-tab-history
-   (partial-recall--remember)
+   (partial-recall--remember (current-buffer))
 
    (let ((memory (partial-recall--get-or-create-memory (partial-recall--key))))
 
@@ -107,7 +107,7 @@
 
 (ert-deftest pr--reality-owns-buffer-p ()
   (with-tab-history
-    (partial-recall--remember)
+    (partial-recall--remember (current-buffer))
     (should (partial-recall--reality-owns-buffer-p (current-buffer)))))
 
 (ert-deftest pr--complete-dream ()
@@ -152,16 +152,16 @@
 (ert-deftest pr--handle-buffer--reclaims ()
   (with-tab-history
    (bydi (partial-recall--remember
-          partial-recall--reclaim
+          partial-recall--recollect
           (:always buffer-live-p)
           (:always partial-recall--mapped-buffer-p))
 
      (partial-recall--handle-buffer (current-buffer))
-     (bydi-was-called partial-recall--reclaim))))
+     (bydi-was-called partial-recall--recollect))))
 
 (ert-deftest pr--on-close ()
   (with-tab-history
-   (partial-recall--remember)
+   (partial-recall--remember (current-buffer))
 
    (should (eq 1 (length (hash-table-keys partial-recall--table))))
 
@@ -201,7 +201,7 @@
 (ert-deftest pr-remember--remembers ()
   (with-tab-history
 
-   (partial-recall--remember)
+   (partial-recall--remember (current-buffer))
 
    (should-not (null (gethash (alist-get 'pr test-tab) partial-recall--table)))))
 
@@ -210,8 +210,8 @@
 
   (with-tab-history
 
-   (partial-recall--remember)
-   (partial-recall--remember)
+   (partial-recall--remember (current-buffer))
+   (partial-recall--remember (current-buffer))
 
    (let* ((memory (gethash (alist-get 'pr test-tab) partial-recall--table))
           (ring (partial-recall--memory-ring memory)))
@@ -224,37 +224,64 @@
           (:always partial-recall--should-extend-memory-p)
           ring-extend)
 
-     (partial-recall--remember)
+     (partial-recall--remember (current-buffer))
      (bydi-was-called ring-extend))))
+
+(ert-deftest pr-recollect--reinforces-reality-or-reclaims ()
+  (bydi ((:sometimes partial-recall--reality-buffer-p)
+         partial-recall--reinforce
+         partial-recall--reclaim)
+    (partial-recall--recollect (current-buffer))
+
+    (bydi-was-called partial-recall--reinforce)
+    (bydi-toggle-sometimes)
+    (bydi-clear-mocks)
+
+    (let ((partial-recall-reclaim t))
+
+      (partial-recall--recollect (current-buffer))
+      (bydi-was-called partial-recall--reclaim)
+
+      (bydi-clear-mocks)
+
+      (setq partial-recall-reclaim nil)
+      (partial-recall--recollect (current-buffer))
+      (bydi-was-not-called partial-recall--reclaim))))
+
+(ert-deftest pr-reinforce--forgets-and-remembers ()
+  (bydi (partial-recall--forget partial-recall--remember)
+    (partial-recall--reinforce (current-buffer))
+
+    (bydi-was-called partial-recall--forget)
+    (bydi-was-called partial-recall--remember)))
 
 (ert-deftest pr-reclaim--reclaims-from-other ()
   (let ((seconds '(10 12))
         (partial-recall-reclaim-min-age 0))
     (with-tab-history
      (bydi ((:mock time-to-seconds :with (lambda (&rest _) (pop seconds))))
-       (partial-recall--remember)
+       (partial-recall--remember (current-buffer))
 
        (bydi ((:mock partial-recall--reality :return 'other)
               partial-recall--remember)
 
-         (partial-recall--reclaim)
+         (partial-recall--reclaim (current-buffer))
 
          (bydi-was-called partial-recall--remember))))))
 
 (ert-deftest pr-reclaim--no-op-for-same ()
   (with-tab-history
-   (partial-recall--remember)
+   (partial-recall--remember (current-buffer))
 
    (bydi (partial-recall--remember)
 
-     (with-current-buffer (current-buffer)
-       (partial-recall--reclaim))
+     (partial-recall--reclaim (current-buffer))
 
      (bydi-was-not-called partial-recall--remember))))
 
 (ert-deftest pr-forget--forgets ()
   (with-tab-history
-   (partial-recall--remember)
+   (partial-recall--remember (current-buffer))
 
    (partial-recall--forget)
 
@@ -341,20 +368,20 @@
 (ert-deftest pr--api ()
   (let ((partial-recall-mode nil))
 
-    (bydi (partial-recall--remember
+    (bydi (partial-recall--reinforce
            partial-recall--reclaim
            partial-recall--forget
            partial-recall--complete-dream
            partial-recall--complete-reality
            switch-to-buffer)
 
-      (partial-recall-remember)
+      (partial-recall-reinforce)
       (partial-recall-reclaim)
       (partial-recall-forget)
       (call-interactively 'partial-recall-steal)
       (call-interactively 'partial-recall-switch-to-buffer)
 
-      (bydi-was-called partial-recall--remember)
+      (bydi-was-called partial-recall--reinforce)
       (bydi-was-called partial-recall--reclaim)
       (bydi-was-called partial-recall--forget)
       (bydi-was-called partial-recall--complete-dream)
