@@ -18,6 +18,7 @@
 ;; reclaiming buffers from other tabs if they're relatively old.
 ;; Buffers are called moments in the context of this package.
 
+
 ;;; Code:
 
 (require 'cl-lib)
@@ -440,11 +441,19 @@ If FORCE is t, will reclaim even if the threshold wasn't passed."
       (partial-recall-mode--setup)
     (partial-recall-mode--teardown)))
 
+;;;###autoload
 (defun partial-recall-switch-to-buffer (buffer)
   "Switch to BUFFER."
   (interactive (list (partial-recall--complete-reality "Switch to moment: ")))
 
   (switch-to-buffer buffer))
+
+;;;###autoload
+(defun partial-recall-steal (buffer)
+  "Steal BUFFER from another memory."
+  (interactive (list (partial-recall--complete-dream "Steal moment: ")))
+
+  (partial-recall--reclaim buffer t))
 
 ;;;###autoload
 (defun partial-recall-reinforce ()
@@ -458,14 +467,7 @@ If FORCE is t, will reclaim even if the threshold wasn't passed."
   "Reclaim BUFFER.
 
 This will always force-reclaim."
-(partial-recall--reclaim (current-buffer) t))
-
-;;;###autoload
-(defun partial-recall-steal (buffer)
-  "Steal BUFFER from another memory."
-  (interactive (list (partial-recall--complete-dream "Select moment to steal: ")))
-
-  (partial-recall--reclaim buffer t))
+  (partial-recall--reclaim (current-buffer) t))
 
 ;;;###autoload
 (defun partial-recall-forget ()
