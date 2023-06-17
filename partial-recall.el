@@ -127,7 +127,7 @@ construction."
 
 (defun partial-recall--reality-buffer-p (buffer)
   "Check if BUFFER belongs to the current memory."
-  (let ((moments (partial-recall--reality-moments)))
+  (when-let ((moments (partial-recall--reality-moments)))
 
     (partial-recall--ring-member moments buffer)))
 
@@ -140,20 +140,21 @@ construction."
 
 (defun partial-recall--memory-at-capacity-p (memory)
   "Check if MEMORY is at capacity."
-  (let ((ring (partial-recall--memory-ring memory)))
+  (when-let ((ring (partial-recall--memory-ring memory)))
+
     (eq (ring-length ring) (ring-size ring))))
 
 (defun partial-recall--has-buffers-p ()
   "Check if the current memory has buffers."
-  (let ((moments (partial-recall--reality-moments)))
+  (when-let ((moments (partial-recall--reality-moments)))
 
     (not (ring-empty-p moments))))
 
 (defun partial-recall--mapped-buffers ()
   "Get all mapped buffers."
   (let ((mapped (cl-loop for _k being the hash-keys of partial-recall--table
-                        using (hash-values memory)
-                        append (ring-elements (partial-recall--memory-ring memory)))))
+                         using (hash-values memory)
+                         append (ring-elements (partial-recall--memory-ring memory)))))
     (mapcar #'partial-recall--moment-buffer mapped)))
 
 (defun partial-recall--mapped-buffer-p (buffer)
@@ -223,10 +224,10 @@ Defaults to the current buffer."
 
 (defun partial-recall--update-count (&optional buffer)
   "Get the update count of BUFFER."
-  (let* ((buffer (or buffer (current-buffer)))
-         (moments (partial-recall--reality-moments))
-         (index (partial-recall--ring-member moments buffer))
-         (moment (ring-ref moments index)))
+  (when-let* ((buffer (or buffer (current-buffer)))
+              (moments (partial-recall--reality-moments))
+              (index (partial-recall--ring-member moments buffer))
+              (moment (ring-ref moments index)))
 
     (partial-recall--moment-update-count moment)))
 
