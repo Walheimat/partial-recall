@@ -97,14 +97,15 @@ was remembered."
 
 (cl-defstruct (partial-recall--memory
                (:constructor partial-recall--memory-create
-                             (&aux
+                             (key
+                              &aux
                               (ring (make-ring partial-recall-buffer-limit))
                               (orig-size partial-recall-buffer-limit))))
   "A memory of partial recall.
 
 A memory is a ring of moments and the size it had upon
 construction."
-  ring orig-size)
+  key ring orig-size)
 
 ;; Functionality
 
@@ -114,7 +115,7 @@ construction."
             (key (partial-recall--key))
             (memory (gethash key table)))
       memory
-    (let ((new-memory (partial-recall--memory-create)))
+    (let ((new-memory (partial-recall--memory-create key)))
 
       (when key
         (puthash key new-memory table)
@@ -231,6 +232,20 @@ Defaults to the current buffer."
               (moment (ring-ref moments index)))
 
     (partial-recall--moment-update-count moment)))
+
+(defun partial-recall--tab (memory)
+  "Get the tab for MEMORY."
+  (when-let ((key (partial-recall--memory-key memory))
+             (tabs (funcall tab-bar-tabs-function)))
+
+    (seq-find (lambda (it) (string= key (alist-get 'pr it))) tabs)))
+
+(defun partial-recall--tab-name (&optional memory)
+  "Get the tab name for MEMORY."
+  (when-let ((memory (or memory (partial-recall--reality)))
+             (tab (partial-recall--tab memory)))
+
+    (alist-get 'name tab)))
 
 ;; Handlers
 
