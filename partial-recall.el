@@ -328,12 +328,11 @@ re-inserted and its timestamp updated.
 
 If FORCE is t, re-insertion and update will always be performed."
   (and-let* ((reality (partial-recall--reality))
+             ((or force (partial-recall--memory-at-capacity-p reality)))
              (moments (partial-recall--reality-moments))
              (index (partial-recall--ring-member moments buffer))
              (moment (ring-ref moments index))
-             (count (partial-recall--moment-update-count moment))
-             (size (ring-size moments))
-             ((or force (>= index (1- size)))))
+             (count (partial-recall--moment-update-count moment)))
 
     (ring-remove+insert+extend moments (ring-ref moments index) t)
 
