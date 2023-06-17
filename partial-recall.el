@@ -442,7 +442,7 @@ If FORCE is t, will reclaim even if the threshold wasn't passed."
 
 (defun partial-recall-switch-to-buffer (buffer)
   "Switch to BUFFER."
-  (interactive (list (partial-recall--complete-reality "Switch to buffer: ")))
+  (interactive (list (partial-recall--complete-reality "Switch to moment: ")))
 
   (switch-to-buffer buffer))
 
@@ -463,7 +463,7 @@ This will always force-reclaim."
 ;;;###autoload
 (defun partial-recall-steal (buffer)
   "Steal BUFFER from another memory."
-  (interactive (list (partial-recall--complete-dream "Select buffer to steal: ")))
+  (interactive (list (partial-recall--complete-dream "Select moment to steal: ")))
 
   (partial-recall--reclaim buffer t))
 
