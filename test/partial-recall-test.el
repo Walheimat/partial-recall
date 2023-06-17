@@ -33,14 +33,16 @@
   (bydi ((:mock tab-bar--current-tab :return test-tab))
     (should (string= "test-hash" (partial-recall--key)))))
 
+(ert-deftest pr--key--returns-default-if-no-creation-possible ()
+  (bydi ((:mock tab-bar--current-tab :return nil)
+         partial-recall--warn)
+    (should (string= "default" (partial-recall--key)))
+    (bydi-was-called partial-recall--warn)))
+
 ;; Structures
 
 (ert-deftest pr--moments ()
   (with-tab-history
-   (should-not (partial-recall--reality-moments))
-
-   (partial-recall--remember (current-buffer))
-
    (should (partial-recall--reality-moments))))
 
 (ert-deftest pr--reality-buffer-p ()
@@ -92,7 +94,7 @@
 
        (partial-recall--remember (current-buffer))
 
-       (let ((memory (partial-recall--get-or-create-memory (partial-recall--key))))
+       (let ((memory (partial-recall--reality)))
 
          (should (partial-recall--should-extend-memory-p memory))
          (should-not (partial-recall--should-extend-memory-p memory)))))))
@@ -101,7 +103,7 @@
   (with-tab-history
    (partial-recall--remember (current-buffer))
 
-   (let ((memory (partial-recall--get-or-create-memory (partial-recall--key))))
+   (let ((memory (partial-recall--reality)))
 
      (should (eq memory (partial-recall--buffer-owner))))))
 
