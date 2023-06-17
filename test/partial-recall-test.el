@@ -33,12 +33,6 @@
   (bydi ((:mock tab-bar--current-tab :return test-tab))
     (should (string= "test-hash" (partial-recall--key)))))
 
-(ert-deftest pr--key--returns-default-if-no-creation-possible ()
-  (bydi ((:mock tab-bar--current-tab :return nil)
-         partial-recall--warn)
-    (should (string= "default" (partial-recall--key)))
-    (bydi-was-called partial-recall--warn)))
-
 ;; Structures
 
 (ert-deftest pr--moments ()

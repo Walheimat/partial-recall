@@ -67,11 +67,9 @@ Has no effect if `partial-recall-reclaim' is nil."
 
 (defun partial-recall--key (&optional tab)
   "Get the hash key of TAB."
-  (if-let* ((tab (or tab (tab-bar--current-tab)))
-            (key (alist-get 'pr tab)))
-      key
-    (partial-recall--warn "Could not create key!")
-    "default"))
+  (when-let* ((tab (or tab (tab-bar--current-tab)))
+              (key (alist-get 'pr tab)))
+    key))
 
 (defun partial-recall--create-key (tab)
   "Create the key for TAB.
@@ -117,12 +115,13 @@ construction."
       memory
     (let ((new-memory (partial-recall--memory-create)))
 
-      (puthash key new-memory table)
-      new-memory)))
+      (when key
+        (puthash key new-memory table)
+        new-memory))))
 
 (defun partial-recall--reality-moments ()
   "Get the moments from the current memory."
-  (let ((reality (partial-recall--reality)))
+  (when-let ((reality (partial-recall--reality)))
 
     (partial-recall--memory-ring reality)))
 
@@ -196,7 +195,7 @@ Defaults to the current buffer."
 
 (defun partial-recall--reality-owns-buffer-p (&optional buffer)
   "Check if reality owns BUFFER."
-  (let ((memory (partial-recall--reality)))
+  (when-let ((memory (partial-recall--reality)))
 
     (partial-recall--memory-buffer-p memory buffer)))
 
@@ -255,7 +254,7 @@ This will remember new buffers and maybe reclaim mapped buffers."
 
 (defun partial-recall--on-close (tab only)
   "Remove TAB from table if it is not the ONLY one."
-  (let* ((tab-key (partial-recall--key tab))
+  (when-let* ((tab-key (partial-recall--key tab))
               (table partial-recall--table))
 
     (when (and (not only)
@@ -287,8 +286,8 @@ This will remember new buffers and maybe reclaim mapped buffers."
 
 (defun partial-recall--remember (buffer)
   "Remember the BUFFER for this tab."
-  (let* ((memory (partial-recall--reality))
-         (ring (partial-recall--memory-ring memory)))
+  (when-let* ((memory (partial-recall--reality))
+              (ring (partial-recall--memory-ring memory)))
 
     (unless (partial-recall--ring-member ring buffer)
       (when (and (partial-recall--memory-at-capacity-p memory)
