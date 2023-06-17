@@ -302,18 +302,20 @@ This will remember new buffers and maybe reclaim mapped buffers."
     (when partial-recall-reclaim
       (partial-recall--reclaim buffer))))
 
-(defun partial-recall--reinforce (buffer)
+(defun partial-recall--reinforce (buffer &optional force)
   "Reinforce the BUFFER.
 
 If the buffer is close to being lost to the memory, it is
-re-inserted and its timestamp updated."
+re-inserted and its timestamp updated.
+
+If FORCE is t, re-insertion and update will always be performed."
   (and-let* ((reality (partial-recall--reality))
              (moments (partial-recall--reality-moments))
              (index (partial-recall--ring-member moments buffer))
              (moment (ring-ref moments index))
              (count (partial-recall--moment-update-count moment))
              (size (ring-size moments))
-             ((>= index (1- size))))
+             ((or force (>= index (1- size)))))
 
     (ring-remove+insert+extend moments (ring-ref moments index) t)
 
@@ -446,7 +448,7 @@ reclaim even if the threshold wasn't passed."
   "Reinforce this buffer."
   (interactive)
 
-  (partial-recall--reinforce (current-buffer)))
+  (partial-recall--reinforce (current-buffer) t))
 
 ;;;###autoload
 (defun partial-recall-reclaim ()

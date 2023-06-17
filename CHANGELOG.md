@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Afterwards timestamp and update count (see below) are increased.
 - `partial-recall--moment` structs now have field `update-count` (for
   future debug purposes).
+- User-facing `partial-recall-reinforce` will now force `--reinforce`.
 
 ## [v0.3.0]
 
@@ -23,7 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `partial-recall--handle-buffer` now calls new
   `partial-recall--recollect` instead of `--reclaim`. This will either
   call `--reclaim` if the buffer is not part of the "reality" or new
-  function `--reinfroce` that will recreate the moment. This makes
+  function `--reinforce` that will recreate the moment. This makes
   sure that often-visited buffers aren't forgotten just because they
   were visited early on.
 
@@ -40,7 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `partial-recall--handle-buffer` now calls new
   `partial-recall--recollect` instead of `--reclaim`. This will either
   call `--reclaim` if the buffer is not part of the "reality" or new
-  function `--reinfroce` that will recreate the moment. This makes
+  function `--reinforce` that will recreate the moment. This makes
   sure that often-visited buffers aren't forgotten just because they
   were visited early on.
 

@@ -265,7 +265,8 @@
 (ert-deftest pr-reinforce--reinforces-old-buffers ()
   (with-tab-history
     (partial-recall--remember (current-buffer))
-    (should-not (partial-recall--reinforce (current-buffer))))
+    (should-not (partial-recall--reinforce (current-buffer)))
+    (should (partial-recall--reinforce (current-buffer) t)))
 
   (with-tab-history
     (let ((count nil)
