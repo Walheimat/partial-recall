@@ -14,7 +14,7 @@
 ;; a ring. These rings are called memories in the context of this
 ;; package; the current memory is called reality, all other memories
 ;; are dreams. Buffers are time-stamped to (1) allow for the memory to
-;; grow if the oldest one is still relatively recent and (2) to allow
+;; grow if the oldest one is still relatively young and (2) to allow
 ;; reclaiming buffers from other tabs if they're relatively old.
 ;; Buffers are called moments in the context of this package.
 
@@ -70,6 +70,7 @@ Has no effect if `partial-recall-reclaim' is nil."
   "Get the hash key of TAB."
   (when-let* ((tab (or tab (tab-bar--current-tab)))
               (key (alist-get 'pr tab)))
+
     key))
 
 (defun partial-recall--create-key (tab)
@@ -107,13 +108,6 @@ A memory is a ring of moments and the size it had upon
 construction."
   key ring orig-size)
 
-(defun partial-recall--ring-member (ring buffer)
-  "Check if BUFFER is a member of RING."
-  (catch 'found
-    (dotimes (ind (ring-length ring))
-      (when (equal buffer (partial-recall--moment-buffer (ring-ref ring ind)))
-        (throw 'found ind)))))
-
 (defun partial-recall--memory-at-capacity-p (memory)
   "Check if MEMORY is at capacity."
   (when-let ((ring (partial-recall--memory-ring memory)))
@@ -125,6 +119,7 @@ construction."
   (let ((mapped (cl-loop for _k being the hash-keys of partial-recall--table
                          using (hash-values memory)
                          append (ring-elements (partial-recall--memory-ring memory)))))
+
     (mapcar #'partial-recall--moment-buffer mapped)))
 
 (defun partial-recall--mapped-buffer-p (buffer)
@@ -135,13 +130,20 @@ construction."
 
 (defun partial-recall--memory-buffer-p (memory buffer)
   "Check if MEMORY owns BUFFER."
-  (partial-recall--ring-member
+  (partial-recall--moments-member
    (partial-recall--memory-ring memory)
    buffer))
 
 (defun partial-recall--moment-buffer-p (moment buffer)
   "Check if MOMENT owns BUFFER."
   (eq (partial-recall--moment-buffer moment) buffer))
+
+(defun partial-recall--moments-member (moments buffer)
+  "Check if BUFFER is a member of MOMENTS."
+  (catch 'found
+    (dotimes (ind (ring-length moments))
+      (when (equal buffer (partial-recall--moment-buffer (ring-ref moments ind)))
+        (throw 'found ind)))))
 
 ;; Helpers
 
@@ -162,7 +164,7 @@ construction."
   (when-let* ((reality (partial-recall--reality))
               (moments (partial-recall--memory-ring reality)))
 
-    (partial-recall--ring-member moments buffer)))
+    (partial-recall--moments-member moments buffer)))
 
 (defun partial-recall--reality-owns-buffer-p (&optional buffer)
   "Check if reality owns BUFFER."
@@ -171,9 +173,12 @@ construction."
     (partial-recall--memory-buffer-p memory buffer)))
 
 (defun partial-recall--should-extend-memory-p (memory)
-  "Check if MEMORY should extend its ring size."
+  "Check if MEMORY should extend its ring size.
+
+This is the case if the oldest ring element is still younger than
+the max age."
   (when-let* ((ring (partial-recall--memory-ring memory))
-              (to-remove (ring-ref ring (1- (ring-length ring)))))
+              (to-remove (partial-recall--ring-oldest ring)))
 
     (> partial-recall-max-age
        (- (floor (time-to-seconds))
@@ -234,10 +239,16 @@ Defaults to the current buffer."
   (when-let* ((buffer (or buffer (current-buffer)))
               (reality (partial-recall--reality))
               (moments (partial-recall--memory-ring reality))
-              (index (partial-recall--ring-member moments buffer))
+              (index (partial-recall--moments-member moments buffer))
               (moment (ring-ref moments index)))
 
     (partial-recall--moment-update-count moment)))
+
+;; Utility
+
+(defun partial-recall--ring-oldest (ring)
+  "Get the oldest element in RING."
+  (ring-ref ring (1- (ring-length ring))))
 
 (defun partial-recall--warn (message)
   "Warn about MESSAGE."
@@ -302,7 +313,7 @@ This will remember new buffers and maybe reclaim mapped buffers."
   (when-let* ((memory (partial-recall--reality))
               (ring (partial-recall--memory-ring memory)))
 
-    (unless (partial-recall--ring-member ring buffer)
+    (unless (partial-recall--moments-member ring buffer)
       (when (and (partial-recall--memory-at-capacity-p memory)
                  (partial-recall--should-extend-memory-p memory))
         (ring-extend ring 1))
@@ -326,7 +337,7 @@ If FORCE is t, re-insertion and update will always be performed."
   (and-let* ((reality (partial-recall--reality))
              ((or force (partial-recall--memory-at-capacity-p reality)))
              (moments (partial-recall--memory-ring reality))
-             (index (partial-recall--ring-member moments buffer))
+             (index (partial-recall--moments-member moments buffer))
              (moment (ring-ref moments index))
              (count (partial-recall--moment-update-count moment)))
 
@@ -351,7 +362,7 @@ If FORCE is t, will reclaim even if the threshold wasn't passed."
                   (< partial-recall-reclaim-min-age
                      (- (floor (time-to-seconds))
                         (partial-recall--moment-timestamp moment)))))
-             (index (partial-recall--ring-member ring buffer)))
+             (index (partial-recall--moments-member ring buffer)))
 
     ;; Forget in the old memory.
     (ring-remove ring index)
@@ -365,7 +376,7 @@ If FORCE is t, will reclaim even if the threshold wasn't passed."
          (table partial-recall--table)
          (maybe-remove (lambda (_key memory)
                          (when-let* ((ring (partial-recall--memory-ring memory))
-                                     (index (partial-recall--ring-member ring buffer)))
+                                     (index (partial-recall--moments-member ring buffer)))
 
                            (ring-remove ring index)))))
 

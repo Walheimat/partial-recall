@@ -83,7 +83,7 @@ If PRE is t, pre-remember the current buffer."
 
 (ert-deftest pr--should-extend-memory-p ()
   (let ((seconds '(10 11 12))
-        (partial-recall-limit 1)
+        (partial-recall-buffer-limit 1)
         (partial-recall-max-age 2))
 
     (with-tab-history
@@ -136,6 +136,8 @@ If PRE is t, pre-remember the current buffer."
 
       (should (eq 1 (partial-recall--update-count)))
       (kill-buffer another-temp))))
+
+;; Utility
 
 (ert-deftest pr--warn ()
   (bydi (display-warning)
@@ -270,7 +272,7 @@ If PRE is t, pre-remember the current buffer."
                        (let* ((reality (partial-recall--reality))
                               (moments (partial-recall--memory-ring reality))
                               (buffer (current-buffer))
-                              (moment (ring-ref moments (partial-recall--ring-member moments buffer))))
+                              (moment (ring-ref moments (partial-recall--moments-member moments buffer))))
                          (partial-recall--moment-update-count moment)))))
 
       (setq partial-recall-buffer-limit 2)
