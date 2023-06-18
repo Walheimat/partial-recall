@@ -18,7 +18,6 @@
 ;; reclaiming buffers from other tabs if they're relatively old.
 ;; Buffers are called moments in the context of this package.
 
-
 ;;; Code:
 
 (require 'cl-lib)
@@ -29,7 +28,7 @@
   "Short-term (buffer) memory."
   :group 'partial-recall)
 
-(defcustom partial-recall-buffer-limit 20
+(defcustom partial-recall-buffer-limit 10
   "The amount of buffers to recall.
 
 This limit of a memory may increase if buffers are remembered in

@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- The default buffer limit was halved (20 -> 10).
 - All user-facing commands now use appropriate completion instead of
   applying only to the current buffer.
 - Memories are now created with the key added to the tab for
