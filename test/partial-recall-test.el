@@ -144,6 +144,18 @@ If PRE is t, pre-remember the current buffer."
     (partial-recall--warn "Testing")
     (bydi-was-called-with display-warning (list 'partial-recall "Testing" :warning))))
 
+(ert-deftest pr--log ()
+  (let ((partial-recall--log nil))
+
+    (should-not (partial-recall--log "test: %s %s" "one" "two"))
+
+    (partial-recall-toggle-logging)
+
+    (ert-with-message-capture messages
+      (partial-recall--log "test: %s %s" "one" "two")
+
+      (should (string= messages "test: one two\n")))))
+
 ;; Handlers
 
 (ert-deftest pr--handle-buffer ()

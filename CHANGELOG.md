@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Function `partial-recall--tab` to get the tab associated
   with a memory (see below).
+- Functions `--reinforce` and `--reclaim` now log their actions if new
+  variable `partial-recall--log` is `t`.
 
 ### Changed
 
@@ -19,7 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Memories are now created with the key added to the tab for
   cross-reference (see above).
 - `partial-recall--reinforce` now only reinforces when the visited
-  buffer moves close to the end of the ring. Instead of destroying the
+  buffer moves would be subject to removal. Instead of destroying the
   moment, it is simply re-inserted while growing the ring if needed.
   Afterwards timestamp and update count (see below) are increased.
 - `partial-recall--moment` structs now have field `update-count` (for

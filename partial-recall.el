@@ -254,6 +254,18 @@ Defaults to the current buffer."
   "Warn about MESSAGE."
   (display-warning 'partial-recall message :warning))
 
+(defvar partial-recall--log nil)
+(defun partial-recall--log (fmt &rest args)
+  "Use ARGS to format FMT if not silenced."
+  (when partial-recall--log
+    (apply 'message fmt args)))
+
+(defun partial-recall-toggle-logging ()
+  "Toggle logging certain actions."
+  (interactive)
+
+  (setq partial-recall--log (not partial-recall--log)))
+
 ;; Handlers
 
 (defvar partial-recall--last-checked nil)
@@ -341,6 +353,8 @@ If FORCE is t, re-insertion and update will always be performed."
              (moment (ring-ref moments index))
              (count (partial-recall--moment-update-count moment)))
 
+    (partial-recall--log "Reinforcing buffer '%s'" (buffer-name buffer))
+
     (ring-remove+insert+extend moments (ring-ref moments index) t)
 
     ;; Update timestamp and update count.
@@ -363,6 +377,8 @@ If FORCE is t, will reclaim even if the threshold wasn't passed."
                      (- (floor (time-to-seconds))
                         (partial-recall--moment-timestamp moment)))))
              (index (partial-recall--moments-member ring buffer)))
+
+    (partial-recall--log "Reclaiming '%s' from '%s'" (buffer-name buffer) (partial-recall--tab-name owner))
 
     ;; Forget in the old memory.
     (ring-remove ring index)
