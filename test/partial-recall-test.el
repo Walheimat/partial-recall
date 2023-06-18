@@ -247,7 +247,6 @@ If PRE is t, pre-remember the current buffer."
 
     (bydi-was-called partial-recall--reinforce)
     (bydi-toggle-sometimes)
-    (bydi-clear-mocks)
 
     (let ((partial-recall-reclaim t))
 
@@ -344,7 +343,6 @@ If PRE is t, pre-remember the current buffer."
       (bydi-was-called partial-recall--key)
       (bydi-was-not-called partial-recall--on-create)
 
-      (bydi-clear-mocks)
       (bydi-toggle-sometimes)
 
       (partial-recall--fix-up-primary-tab)
