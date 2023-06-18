@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- All user-facing commands now use appropriate completion instead of
+  applying only to the current buffer.
 - Memories are now created with the key added to the tab for
   cross-reference (see above).
 - `partial-recall--reinforce` now only reinforces when the visited

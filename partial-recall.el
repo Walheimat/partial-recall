@@ -477,25 +477,27 @@ If FORCE is t, will reclaim even if the threshold wasn't passed."
   (partial-recall--reclaim buffer t))
 
 ;;;###autoload
-(defun partial-recall-reinforce ()
-  "Reinforce this buffer."
-  (interactive)
+(defun partial-recall-reinforce (buffer)
+  "Reinforce BUFFER."
+  (interactive (list (partial-recall--complete-reality "Re-inforce moment: ")))
 
-  (partial-recall--reinforce (current-buffer) t))
+  (partial-recall--reinforce buffer t))
 
 ;;;###autoload
-(defun partial-recall-reclaim ()
+(defun partial-recall-reclaim (buffer)
   "Reclaim BUFFER.
 
 This will always force-reclaim."
-  (partial-recall--reclaim (current-buffer) t))
+  (interactive (list (partial-recall--complete-dream "Reclaim moment: ")))
+
+  (partial-recall--reclaim buffer t))
 
 ;;;###autoload
-(defun partial-recall-forget ()
-  "Forget current buffer."
-  (interactive)
+(defun partial-recall-forget (buffer)
+  "Forget current BUFFER."
+  (interactive (list (partial-recall--complete-reality "Forget moment: ")))
 
-  (partial-recall--forget (current-buffer)))
+  (partial-recall--forget buffer))
 
 (provide 'partial-recall)
 
