@@ -124,18 +124,17 @@ If PRE is t, pre-remember the current buffer."
     (should (string= (partial-recall--tab-name) "test-tab"))))
 
 (ert-deftest pr--update-count ()
-  (with-tab-history
-    (setq partial-recall-buffer-limit 2)
+  (let ((partial-recall-buffer-limit 2))
 
-    (partial-recall--remember (current-buffer))
+    (with-tab-history :pre t
 
-    (let ((another-temp (generate-new-buffer " *temp*" t)))
+      (let ((another-temp (generate-new-buffer " *temp*" t)))
 
-      (partial-recall--remember another-temp)
-      (partial-recall--reinforce (current-buffer))
+        (partial-recall--remember another-temp)
+        (partial-recall--reinforce (current-buffer))
 
-      (should (eq 1 (partial-recall--update-count)))
-      (kill-buffer another-temp))))
+        (should (eq 1 (partial-recall--update-count)))
+        (kill-buffer another-temp)))))
 
 ;; Utility
 
@@ -285,20 +284,19 @@ If PRE is t, pre-remember the current buffer."
                               (moments (partial-recall--memory-ring reality))
                               (buffer (current-buffer))
                               (moment (ring-ref moments (partial-recall--moments-member moments buffer))))
-                         (partial-recall--moment-update-count moment)))))
+                         (partial-recall--moment-update-count moment))))
+          (partial-recall-buffer-limit 2)
+          (another-temp (generate-new-buffer " *temp*" t)))
 
-      (setq partial-recall-buffer-limit 2)
       (partial-recall--remember (current-buffer))
 
       (setq count (funcall get-count))
 
-      (let ((another-temp (generate-new-buffer " *temp*" t)))
+      (partial-recall--remember another-temp)
+      (should (partial-recall--reinforce (current-buffer)))
+      (should-not (eq count (funcall get-count)))
 
-        (partial-recall--remember another-temp)
-        (should (partial-recall--reinforce (current-buffer)))
-        (kill-buffer another-temp)
-
-        (should-not (eq count (funcall get-count)))))))
+      (kill-buffer another-temp))))
 
 (ert-deftest pr-reclaim--reclaims-from-other ()
   (let ((seconds '(10 12))
@@ -332,6 +330,31 @@ If PRE is t, pre-remember the current buffer."
            (ring (partial-recall--memory-ring memory)))
 
       (should (eq 0 (ring-length ring))))))
+
+(ert-deftest pr-forget--shortens-extended-memory ()
+  (let ((partial-recall-buffer-limit 2)
+        (another-temp (generate-new-buffer " *temp*" t))
+        (yet-another-temp (generate-new-buffer " *temp*" t)))
+
+    (with-tab-history :pre t
+      (partial-recall--remember another-temp)
+      (partial-recall--remember yet-another-temp)
+
+      (should (eq (ring-size (partial-recall--memory-ring (partial-recall--reality)))
+                  3))
+
+      (partial-recall--forget another-temp)
+
+      (should (eq (ring-size (partial-recall--memory-ring (partial-recall--reality)))
+                  2))
+
+      (partial-recall--forget yet-another-temp)
+
+      (should (eq (ring-size (partial-recall--memory-ring (partial-recall--reality)))
+                  2))
+
+      (kill-buffer another-temp)
+      (kill-buffer yet-another-temp))))
 
 ;; Setup
 

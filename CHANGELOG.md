@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   with a memory (see below).
 - Functions `--reinforce` and `--reclaim` now log their actions if new
   variable `partial-recall--log` is `t`.
+- Memories that have grown while remembering may shrink again after
+  forgetting.
 
 ### Changed
 

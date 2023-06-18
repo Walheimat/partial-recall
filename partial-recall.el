@@ -183,6 +183,16 @@ the max age."
        (- (floor (time-to-seconds))
           (partial-recall--moment-timestamp to-remove)))))
 
+(defun partial-recall--maybe-resize-memory (memory)
+  "Maybe resize MEMORY if has grown but could shrink."
+  (let ((ring (partial-recall--memory-ring memory))
+        (orig (partial-recall--memory-orig-size memory))
+        (curr (ring-size (partial-recall--memory-ring memory))))
+
+    (when (and (not (partial-recall--memory-at-capacity-p memory))
+               (> curr orig))
+      (ring-resize ring (1- (ring-size ring))))))
+
 (defun partial-recall--has-buffers-p (&optional memory)
   "Check if the MEMORY has buffers."
   (when-let* ((memory (or memory (partial-recall--reality)))
@@ -393,7 +403,8 @@ If FORCE is t, will reclaim even if the threshold wasn't passed."
                          (when-let* ((ring (partial-recall--memory-ring memory))
                                      (index (partial-recall--moments-member ring buffer)))
 
-                           (ring-remove ring index)))))
+                           (ring-remove ring index)
+                           (partial-recall--maybe-resize-memory memory)))))
 
     (maphash maybe-remove table)))
 
