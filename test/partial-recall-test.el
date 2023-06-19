@@ -423,7 +423,7 @@ If PRE is t, pre-remember the current buffer."
     (let* ((buffer (find-file-noselect bydi-tmp-file))
            (name (buffer-name buffer)))
 
-      (bydi ((:mock seconds-to-time :return '(25744 35562 750922 918319)))
+      (bydi ((:mock format-time-string :return "18:51:18"))
         (with-tab-history
           (partial-recall--remember buffer)
 
@@ -434,7 +434,7 @@ If PRE is t, pre-remember the current buffer."
                      (buffer-string)
                      (concat
                       (propertize "test-tab" 'face 'buffer-menu-buffer) "\n"
-                      (format "%s: 19:05:46 (updated 0 times)" name) "\n")))))))))
+                      (format "%s: 18:51:18 (updated 0 times)" name) "\n")))))))))
 
 (ert-deftest partial-recall-overview ()
   (bydi (partial-recall-overview--print display-buffer)
