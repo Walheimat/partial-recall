@@ -416,6 +416,33 @@ If PRE is t, pre-remember the current buffer."
 
     (bydi-was-called-n-times remove-hook 6)))
 
+;; Overview
+
+(ert-deftest partial-recall-overview--print ()
+  (bydi-with-temp-file "partial"
+    (let* ((buffer (find-file-noselect bydi-tmp-file))
+           (name (buffer-name buffer)))
+
+      (bydi ((:mock seconds-to-time :return '(25744 35562 750922 918319)))
+        (with-tab-history
+          (partial-recall--remember buffer)
+
+          (partial-recall-overview--print)
+
+          (with-current-buffer partial-recall-overview--buffer
+            (should (string=
+                     (buffer-string)
+                     (concat
+                      (propertize "test-tab" 'face 'buffer-menu-buffer) "\n"
+                      (format "%s: 19:05:46 (updated 0 times)" name) "\n")))))))))
+
+(ert-deftest partial-recall-overview ()
+  (bydi (partial-recall-overview--print display-buffer)
+    (partial-recall-overview)
+
+    (bydi-was-called partial-recall-overview--print)
+    (bydi-was-called-with display-buffer partial-recall-overview--buffer)))
+
 ;; API
 
 (ert-deftest pr-mode ()
