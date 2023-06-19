@@ -25,7 +25,7 @@ If you use =straight= or =quelpa=, you know what to do.
 If you're on Emacs >29, I recommend using =package-vc-install=.
 
 Alternatively, provided you have Cask, you can install the package
-with =make package-install=.
+with =make package-install= after initializing the submodule =dinghy=.
 
 ** Configuration
 
@@ -48,6 +48,17 @@ taken into account.
     (add-to-list
      'consult-buffer-sources
      'partial-recall--consult-buffer-source))
+
+  ;; If you use `marginalia', you can annotate the buffer-based commands.
+  (with-eval-after-load 'marginalia
+    (setq marginalia-command-categories
+          (append
+           marginalia-command-categories
+           '((partial-recall-switch-to-buffer . buffer)
+             (partial-recall-steal . buffer)
+             (partial-recall-reclaim . buffer)
+             (partial-recall-forget . buffer)
+             (partial-recall-reinforce . buffer))))
 
   :bind
   (("C-c b" . partial-recall-switch-to-buffer))
