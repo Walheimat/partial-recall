@@ -470,7 +470,6 @@ If PRE is t, pre-remember the current buffer."
       (call-interactively 'partial-recall-reinforce)
       (call-interactively 'partial-recall-reclaim)
       (call-interactively 'partial-recall-forget)
-      (call-interactively 'partial-recall-steal)
       (call-interactively 'partial-recall-switch-to-buffer)
 
       (bydi-was-called partial-recall--reinforce)

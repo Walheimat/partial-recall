@@ -529,7 +529,6 @@ If FORCE is t, will reclaim even if the threshold wasn't passed."
     (define-key map (kbd "b") 'partial-recall-switch-to-buffer)
     (define-key map (kbd "r") 'partial-recall-reinforce)
     (define-key map (kbd "c") 'partial-recall-reclaim)
-    (define-key map (kbd "s") 'partial-recall-steal)
     (define-key map (kbd "f") 'partial-recall-forget)
     (define-key map (kbd "o") 'partial-recall-overview)
     map)
@@ -550,13 +549,6 @@ If FORCE is t, will reclaim even if the threshold wasn't passed."
   (interactive (list (partial-recall--complete-reality "Switch to moment: ")))
 
   (switch-to-buffer buffer))
-
-;;;###autoload
-(defun partial-recall-steal (buffer)
-  "Steal BUFFER from another memory."
-  (interactive (list (partial-recall--complete-dream "Steal moment: ")))
-
-  (partial-recall--reclaim buffer t))
 
 ;;;###autoload
 (defun partial-recall-reinforce (buffer)
