@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- New sub-package `partial-recall-menu` that acts like `list-buffers`.
 - Function `partial-recall--tab` to get the tab associated
   with a memory (see below).
 - Functions `--reinforce` and `--reclaim` now log their actions if new

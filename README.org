@@ -61,7 +61,8 @@ taken into account.
              (partial-recall-reinforce . buffer))))
 
   :bind
-  (("C-c b" . partial-recall-switch-to-buffer))
+  (("C-c b" . partial-recall-switch-to-buffer)
+   ("C-c l" . partial-recall-menu))
 
   :bind-keymap
   (("C-c B" . partial-recall-command-map)))

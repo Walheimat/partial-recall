@@ -531,6 +531,7 @@ If FORCE is t, will reclaim even if the threshold wasn't passed."
     (define-key map (kbd "c") 'partial-recall-reclaim)
     (define-key map (kbd "f") 'partial-recall-forget)
     (define-key map (kbd "o") 'partial-recall-overview)
+    (define-key map (kbd "l") 'partial-recall-menu)
     map)
   "Map for `partial-recall-mode' commands.")
 

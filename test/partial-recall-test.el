@@ -8,21 +8,6 @@
 
 (require 'partial-recall nil t)
 
-(defvar test-tab '(current-tab (name . "test-tab") (explicit-name . t) (pr . "test-hash")))
-
-(cl-defmacro with-tab-history (&rest body &key pre &allow-other-keys)
-  "Run BODY with a clear tab history and a temp buffer.
-
-If PRE is t, pre-remember the current buffer."
-  (declare (indent defun))
-  `(bydi ((:mock tab-bar--current-tab :return test-tab)
-          (:mock tab-bar-tabs :return (list test-tab)))
-     (let ((partial-recall--table (make-hash-table)))
-
-       (with-temp-buffer
-         ,(when pre '(partial-recall--remember (current-buffer)))
-         ,@body))))
-
 ;; Hash table
 
 (ert-deftest pr--key--returns-if-set ()
