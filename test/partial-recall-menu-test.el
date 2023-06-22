@@ -10,13 +10,14 @@
   (bydi (tabulated-list-init-header
          (:mock partial-recall-menu--print-update-count :return "0")
          (:mock partial-recall-menu--print-timestamp :return "today")
-         (:mock partial-recall-menu--print-memory :return "rem"))
+         (:mock partial-recall-menu--print-memory :return "rem")
+         (:mock partial-recall-menu--print-permanence :return "*"))
 
     (with-tab-history :pre t
 
       (partial-recall-menu--revert)
 
-      (should (equal `((("test-tab" ,(current-buffer) t) [,(buffer-name) "rem" "today" "0"]))
+      (should (equal `((("test-tab" ,(current-buffer) t) [,(buffer-name) "rem" "today" "*" "0"]))
                      tabulated-list-entries))
       (should (equal partial-recall-menu--list-format tabulated-list-format))
       (bydi-was-called tabulated-list-init-header))))
@@ -81,6 +82,10 @@
     (should (string= "0" (partial-recall-menu--print-update-count 0)))
     (should (string= "1" (partial-recall-menu--print-update-count 1)))))
 
+(ert-deftest prm--print-permanence ()
+   (should (string= "-" (partial-recall-menu--print-permanence nil)))
+   (should (string= "*" (partial-recall-menu--print-permanence t))))
+
 (ert-deftest prm--print-memory ()
   (let ((partial-recall-buffer-limit 10)
         (partial-recall-menu--null "0"))
@@ -109,6 +114,7 @@
            partial-recall--reclaim
            partial-recall--reinforce
            partial-recall--forget
+           partial-recall--implant
            display-buffer
            (:mock partial-recall-menu--list :return 'list))
 
@@ -130,6 +136,9 @@
 
       (partial-recall-menu-forget-buffer)
       (bydi-was-called-with partial-recall--forget (list 'buffer))
+
+      (partial-recall-menu-implant-buffer)
+      (bydi-was-called-with partial-recall--implant (list 'buffer nil))
 
       (partial-recall-menu)
       (bydi-was-called-with display-buffer (list 'list)))))

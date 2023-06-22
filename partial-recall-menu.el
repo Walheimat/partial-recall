@@ -12,7 +12,13 @@
 
 (defvar prm--buffer "*Partial Recall Menu*")
 (defvar prm--null "-")
-(defvar prm--list-format (vector '("Buffer" 30 t) '("Tab" 20 t) '("Timestamp" 9 t :pad-right 2)'("Updates" 4 t)))
+(defvar prm--present "*")
+(defvar prm--list-format (vector
+                          '("Buffer" 30 t)
+                          '("Tab" 20 t)
+                          '("Timestamp" 9 t :pad-right 2)
+                          '("Implanted" 9 t)
+                          '("Updates" 4 t)))
 
 (defun prm--revert ()
   "Revert the buffer menu."
@@ -30,8 +36,9 @@
                  (name (buffer-name buffer))
                  (count (prm--print-update-count (partial-recall--moment-update-count moment)))
                  (ts (prm--print-timestamp (partial-recall--moment-timestamp moment)))
+                 (implanted (prm--print-permanence (partial-recall--moment-permanence moment)))
                  (item (list tab-name buffer real))
-                 (line (vector name mem-pp ts count)))
+                 (line (vector name mem-pp ts implanted count)))
 
             (push (list item line) entries)))))
 
@@ -87,6 +94,10 @@ If NO-OTHER-TAB is t, raise an error if that would be necessary."
       prm--null
     (number-to-string update-count)))
 
+(defun prm--print-permanence (permanence)
+  "Format PERMANENCE."
+  (if permanence prm--present prm--null))
+
 (defun prm--print-memory (memory real)
   "Format MEMORY depending on whether it is REAL."
   (let ((orig-size (partial-recall--memory-orig-size memory))
@@ -107,7 +118,8 @@ If NO-OTHER-TAB is t, raise an error if that would be necessary."
 
   "c" #'prm-reclaim-buffer
   "r" #'prm-reinforce-buffer
-  "f" #'prm-forget-buffer)
+  "f" #'prm-forget-buffer
+  "i" #'prm-implant-buffer)
 
 (define-derived-mode prm-mode tabulated-list-mode "Partial Recall Menu"
   :interactive nil
@@ -155,6 +167,15 @@ If OTHER-WINDOW is t, do that."
 
   (prm--with-props (_tab buffer _real)
     (partial-recall--forget buffer)))
+
+(defun prm-implant-buffer (&optional excise)
+  "Implant the buffer.
+
+If EXCISE is t, do that instead."
+  (interactive "P" partial-recall-menu-mode)
+
+  (prm--with-props (_tab buffer _real)
+    (partial-recall--implant buffer excise)))
 
 ;;;###autoload
 (defun partial-recall-menu ()

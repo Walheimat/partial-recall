@@ -16,7 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   variable `partial-recall--log` is `t`.
 - Memories that have grown while remembering may shrink again after
   forgetting.
-- An overview can now be printed using `partial-recall-overview`.
+- Moments can now be implanted using `partial-recall-implant`. This
+  will make sure they are updated instead when would otherwise be
+  removed.
 
 ### Changed
 

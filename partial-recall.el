@@ -88,12 +88,13 @@ PID and `recent-keys' vector."
                              (buffer
                               &aux
                               (timestamp (floor (time-to-seconds)))
-                              (update-count 0))))
+                              (update-count 0)
+                              (permanence nil))))
   "A moment of partial recall.
 
 A moment is defined by a buffer and a timestamp when that buffer
 was remembered."
-  buffer timestamp update-count)
+  buffer timestamp update-count permanence)
 
 (cl-defstruct (partial-recall--memory
                (:constructor partial-recall--memory-create
@@ -144,6 +145,23 @@ construction."
       (when (equal buffer (partial-recall--moment-buffer (ring-ref moments ind)))
         (throw 'found ind)))))
 
+(defun partial-recall--moment-set-permanence (moment permanence)
+  "Set MOMENT PERMANENCE."
+  (setf (partial-recall--moment-permanence moment) permanence)
+  (partial-recall--moment-increment-count moment))
+
+
+(defun partial-recall--moment-update-timestamp (moment)
+  "Update the timestamp for MOMENT."
+  (setf (partial-recall--moment-timestamp moment) (floor (time-to-seconds)))
+  (partial-recall--moment-increment-count moment))
+
+(defun partial-recall--moment-increment-count (moment)
+  "Increment the update count for MOMENT."
+  (let ((count (partial-recall--moment-update-count moment)))
+
+    (setf (partial-recall--moment-update-count moment) (1+ count))))
+
 ;; Helpers
 
 (defun partial-recall--reality ()
@@ -183,8 +201,16 @@ the max age."
        (- (floor (time-to-seconds))
           (partial-recall--moment-timestamp to-remove)))))
 
+(defun partial-recall--maybe-reinforce-implanted (memory)
+  "Maybe reinforce oldest moment in MEMORY."
+  (and-let* ((ring (partial-recall--memory-ring memory))
+             (oldest (partial-recall--ring-oldest ring))
+             ((partial-recall--moment-permanence oldest)))
+
+    (partial-recall--reinsert oldest memory)))
+
 (defun partial-recall--maybe-resize-memory (memory)
-  "Maybe resize MEMORY if has grown but could shrink."
+  "Maybe resize MEMORY if it has grown but could shrink."
   (let ((ring (partial-recall--memory-ring memory))
         (orig (partial-recall--memory-orig-size memory))
         (curr (ring-size (partial-recall--memory-ring memory))))
@@ -208,6 +234,14 @@ Defaults to the current buffer."
          (memories (hash-table-values partial-recall--table)))
 
     (seq-find (lambda (it) (partial-recall--memory-buffer-p it buffer)) memories)))
+
+(defun partial-recall--reinsert (moment memory)
+  "Re-insert MOMENT into MEMORY."
+  (when-let* ((ring (partial-recall--memory-ring memory))
+              (index (ring-member ring moment)))
+
+    (ring-remove+insert+extend ring (ring-ref ring index) t)
+    (partial-recall--moment-update-timestamp moment)))
 
 ;; Completion
 
@@ -257,7 +291,10 @@ Defaults to the current buffer."
 
 (defun partial-recall--ring-oldest (ring)
   "Get the oldest element in RING."
-  (ring-ref ring (1- (ring-length ring))))
+  (and-let* ((length (ring-length ring))
+             ((> length 0)))
+
+    (ring-ref ring (1- length))))
 
 (defun partial-recall--warn (message)
   "Warn about MESSAGE."
@@ -335,6 +372,8 @@ This will remember new buffers and maybe reclaim mapped buffers."
               (ring (partial-recall--memory-ring memory)))
 
     (unless (partial-recall--moments-member ring buffer)
+      (partial-recall--maybe-reinforce-implanted memory)
+
       (when (and (partial-recall--memory-at-capacity-p memory)
                  (partial-recall--should-extend-memory-p memory))
         (ring-extend ring 1))
@@ -359,16 +398,11 @@ If FORCE is t, re-insertion and update will always be performed."
              ((or force (partial-recall--memory-at-capacity-p reality)))
              (moments (partial-recall--memory-ring reality))
              (index (partial-recall--moments-member moments buffer))
-             (moment (ring-ref moments index))
-             (count (partial-recall--moment-update-count moment)))
+             (moment (ring-ref moments index)))
 
     (partial-recall--log "Reinforcing buffer '%s'" (buffer-name buffer))
 
-    (ring-remove+insert+extend moments (ring-ref moments index) t)
-
-    ;; Update timestamp and update count.
-    (setf (partial-recall--moment-timestamp moment) (floor (time-to-seconds)))
-    (setf (partial-recall--moment-update-count moment) (1+ count))))
+    (partial-recall--reinsert moment reality)))
 
 (defun partial-recall--reclaim (buffer &optional force)
   "Reclaim BUFFER if possible.
@@ -407,6 +441,17 @@ If FORCE is t, will reclaim even if the threshold wasn't passed."
                            (partial-recall--maybe-resize-memory memory)))))
 
     (maphash maybe-remove table)))
+
+(defun partial-recall--implant (&optional buffer excise)
+  "Make BUFFER permanent.
+
+If EXCISE is t, remove permanence instead."
+  (when-let* ((buffer (or buffer (current-buffer)))
+              (owner (partial-recall--buffer-owner buffer))
+              (ring (partial-recall--memory-ring owner))
+              (moment (seq-find (lambda (it) (partial-recall--moment-buffer-p it buffer)) (ring-elements ring))))
+
+    (partial-recall--moment-set-permanence moment (not excise))))
 
 ;; Integration
 
@@ -476,6 +521,7 @@ If FORCE is t, will reclaim even if the threshold wasn't passed."
     (define-key map (kbd "c") 'partial-recall-reclaim)
     (define-key map (kbd "f") 'partial-recall-forget)
     (define-key map (kbd "l") 'partial-recall-menu)
+    (define-key map (kbd "i") 'partial-recall-implant)
     map)
   "Map for `partial-recall-mode' commands.")
 
@@ -513,10 +559,20 @@ This will always force-reclaim."
 
 ;;;###autoload
 (defun partial-recall-forget (buffer)
-  "Forget current BUFFER."
+  "Forget BUFFER."
   (interactive (list (partial-recall--complete-reality "Forget moment: ")))
 
   (partial-recall--forget buffer))
+
+;;;###autoload
+(defun partial-recall-implant (buffer &optional excise)
+  "Implant the BUFFER.
+
+If EXCISE is T, do that instead."
+  (interactive (list (partial-recall--complete-reality "Implant moment: ")
+                     current-prefix-arg))
+
+  (partial-recall--implant buffer excise))
 
 (provide 'partial-recall)
 

@@ -237,6 +237,32 @@
       (partial-recall--remember (current-buffer))
       (bydi-was-called ring-extend))))
 
+(ert-deftest pr-remember--reinforces-permanent ()
+  (let ((partial-recall-buffer-limit 1))
+    (with-tab-history :pre t
+      (let ((another-temp (generate-new-buffer " *temp*" t)))
+
+        (partial-recall--implant)
+
+        (partial-recall--remember another-temp)
+
+        (should (eq 2 (partial-recall--update-count)))
+
+        (kill-buffer another-temp)))))
+
+(ert-deftest pr-remember--removes-impermanent ()
+  (let ((partial-recall-buffer-limit 1))
+    (with-tab-history :pre t
+      (let ((another-temp (generate-new-buffer " *temp*" t)))
+
+        (bydi ((:always partial-recall--memory-at-capacity-p)
+               (:ignore partial-recall--should-extend-memory-p))
+          (partial-recall--remember another-temp))
+
+        (should (eq 1 (ring-size (partial-recall--memory-ring (partial-recall--reality)))))
+
+        (kill-buffer another-temp)))))
+
 (ert-deftest pr-recollect--reinforces-reality-or-reclaims ()
   (bydi ((:sometimes partial-recall--reality-buffer-p)
          partial-recall--reinforce
@@ -423,18 +449,21 @@
            partial-recall--forget
            partial-recall--complete-dream
            partial-recall--complete-reality
+           partial-recall--implant
            switch-to-buffer)
 
       (call-interactively 'partial-recall-reinforce)
       (call-interactively 'partial-recall-reclaim)
       (call-interactively 'partial-recall-forget)
       (call-interactively 'partial-recall-switch-to-buffer)
+      (call-interactively 'partial-recall-implant)
 
       (bydi-was-called partial-recall--reinforce)
       (bydi-was-called partial-recall--reclaim)
       (bydi-was-called partial-recall--forget)
       (bydi-was-called partial-recall--complete-dream)
       (bydi-was-called partial-recall--complete-reality)
+      (bydi-was-called partial-recall--implant)
       (bydi-was-called switch-to-buffer))))
 
 ;;; partial-recall-test.el ends here
