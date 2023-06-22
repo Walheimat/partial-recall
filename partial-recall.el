@@ -465,61 +465,6 @@ If FORCE is t, will reclaim even if the threshold wasn't passed."
   (remove-hook 'tab-bar-tab-post-open-functions #'partial-recall--on-create)
   (remove-hook 'delete-frame-functions #'partial-recall--on-frame-delete))
 
-;; Overview
-
-(defvar partial-recall-overview--buffer "*partial-recall-status*")
-
-(defun partial-recall-overview--print ()
-  "Print the the current status."
-  (let ((buffer (get-buffer-create partial-recall-overview--buffer))
-        (inhibit-read-only t))
-
-    (with-current-buffer buffer
-      (erase-buffer))
-
-    (maphash #'partial-recall-overview--print-memory partial-recall--table)
-
-    (with-current-buffer buffer
-      (delete-trailing-whitespace)
-
-      (unless view-mode
-        (view-mode +1)))))
-
-(defun partial-recall-overview--print-memory (_key memory)
-  "Write MEMORY."
-  (let ((out partial-recall-overview--buffer)
-        (ring (partial-recall--memory-ring memory))
-        (tab-name (partial-recall--tab-name memory)))
-
-    (with-current-buffer out
-      (insert (concat (propertize tab-name 'face 'buffer-menu-buffer) "\n")))
-
-    (dolist (it (ring-elements ring))
-      (partial-recall-overview--print-moment it))
-
-    (with-current-buffer out
-      (insert "\n"))))
-
-(defun partial-recall-overview--print-moment (moment)
-  "Write MOMENT."
-  (let ((out partial-recall-overview--buffer)
-        (buffer (partial-recall--moment-buffer moment))
-        (timestamp (partial-recall--moment-timestamp moment))
-        (count (partial-recall--moment-update-count moment)))
-
-    (with-current-buffer out
-      (insert (concat (buffer-name buffer) ": "
-                      (format-time-string "%H:%M:%S" (seconds-to-time timestamp)) " "
-                      (format "(updated %s times)\n" count))))))
-
-;;;###autoload
-(defun partial-recall-overview ()
-  "Get an overview of the mapped buffers."
-  (interactive)
-
-  (partial-recall-overview--print)
-  (display-buffer partial-recall-overview--buffer))
-
 ;; API
 
 ;;;###autoload
@@ -530,7 +475,6 @@ If FORCE is t, will reclaim even if the threshold wasn't passed."
     (define-key map (kbd "r") 'partial-recall-reinforce)
     (define-key map (kbd "c") 'partial-recall-reclaim)
     (define-key map (kbd "f") 'partial-recall-forget)
-    (define-key map (kbd "o") 'partial-recall-overview)
     (define-key map (kbd "l") 'partial-recall-menu)
     map)
   "Map for `partial-recall-mode' commands.")
