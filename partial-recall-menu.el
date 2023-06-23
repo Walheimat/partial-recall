@@ -14,6 +14,7 @@
 (defvar prm--null "-")
 (defvar prm--present "*")
 (defvar prm--list-format (vector
+                          '("A" 1 t :pad-right 1)
                           '("Buffer" 30 t)
                           '("Tab" 20 t)
                           '("Timestamp" 9 t :pad-right 2)
@@ -38,7 +39,7 @@
                  (ts (prm--print-timestamp (partial-recall--moment-timestamp moment)))
                  (implanted (prm--print-permanence (partial-recall--moment-permanence moment)))
                  (item (list tab-name buffer real))
-                 (line (vector name mem-pp ts implanted count)))
+                 (line (vector " " name mem-pp ts implanted count)))
 
             (push (list item line) entries)))))
 
@@ -119,13 +120,58 @@ If NO-OTHER-TAB is t, raise an error if that would be necessary."
   "c" #'prm-reclaim-buffer
   "r" #'prm-reinforce-buffer
   "f" #'prm-forget-buffer
-  "i" #'prm-implant-buffer)
+  "i" #'prm-implant-buffer
+  "x" #'prm-execute)
 
 (define-derived-mode prm-mode tabulated-list-mode "Partial Recall Menu"
   :interactive nil
   (add-hook 'tabulated-list-revert-hook 'prm--revert nil t))
 
 ;; API
+
+(defun prm-execute ()
+  "Forget, steal and implant buffers."
+  (interactive nil prm-mode)
+
+  (save-excursion
+    (goto-char (point-min))
+
+    (let ((needs-update nil))
+
+      (while (not (eobp))
+        (let ((id (tabulated-list-get-id))
+              (entry (tabulated-list-get-entry)))
+
+          (if (null entry)
+              (forward-line 1)
+            (let ((action (aref entry 0))
+                  (buffer (nth 1 id)))
+
+              (when (and (not needs-update)
+                         (not (equal action " ")))
+                (setq needs-update t))
+
+              (cond ((equal action "C")
+                     (partial-recall--reclaim buffer t)
+                     (tabulated-list-set-col 0 " " t))
+                    ((equal action "F")
+                     (partial-recall--forget buffer)
+                     (tabulated-list-delete-entry))
+                    ((equal action "R")
+                     (partial-recall--reinforce buffer t)
+                     (tabulated-list-set-col 0 " " t))
+                    ((equal action "I")
+                     (partial-recall--implant buffer)
+                     (tabulated-list-set-col 0 " " t))
+                    ((equal action "X")
+                     (partial-recall--implant buffer t)
+                     (tabulated-list-set-col 0 " " t))
+                    (t nil))
+
+              (forward-line 1)))))
+
+      (when needs-update
+        (tabulated-list-revert)))))
 
 (defun prm-switch-to-buffer ()
   "Switch to buffer.
@@ -147,26 +193,29 @@ If OTHER-WINDOW is t, do that."
   "Reclaim buffer."
   (interactive nil partial-recall-menu-mode)
 
-  (prm--with-props (_tab buffer real)
+  (prm--with-props (_tab _buffer real)
     (if real
         (user-error "Buffer is part of reality")
-      (partial-recall--reclaim buffer t))))
+      (tabulated-list-set-col 0 "C" t)
+      (forward-line 1))))
 
 (defun prm-reinforce-buffer ()
   "Reinforce buffer."
   (interactive nil partial-recall-menu-mode)
 
-  (prm--with-props (_tab buffer real)
+  (prm--with-props (_tab _buffer real)
     (if (not real)
         (user-error "Buffer is not part of reality")
-      (partial-recall--reinforce buffer t))))
+      (tabulated-list-set-col 0 "R" t)
+      (forward-line 1))))
 
 (defun prm-forget-buffer ()
   "Forget the buffer."
   (interactive nil partial-recall-menu-mode)
 
-  (prm--with-props (_tab buffer _real)
-    (partial-recall--forget buffer)))
+  (prm--with-props (_tab _buffer _real)
+    (tabulated-list-set-col 0 "F" t)
+    (forward-line 1)))
 
 (defun prm-implant-buffer (&optional excise)
   "Implant the buffer.
@@ -174,8 +223,9 @@ If OTHER-WINDOW is t, do that."
 If EXCISE is t, do that instead."
   (interactive "P" partial-recall-menu-mode)
 
-  (prm--with-props (_tab buffer _real)
-    (partial-recall--implant buffer excise)))
+  (prm--with-props (_tab _buffer _real)
+    (tabulated-list-set-col 0 (if excise "X" "I") t)
+    (forward-line 1)))
 
 ;;;###autoload
 (defun partial-recall-menu ()

@@ -17,7 +17,7 @@
 
       (partial-recall-menu--revert)
 
-      (should (equal `((("test-tab" ,(current-buffer) t) [,(buffer-name) "rem" "today" "*" "0"]))
+      (should (equal `((("test-tab" ,(current-buffer) t) [" " ,(buffer-name) "rem" "today" "*" "0"]))
                      tabulated-list-entries))
       (should (equal partial-recall-menu--list-format tabulated-list-format))
       (bydi-was-called tabulated-list-init-header))))
@@ -106,15 +106,37 @@
 
 ;; API
 
+(ert-deftest prm-execute ()
+  (let ((entries '([" "] ["C"] ["F"] nil ["I"] ["R"] ["X"])))
+
+    (bydi ((:mock tabulated-list-get-id :return '(t buffer))
+           (:mock tabulated-list-get-entry :with (lambda () (pop entries)))
+           (:mock eobp :with (lambda () (null entries)))
+           tabulated-list-set-col
+           tabulated-list-revert
+           partial-recall--reclaim
+           partial-recall--forget
+           partial-recall--reinforce
+           partial-recall--implant
+           forward-line)
+
+      (with-temp-buffer
+        (partial-recall-menu-execute)
+
+        (bydi-was-called-n-times partial-recall--reclaim 1)
+        (bydi-was-called-n-times partial-recall--forget 1)
+        (bydi-was-called-n-times partial-recall--reinforce 1)
+        (bydi-was-called-n-times partial-recall--implant 2)
+        (bydi-was-called-n-times forward-line 7)
+        (bydi-was-called-n-times tabulated-list-revert 1)))))
+
 (ert-deftest prm-api ()
   (let ((real nil))
 
     (bydi (partial-recall-menu--switch
            (:mock partial-recall-menu--entry :return (list "tab" 'buffer real))
-           partial-recall--reclaim
-           partial-recall--reinforce
-           partial-recall--forget
-           partial-recall--implant
+           tabulated-list-set-col
+           forward-line
            display-buffer
            (:mock partial-recall-menu--list :return 'list))
 
@@ -125,20 +147,23 @@
       (bydi-was-called-with partial-recall-menu--switch (list #'switch-to-buffer-other-window t))
 
       (partial-recall-menu-reclaim-buffer)
-      (bydi-was-called-with partial-recall--reclaim (list 'buffer t))
+      (bydi-was-called-with tabulated-list-set-col (list 0 "C" t))
       (setq real t)
       (should-error (partial-recall-menu-reclaim-buffer))
 
       (partial-recall-menu-reinforce-buffer)
-      (bydi-was-called-with partial-recall--reinforce (list 'buffer t))
+      (bydi-was-called-with tabulated-list-set-col (list 0 "R" t))
       (setq real nil)
       (should-error (partial-recall-menu-reinforce-buffer))
 
       (partial-recall-menu-forget-buffer)
-      (bydi-was-called-with partial-recall--forget (list 'buffer))
+      (bydi-was-called-with tabulated-list-set-col (list 0 "F" t))
 
       (partial-recall-menu-implant-buffer)
-      (bydi-was-called-with partial-recall--implant (list 'buffer nil))
+      (bydi-was-called-with tabulated-list-set-col (list 0 "I" t))
+
+      (funcall-interactively 'partial-recall-menu-implant-buffer t)
+      (bydi-was-called-with tabulated-list-set-col (list 0 "X" t))
 
       (partial-recall-menu)
       (bydi-was-called-with display-buffer (list 'list)))))
