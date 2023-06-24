@@ -384,11 +384,7 @@ This will remember new buffers and maybe reclaim mapped buffers."
   "Swap MOMENT from memory A to B."
   (and-let* ((a-ring (partial-recall--memory-ring a))
              (b-ring (partial-recall--memory-ring b))
-             (index (ring-member a-ring moment))
-
-             (buffer (partial-recall--moment-buffer moment)))
-
-    (partial-recall--log "Reclaiming '%s' from '%s'" (buffer-name buffer) (partial-recall--tab-name a))
+             (index (ring-member a-ring moment)))
 
     (let ((removed (ring-remove a-ring index)))
 
@@ -441,6 +437,8 @@ If FORCE is t, will reclaim even if the threshold wasn't passed."
                   (< partial-recall-reclaim-min-age
                      (- (floor (time-to-seconds))
                         (partial-recall--moment-timestamp moment))))))
+
+    (partial-recall--log "Reclaiming '%s' from '%s'" (buffer-name buffer) (partial-recall--tab-name owner))
 
     (partial-recall--swap owner reality moment)))
 
