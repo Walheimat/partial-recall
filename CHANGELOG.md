@@ -5,11 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [v0.4.0]
 
 ### Added
 
-- New sub-package `partial-recall-menu` that acts like `list-buffers`.
+- New sub-package `partial-recall-menu` that acts similar to
+  `list-buffers`. You can forget, reclaim, implant and excise (see
+  below), and visit buffers from there.
 - Function `partial-recall--tab` to get the tab associated
   with a memory (see below).
 - Functions `--reinforce` and `--reclaim` now log their actions if new
@@ -28,11 +30,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Memories are now created with the key added to the tab for
   cross-reference (see above).
 - `partial-recall--reinforce` now only reinforces when the visited
-  buffer moves would be subject to removal. Instead of destroying the
+  buffer would be subject to removal. Instead of destroying the
   moment, it is simply re-inserted while growing the ring if needed.
   Afterwards timestamp and update count (see below) are increased.
 - `partial-recall--moment` structs now have field `update-count` (for
-  future debug purposes).
+  debug purposes).
 - User-facing `partial-recall-reinforce` will now force `--reinforce`.
 
 ## [v0.3.0]
