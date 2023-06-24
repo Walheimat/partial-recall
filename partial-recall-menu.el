@@ -11,15 +11,16 @@
 (require 'partial-recall (expand-file-name "./partial-recall.el") t)
 
 (defvar prm--buffer "*Partial Recall Menu*")
+(defvar prm--empty " ")
 (defvar prm--null "-")
 (defvar prm--present "*")
 (defvar prm--list-format (vector
-                          '("A" 1 t :pad-right 1)
+                          '("A" 1 t :pad-right 0)
+                          '("I" 1 t :pad-right 0)
+                          '("U" 1 t :pad-right 1)
                           '("Buffer" 30 t)
                           '("Tab" 20 t)
-                          '("Timestamp" 9 t :pad-right 2)
-                          '("Implanted" 9 t)
-                          '("Updates" 4 t)))
+                          '("Timestamp" 9 t :pad-right 2)))
 
 (defun prm--revert ()
   "Revert the buffer menu."
@@ -39,7 +40,7 @@
                  (ts (prm--print-timestamp (partial-recall--moment-timestamp moment)))
                  (implanted (prm--print-permanence (partial-recall--moment-permanence moment)))
                  (item (list tab-name buffer real))
-                 (line (vector " " name mem-pp ts implanted count)))
+                 (line (vector prm--empty implanted count name mem-pp ts)))
 
             (push (list item line) entries)))))
 
@@ -92,12 +93,14 @@ If NO-OTHER-TAB is t, raise an error if that would be necessary."
 (defun prm--print-update-count (update-count)
   "Format UPDATE-COUNT."
   (if (zerop update-count)
-      prm--null
-    (number-to-string update-count)))
+      prm--empty
+    (if (> update-count 9)
+        "+"
+      (number-to-string update-count))))
 
 (defun prm--print-permanence (permanence)
   "Format PERMANENCE."
-  (if permanence prm--present prm--null))
+  (if permanence prm--present prm--empty))
 
 (defun prm--print-memory (memory real)
   "Format MEMORY depending on whether it is REAL."
@@ -148,24 +151,24 @@ If NO-OTHER-TAB is t, raise an error if that would be necessary."
                   (buffer (nth 1 id)))
 
               (when (and (not needs-update)
-                         (not (equal action " ")))
+                         (not (equal action prm--empty)))
                 (setq needs-update t))
 
               (cond ((equal action "C")
                      (partial-recall--reclaim buffer t)
-                     (tabulated-list-set-col 0 " " t))
+                     (tabulated-list-set-col 0 prm--empty t))
                     ((equal action "F")
                      (partial-recall--forget buffer)
                      (tabulated-list-delete-entry))
                     ((equal action "R")
                      (partial-recall--reinforce buffer t)
-                     (tabulated-list-set-col 0 " " t))
+                     (tabulated-list-set-col 0 prm--empty t))
                     ((equal action "I")
                      (partial-recall--implant buffer)
-                     (tabulated-list-set-col 0 " " t))
+                     (tabulated-list-set-col 0 prm--empty t))
                     ((equal action "X")
                      (partial-recall--implant buffer t)
-                     (tabulated-list-set-col 0 " " t))
+                     (tabulated-list-set-col 0 prm--empty t))
                     (t nil))
 
               (forward-line 1)))))

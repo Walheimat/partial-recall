@@ -451,7 +451,8 @@ If EXCISE is t, remove permanence instead."
               (ring (partial-recall--memory-ring owner))
               (moment (seq-find (lambda (it) (partial-recall--moment-buffer-p it buffer)) (ring-elements ring))))
 
-    (partial-recall--moment-set-permanence moment (not excise))))
+    (unless (eq (partial-recall--moment-permanence moment) (not excise))
+      (partial-recall--moment-set-permanence moment (not excise)))))
 
 ;; Integration
 
