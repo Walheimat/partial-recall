@@ -92,8 +92,9 @@ PID and `recent-keys' vector."
                               (permanence nil))))
   "A moment of partial recall.
 
-A moment is defined by a buffer and a timestamp when that buffer
-was remembered."
+A moment is defined by a buffer, a timestamp when that buffer was
+first remembered, a count of how many times it was updated and a
+permanence marker that can prevent it from being forgotten."
   buffer timestamp update-count permanence)
 
 (cl-defstruct (partial-recall--memory
@@ -104,8 +105,8 @@ was remembered."
                               (orig-size partial-recall-buffer-limit))))
   "A memory of partial recall.
 
-A memory is a ring of moments and the size it had upon
-construction."
+A memory is a key that connects it to the hash table, a ring of
+moments and the size it had upon construction."
   key ring orig-size)
 
 (defun partial-recall--memory-at-capacity-p (memory)
