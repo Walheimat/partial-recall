@@ -8,7 +8,7 @@
 
 ;;; Code:
 
-(require 'partial-recall (expand-file-name "./partial-recall.el") t)
+(require 'partial-recall)
 
 (defvar prm--buffer "*Partial Recall Menu*")
 (defvar prm--empty " ")
