@@ -469,24 +469,6 @@ If EXCISE is t, remove permanence instead."
     (unless (eq (partial-recall--moment-permanence moment) (not excise))
       (partial-recall--moment-set-permanence moment (not excise)))))
 
-;; Integration
-
-(declare-function consult--buffer-state "ext:consult.el")
-(declare-function consult--buffer-query "ext:consult.el")
-
-(defvar partial-recall--consult-buffer-source
-  (list :name "Partial Recall"
-        :narrow ?r
-        :category 'buffer
-        :state #'consult--buffer-state
-        :history 'buffer-name-history
-        :require-match t
-        :items
-        #'(lambda () (consult--buffer-query :sort 'visibility
-                                       :predicate #'partial-recall--reality-buffer-p
-                                       :as #'buffer-name)))
-  "Buffers that are recalled from the current tab.")
-
 ;; Setup
 
 (defun partial-recall--fix-up-primary-tab ()

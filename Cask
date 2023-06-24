@@ -9,4 +9,4 @@
 
 (package "partial-recall" "0.4.0" "Short-term buffer memory")
 
-(files "partial-recall.el" "partial-recall-menu.el")
+(files "partial-recall.el" "partial-recall-menu.el" "partial-recall-extensions.el")
