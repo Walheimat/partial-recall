@@ -263,6 +263,28 @@
 
         (kill-buffer another-temp)))))
 
+(ert-deftest pr-swap ()
+  (let* ((partial-recall-buffer-limit 1)
+         (a (partial-recall--memory-create "a"))
+         (b (partial-recall--memory-create "b"))
+         (buffer (generate-new-buffer " *temp*" t))
+         (moment (partial-recall--moment-create buffer)))
+
+    (ring-insert (partial-recall--memory-ring a) moment)
+
+    (bydi ((:mock partial-recall--tab-name :return "tab")
+           (:mock buffer-name :return "buffer")
+           partial-recall--maybe-reinforce-implanted
+           (:always partial-recall--memory-at-capacity-p)
+           (:always partial-recall--should-extend-memory-p))
+
+      (partial-recall--swap a b moment)
+
+      (let ((ring (partial-recall--memory-ring b)))
+
+        (should (eq 2 (ring-size ring)))
+        (should (ring-member ring moment))))))
+
 (ert-deftest pr-recollect--reinforces-reality-or-reclaims ()
   (bydi ((:sometimes partial-recall--reality-buffer-p)
          partial-recall--reinforce
@@ -311,17 +333,19 @@
 
 (ert-deftest pr-reclaim--reclaims-from-other ()
   (let ((seconds '(10 12))
-        (partial-recall-reclaim-min-age 0))
+        (partial-recall-reclaim-min-age 0)
+        (mock-reality (partial-recall--memory-create "other-key")))
+
     (with-tab-history
       (bydi ((:mock time-to-seconds :with (lambda (&rest _) (pop seconds))))
         (partial-recall--remember (current-buffer))
 
-        (bydi ((:mock partial-recall--reality :return 'other)
-               partial-recall--remember)
+        (bydi ((:mock partial-recall--reality :return mock-reality)
+               partial-recall--swap)
 
           (partial-recall--reclaim (current-buffer))
 
-          (bydi-was-called partial-recall--remember))))))
+          (bydi-was-called partial-recall--swap))))))
 
 (ert-deftest pr-reclaim--no-op-for-same ()
   (with-tab-history :pre t

@@ -380,6 +380,26 @@ This will remember new buffers and maybe reclaim mapped buffers."
 
       (ring-insert ring (partial-recall--moment-create buffer)))))
 
+(defun partial-recall--swap (a b moment)
+  "Swap MOMENT from memory A to B."
+  (and-let* ((a-ring (partial-recall--memory-ring a))
+             (b-ring (partial-recall--memory-ring b))
+             (index (ring-member a-ring moment))
+
+             (buffer (partial-recall--moment-buffer moment)))
+
+    (partial-recall--log "Reclaiming '%s' from '%s'" (buffer-name buffer) (partial-recall--tab-name a))
+
+    (let ((removed (ring-remove a-ring index)))
+
+      (partial-recall--maybe-reinforce-implanted b)
+
+      (when (and (partial-recall--memory-at-capacity-p b)
+                 (partial-recall--should-extend-memory-p b))
+        (ring-extend b-ring 1))
+
+      (ring-insert b-ring removed))))
+
 (defun partial-recall--recollect (buffer)
   "Recollect the BUFFER."
   (if (partial-recall--reality-buffer-p buffer)
@@ -418,16 +438,9 @@ If FORCE is t, will reclaim even if the threshold wasn't passed."
              ((or force
                   (< partial-recall-reclaim-min-age
                      (- (floor (time-to-seconds))
-                        (partial-recall--moment-timestamp moment)))))
-             (index (partial-recall--moments-member ring buffer)))
+                        (partial-recall--moment-timestamp moment))))))
 
-    (partial-recall--log "Reclaiming '%s' from '%s'" (buffer-name buffer) (partial-recall--tab-name owner))
-
-    ;; Forget in the old memory.
-    (ring-remove ring index)
-
-    ;; Remember in the current one.
-    (partial-recall--remember buffer)))
+    (partial-recall--swap owner reality moment)))
 
 (defun partial-recall--forget (&optional buffer)
   "Forget BUFFER."
