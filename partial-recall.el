@@ -398,7 +398,9 @@ This will remember new buffers and maybe reclaim mapped buffers."
                  (partial-recall--should-extend-memory-p b))
         (ring-extend b-ring 1))
 
-      (ring-insert b-ring removed))))
+      (ring-insert b-ring removed)
+
+      (partial-recall--moment-update-timestamp moment))))
 
 (defun partial-recall--recollect (buffer)
   "Recollect the BUFFER."

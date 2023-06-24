@@ -275,10 +275,13 @@
     (bydi ((:mock partial-recall--tab-name :return "tab")
            (:mock buffer-name :return "buffer")
            partial-recall--maybe-reinforce-implanted
+           partial-recall--moment-update-timestamp
            (:always partial-recall--memory-at-capacity-p)
            (:always partial-recall--should-extend-memory-p))
 
       (partial-recall--swap a b moment)
+
+      (bydi-was-called partial-recall--moment-update-timestamp)
 
       (let ((ring (partial-recall--memory-ring b)))
 
