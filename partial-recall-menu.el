@@ -8,29 +8,43 @@
 
 ;;; Code:
 
+(require 'ring)
+(require 'subr-x)
 (require 'partial-recall)
 
 (defvar prm--buffer "*Partial Recall Menu*")
 (defvar prm--empty " ")
 (defvar prm--null "-")
 (defvar prm--present "*")
-(defvar prm--list-format (vector
-                          '("A" 1 t :pad-right 0)
-                          '("I" 1 t :pad-right 0)
-                          '("U" 1 t :pad-right 1)
-                          '("Buffer" 30 t)
-                          '("Tab" 20 t)
-                          '("Timestamp" 9 t :pad-right 2)))
+
+(defun prm--format (buffers tabs)
+  "Get format using BUFFERS and TABS."
+  (let* ((buffers-sorted (sort (mapcar #'length buffers) #'>))
+         (longest-buffer (car buffers-sorted))
+         (tabs-sorted (sort (mapcar #'length tabs) #'>))
+         (longest-tab (car tabs-sorted)))
+
+    (vector
+     '("A" 1 t :pad-right 0)
+     '("I" 1 t :pad-right 0)
+     '("U" 1 t :pad-right 1)
+     `("Buffer" ,longest-buffer t)
+     `("Tab" ,longest-tab t)
+     '("Timestamp" 9 t))))
 
 (defun prm--revert ()
   "Revert the buffer menu."
-  (let ((entries nil))
+  (let ((entries nil)
+        (buffer-names nil)
+        (tab-names nil))
 
     (dolist (memory (hash-table-values partial-recall--table))
 
       (let* ((real (eq memory (partial-recall--reality)))
              (tab-name (partial-recall--tab-name memory))
              (mem-pp (prm--print-memory memory real)))
+
+        (push tab-name tab-names)
 
         (dolist (moment (ring-elements (partial-recall--memory-ring memory)))
 
@@ -42,9 +56,11 @@
                  (item (list tab-name buffer real))
                  (line (vector prm--empty implanted count name mem-pp ts)))
 
+            (push name buffer-names)
+
             (push (list item line) entries)))))
 
-    (setq tabulated-list-format prm--list-format
+    (setq tabulated-list-format (prm--format buffer-names tab-names)
           tabulated-list-entries (nreverse entries)))
 
   (tabulated-list-init-header))

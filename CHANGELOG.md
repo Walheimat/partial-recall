@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   is swapped from the previous memory to reality.
 - `partial-recall--consult-buffer-source` was moved to new subpackage
   `partial-recall-extensions`.
+- The column width is now adapted based on the longest buffer and tab
+  name.
 
 ## [v0.4.0]
 

@@ -19,7 +19,14 @@
 
       (should (equal `((("test-tab" ,(current-buffer) t) [" " "*" "1" ,(buffer-name) "rem" "today"]))
                      tabulated-list-entries))
-      (should (equal partial-recall-menu--list-format tabulated-list-format))
+      (should (equal (vector
+                      '("A" 1 t :pad-right 0)
+                      '("I" 1 t :pad-right 0)
+                      '("U" 1 t :pad-right 1)
+                      `("Buffer" ,(length (buffer-name)) t)
+                      '("Tab" 8 t)
+                      '("Timestamp" 9 t))
+                     tabulated-list-format))
       (bydi-was-called tabulated-list-init-header))))
 
 (ert-deftest prm--list ()
@@ -84,8 +91,8 @@
     (should (string= "+" (partial-recall-menu--print-update-count 11)))))
 
 (ert-deftest prm--print-permanence ()
-   (should (string= " " (partial-recall-menu--print-permanence nil)))
-   (should (string= "*" (partial-recall-menu--print-permanence t))))
+  (should (string= " " (partial-recall-menu--print-permanence nil)))
+  (should (string= "*" (partial-recall-menu--print-permanence t))))
 
 (ert-deftest prm--print-memory ()
   (let ((partial-recall-buffer-limit 10)
