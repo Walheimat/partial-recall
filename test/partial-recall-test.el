@@ -105,13 +105,12 @@
     (should (string= "second" (partial-recall--complete-reality "Some prompt: ")))))
 
 (ert-deftest pr--complete-subconscious ()
-  (let* ((partial-recall--subconscious nil)
+  (let* ((partial-recall--table (make-hash-table))
          (buf (generate-new-buffer " *temp*" t))
-         (name (buffer-name buf)))
+         (name (buffer-name buf))
+         (sub (partial-recall--ensure-subconscious)))
 
-    (partial-recall--ensure-subconscious)
-
-    (ring-insert (partial-recall--memory-ring partial-recall--subconscious)
+    (ring-insert (partial-recall--memory-ring sub)
                  (partial-recall--moment-create buf))
 
     (bydi-with-mock ((:mock completing-read :return name))
@@ -391,13 +390,16 @@
 
 (ert-deftest pr-forget--clears-subconscious ()
   (with-tab-history :pre t :lifts t
-    (partial-recall--forget (current-buffer) t)
 
-    (should (partial-recall--memory-buffer-p partial-recall--subconscious (current-buffer)))
+    (let ((sub (partial-recall--ensure-subconscious)))
 
-    (partial-recall--forget (current-buffer))
+      (partial-recall--forget (current-buffer) t)
 
-    (should-not (partial-recall--memory-buffer-p partial-recall--subconscious (current-buffer)))))
+      (should (partial-recall--memory-buffer-p sub (current-buffer)))
+
+      (partial-recall--forget (current-buffer))
+
+      (should-not (partial-recall--memory-buffer-p sub (current-buffer))))))
 
 (ert-deftest pr-forget--shortens-extended-memory ()
   (let ((partial-recall-buffer-limit 2)
@@ -428,41 +430,39 @@
 ;; Subconscious
 
 (ert-deftest pr--ensure-subconscious ()
-  (let ((partial-recall--subconscious nil))
+  (let ((partial-recall-table (make-hash-table)))
 
     (partial-recall--ensure-subconscious)
 
-    (should partial-recall--subconscious)))
+    (should (gethash partial-recall--subconscious-key partial-recall--table))))
 
 (ert-deftest partial-recall--suppress--remembers ()
-  (let ((partial-recall--subconscious nil))
-    (with-tab-history :pre t
-      (partial-recall--forget (current-buffer) t)
+  (with-tab-history :pre t
+    (partial-recall--forget (current-buffer) t)
 
-      (should (eq (ring-length (partial-recall--memory-ring partial-recall--subconscious))
-                  1)))))
+    (should (eq (ring-length (partial-recall--memory-ring (gethash partial-recall--subconscious-key partial-recall--table)))
+                1))))
 
 (ert-deftest partial-recall--suppress--kills ()
-  (let ((partial-recall--subconscious nil))
-    (with-tab-history
+  (with-tab-history
 
-      (let ((another-temp (generate-new-buffer " *temp*" t)))
+    (let ((another-temp (generate-new-buffer " *temp*" t)))
 
-        (partial-recall--remember another-temp)
-        (partial-recall--remember (current-buffer))
-        (partial-recall--forget another-temp t)
+      (partial-recall--remember another-temp)
+      (partial-recall--remember (current-buffer))
 
-        (bydi ((:always partial-recall--memory-at-capacity-p)
-               kill-buffer)
-          (partial-recall--forget (current-buffer) t)
+      (partial-recall--forget another-temp t)
 
-          (bydi-was-called-with kill-buffer another-temp))
+      (bydi ((:always partial-recall--memory-at-capacity-p)
+             kill-buffer)
+        (partial-recall--forget (current-buffer) t)
 
-        (kill-buffer another-temp)))))
+        (bydi-was-called-with kill-buffer another-temp))
+
+      (kill-buffer another-temp))))
 
 (ert-deftest partial-recall--suppress--just-removes ()
-  (let ((partial-recall--subconscious nil)
-        (partial-recall-repress nil))
+  (let ((partial-recall-repress nil))
 
     (with-tab-history
 
@@ -481,21 +481,22 @@
         (kill-buffer another-temp)))))
 
 (ert-deftest partial-recall--lifted ()
-  (let ((partial-recall--subconscious nil))
-    (with-tab-history :pre t :lifts t
-      (partial-recall--forget (current-buffer) t)
+  (with-tab-history :pre t :lifts t
+    (partial-recall--forget (current-buffer) t)
 
-      (should (partial-recall--lifted (current-buffer))))))
+    (should (partial-recall--lifted (current-buffer)))))
 
 (ert-deftest partial-recall--lift ()
   (with-tab-history :lifts t :pre t
-    (partial-recall--forget (current-buffer) t)
+    (let ((sub (gethash partial-recall--subconscious-key partial-recall--table)))
 
-    (should (eq (ring-length (partial-recall--memory-ring partial-recall--subconscious)) 1))
+      (partial-recall--forget (current-buffer) t)
 
-    (partial-recall--lift (current-buffer))
+      (should (eq (ring-length (partial-recall--memory-ring sub)) 1))
 
-    (should (eq (ring-length (partial-recall--memory-ring partial-recall--subconscious)) 0))))
+      (partial-recall--lift (current-buffer))
+
+      (should (eq (ring-length (partial-recall--memory-ring sub)) 0)))))
 
 ;; Setup
 

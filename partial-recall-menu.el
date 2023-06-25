@@ -34,11 +34,13 @@
 
 (defun prm--revert ()
   "Revert the buffer menu."
-  (let ((entries nil)
-        (buffer-names nil)
-        (tab-names nil))
+  (let* ((entries nil)
+         (buffer-names nil)
+         (tab-names nil)
+         (memories (hash-table-values partial-recall--table))
+         (normal (seq-filter (lambda (it) (not (partial-recall--subconscious-p it))) memories)))
 
-    (dolist (memory (hash-table-values partial-recall--table))
+    (dolist (memory normal)
 
       (let* ((real (eq memory (partial-recall--reality)))
              (tab-name (partial-recall--tab-name memory))

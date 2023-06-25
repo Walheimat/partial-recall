@@ -72,6 +72,8 @@ These are buffers that are removed from the subconscious."
 
 (defvar partial-recall--table (make-hash-table))
 
+(defvar partial-recall--subconscious-key "subconscious")
+
 (defun partial-recall--key (&optional tab)
   "Get the hash key of TAB."
   (when-let* ((tab (or tab (tab-bar--current-tab)))
@@ -124,8 +126,9 @@ moments and the size it had upon construction."
 
 (defun partial-recall--mapped-buffers ()
   "Get all mapped buffers."
-  (let ((mapped (cl-loop for _k being the hash-keys of partial-recall--table
+  (let ((mapped (cl-loop for k being the hash-keys of partial-recall--table
                          using (hash-values memory)
+                         unless (string= k partial-recall--subconscious-key)
                          append (ring-elements (partial-recall--memory-ring memory)))))
 
     (mapcar #'partial-recall--moment-buffer mapped)))
@@ -476,22 +479,22 @@ If FORCE is t, will reclaim even if the threshold wasn't passed."
   "Forget BUFFER.
 
 If SUPPRESS is t, do that."
-  (if-let* ((buffer (or buffer (current-buffer)))
-            (maybe-remove (lambda (_key memory)
-                            (when-let* ((ring (partial-recall--memory-ring memory))
-                                        (index (partial-recall--moments-member ring buffer))
-                                        (moment (ring-remove ring index)))
+  (let* ((buffer (or buffer (current-buffer)))
+         (removed nil)
+         (maybe-remove (lambda (key memory)
+                         (when-let* (((not removed))
+                                     (ring (partial-recall--memory-ring memory))
+                                     (index (partial-recall--moments-member ring buffer))
+                                     (moment (ring-remove ring index)))
 
-                              (when suppress
-                                (partial-recall--suppress moment))
+                           (setq removed t)
 
-                              (partial-recall--maybe-resize-memory memory))))
+                           (when (and suppress
+                                      (not (string= key partial-recall--subconscious-key)))
+                             (partial-recall--suppress moment))
 
+                           (partial-recall--maybe-resize-memory memory)))))
 
-            (subconscious (partial-recall--ensure-subconscious))
-            (moment (partial-recall--memory-buffer-p subconscious buffer)))
-
-      (ring-remove (partial-recall--memory-ring subconscious) moment)
     (maphash maybe-remove partial-recall--table)))
 
 (defun partial-recall--implant (&optional buffer excise)
@@ -508,17 +511,20 @@ If EXCISE is t, remove permanence instead."
 
 ;; Subconscious
 
-(defvar partial-recall--subconscious-key "subconscious")
-
-(defvar partial-recall--subconscious nil
-  "The subconscious.")
-
 (defun partial-recall--ensure-subconscious ()
   "Return (or create) the subconscious."
-  (unless partial-recall--subconscious
-    (setq partial-recall--subconscious (partial-recall--memory-create partial-recall--subconscious-key)))
+  (if-let* ((table partial-recall--table)
+            (key partial-recall--subconscious-key)
+            (subconscious (gethash key table)))
+      subconscious
+    (let ((memory (partial-recall--memory-create key)))
 
-  partial-recall--subconscious)
+      (puthash key memory partial-recall--table)
+      memory)))
+
+(defun partial-recall--subconscious-p (memory)
+  "Check if MEMORY is the subconscious."
+  (string= partial-recall--subconscious-key (partial-recall--memory-key memory)))
 
 (defun partial-recall--suppress (moment)
   "Suppress MOMENT in the subconscious."
