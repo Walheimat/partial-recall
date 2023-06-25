@@ -467,6 +467,7 @@ If FORCE is t, will reclaim even if the threshold wasn't passed."
 If SUPPRESS is t, do that."
   (let* ((buffer (or buffer (current-buffer)))
          (table partial-recall--table)
+         (subconscious (partial-recall--ensure-subconscious))
          (maybe-remove (lambda (_key memory)
                          (when-let* ((ring (partial-recall--memory-ring memory))
                                      (index (partial-recall--moments-member ring buffer)))
@@ -477,6 +478,9 @@ If SUPPRESS is t, do that."
                                (partial-recall--suppress moment)))
 
                            (partial-recall--maybe-resize-memory memory)))))
+
+    (when (partial-recall--memory-buffer-p subconscious buffer)
+      (ring-remove (partial-recall--memory-ring subconscious) buffer))
 
     (maphash maybe-remove table)))
 
