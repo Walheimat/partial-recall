@@ -366,7 +366,7 @@
   (with-tab-history :pre t
 
     (bydi (partial-recall--suppress)
-      (partial-recall--forget)
+      (partial-recall--forget (current-buffer) t)
 
       (bydi-was-called partial-recall--suppress))
 
@@ -413,7 +413,7 @@
 (ert-deftest partial-recall--suppress--remembers ()
   (let ((partial-recall--subconscious nil))
     (with-tab-history :pre t
-      (partial-recall--forget)
+      (partial-recall--forget (current-buffer) t)
 
       (should (eq (ring-length (partial-recall--memory-ring partial-recall--subconscious))
                   1)))))
@@ -426,11 +426,11 @@
 
         (partial-recall--remember another-temp)
         (partial-recall--remember (current-buffer))
-        (partial-recall--forget another-temp)
+        (partial-recall--forget another-temp t)
 
         (bydi ((:always partial-recall--memory-at-capacity-p)
                kill-buffer)
-          (partial-recall--forget)
+          (partial-recall--forget (current-buffer) t)
 
           (bydi-was-called-with kill-buffer another-temp))
 
@@ -459,7 +459,7 @@
 (ert-deftest partial-recall--lift ()
   (let ((partial-recall--subconscious nil))
     (with-tab-history :pre t :lifts t
-      (partial-recall--forget (current-buffer))
+      (partial-recall--forget (current-buffer) t)
 
       (should (partial-recall--lift (current-buffer))))))
 

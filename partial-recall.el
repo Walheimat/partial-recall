@@ -461,8 +461,10 @@ If FORCE is t, will reclaim even if the threshold wasn't passed."
 
     (partial-recall--swap owner reality moment)))
 
-(defun partial-recall--forget (&optional buffer)
-  "Forget BUFFER."
+(defun partial-recall--forget (&optional buffer suppress)
+  "Forget BUFFER.
+
+If SUPPRESS is t, do that."
   (let* ((buffer (or buffer (current-buffer)))
          (table partial-recall--table)
          (maybe-remove (lambda (_key memory)
@@ -470,7 +472,9 @@ If FORCE is t, will reclaim even if the threshold wasn't passed."
                                      (index (partial-recall--moments-member ring buffer)))
 
                            (let ((moment (ring-remove ring index)))
-                             (partial-recall--suppress moment))
+
+                             (when suppress
+                               (partial-recall--suppress moment)))
 
                            (partial-recall--maybe-resize-memory memory)))))
 
@@ -617,7 +621,7 @@ This will always force-reclaim."
   "Forget BUFFER."
   (interactive (list (partial-recall--complete-reality "Forget moment: ")))
 
-  (partial-recall--forget buffer))
+  (partial-recall--forget buffer t))
 
 ;;;###autoload
 (defun partial-recall-implant (buffer &optional excise)

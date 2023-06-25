@@ -174,7 +174,7 @@ If NO-OTHER-TAB is t, raise an error if that would be necessary."
                      (partial-recall--reclaim buffer t)
                      (tabulated-list-set-col 0 prm--empty t))
                     ((equal action "F")
-                     (partial-recall--forget buffer)
+                     (partial-recall--forget buffer t)
                      (tabulated-list-delete-entry))
                     ((equal action "R")
                      (partial-recall--reinforce buffer t)
