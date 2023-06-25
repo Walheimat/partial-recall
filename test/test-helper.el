@@ -16,13 +16,15 @@
 
 (defvar test-tab '(current-tab (name . "test-tab") (explicit-name . t) (pr . "test-hash")))
 
-(cl-defmacro with-tab-history (&rest body &key pre &allow-other-keys)
+(cl-defmacro with-tab-history (&rest body &key pre lifts &allow-other-keys)
   "Run BODY with a clear tab history and a temp buffer.
 
-If PRE is t, pre-remember the current buffer."
+If PRE is t, pre-remember the current buffer. Unless LIFTS is t,
+ignore calls to `partial-recall--lift'."
   (declare (indent defun))
   `(bydi ((:mock tab-bar--current-tab :return test-tab)
-          (:mock tab-bar-tabs :return (list test-tab)))
+          (:mock tab-bar-tabs :return (list test-tab))
+          ,(unless lifts '(:ignore partial-recall--lift)))
      (let ((partial-recall--table (make-hash-table)))
 
        (with-temp-buffer

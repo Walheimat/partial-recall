@@ -56,6 +56,13 @@ Has no effect if `partial-recall-reclaim' is nil."
   :type 'integer
   :group 'partial-recall)
 
+(defcustom partial-recall-repress t
+  "Whether `partial-recall-suppress' may kill buffers.
+
+These are buffers that are removed from the subconscious."
+  :type 'boolean
+  :group 'partial-recall)
+
 (defcustom partial-recall-mode-lighter " pr"
   "The mode line lighter."
   :type 'string
@@ -220,6 +227,12 @@ the max age."
                (> curr orig))
       (ring-resize ring (1- (ring-size ring))))))
 
+(defun partial-recall--maybe-extend-memory (memory)
+  "Maybe extend MEMORY."
+  (when (and (partial-recall--memory-at-capacity-p memory)
+             (partial-recall--should-extend-memory-p memory))
+    (ring-extend (partial-recall--memory-ring memory) 1)))
+
 (defun partial-recall--has-buffers-p (&optional memory)
   "Check if the MEMORY has buffers."
   (when-let* ((memory (or memory (partial-recall--reality)))
@@ -337,12 +350,16 @@ This will remember new buffers and maybe reclaim mapped buffers."
 
 (defun partial-recall--on-close (tab only)
   "Remove TAB from table if it is not the ONLY one."
-  (when-let* ((tab-key (partial-recall--key tab))
-              (table partial-recall--table))
+  (and-let* (((not only))
+             (tab-key (partial-recall--key tab))
+             (table partial-recall--table)
+             (memory (gethash tab-key table))
+             (moments (partial-recall--memory-ring memory)))
 
-    (when (and (not only)
-               (gethash tab-key table))
-      (remhash tab-key table))))
+    (dolist (it (ring-elements moments))
+      (partial-recall--suppress it))
+
+    (remhash tab-key table)))
 
 (defvar partial-recall--timer nil)
 
@@ -375,11 +392,12 @@ This will remember new buffers and maybe reclaim mapped buffers."
     (unless (partial-recall--moments-member ring buffer)
       (partial-recall--maybe-reinforce-implanted memory)
 
-      (when (and (partial-recall--memory-at-capacity-p memory)
-                 (partial-recall--should-extend-memory-p memory))
-        (ring-extend ring 1))
+      (partial-recall--maybe-extend-memory memory)
 
-      (ring-insert ring (partial-recall--moment-create buffer)))))
+      (let ((moment (or (partial-recall--lift buffer)
+                        (partial-recall--moment-create buffer))))
+
+        (ring-insert ring moment)))))
 
 (defun partial-recall--swap (a b moment)
   "Swap MOMENT from memory A to B."
@@ -451,7 +469,9 @@ If FORCE is t, will reclaim even if the threshold wasn't passed."
                          (when-let* ((ring (partial-recall--memory-ring memory))
                                      (index (partial-recall--moments-member ring buffer)))
 
-                           (ring-remove ring index)
+                           (let ((moment (ring-remove ring index)))
+                             (partial-recall--suppress moment))
+
                            (partial-recall--maybe-resize-memory memory)))))
 
     (maphash maybe-remove table)))
@@ -467,6 +487,44 @@ If EXCISE is t, remove permanence instead."
 
     (unless (eq (partial-recall--moment-permanence moment) (not excise))
       (partial-recall--moment-set-permanence moment (not excise)))))
+
+;; Subconscious
+
+(defvar partial-recall--subconscious-key "subconscious")
+
+(defvar partial-recall--subconscious nil
+  "The subconscious.")
+
+(defun partial-recall--ensure-subconscious ()
+  "Return (or create) the subconscious."
+  (unless partial-recall--subconscious
+    (setq partial-recall--subconscious (partial-recall--memory-create partial-recall--subconscious-key)))
+
+  partial-recall--subconscious)
+
+(defun partial-recall--suppress (moment)
+  "Suppress MOMENT in the subconscious."
+  (when-let* ((memory (partial-recall--ensure-subconscious))
+              (ring (partial-recall--memory-ring memory)))
+
+    (when (partial-recall--memory-at-capacity-p memory)
+      (let* ((removed (ring-remove ring))
+             (buffer (partial-recall--moment-buffer removed)))
+
+        (when partial-recall-repress
+          (kill-buffer buffer))))
+
+    (ring-insert ring moment)))
+
+(defun partial-recall--lift (buffer)
+  "Lift BUFFER out of the subconscious if present."
+  (when-let* ((memory (partial-recall--ensure-subconscious))
+              (moments (partial-recall--memory-ring memory))
+              (index (partial-recall--moments-member moments buffer))
+              (found (ring-remove moments index)))
+
+    (partial-recall--moment-update-timestamp found)
+    found))
 
 ;; Setup
 

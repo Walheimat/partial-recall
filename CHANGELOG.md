@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- A separate memory called `partial-recall--subconscious` exists now
+  as a sink of moments forgotten from other memories. If a moment is
+  removed from the subconscious, its buffer is killed if
+  `partial-recall-repress` is t. When remembering, moments are
+  "lifted" from the subconscious if they exist in it.
+
 ### Changed
 
 - `partial-recall--reclaim` no longer recreates a moment, instead it

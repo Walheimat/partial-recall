@@ -171,17 +171,20 @@
       (should (string= "test" (alist-get 'pr tab))))))
 
 (ert-deftest pr--on-close ()
-  (with-tab-history :pre t
+  (bydi (partial-recall--suppress)
+    (with-tab-history :pre t
 
-    (should (eq 1 (length (hash-table-keys partial-recall--table))))
+      (should (eq 1 (length (hash-table-keys partial-recall--table))))
 
-    (partial-recall--on-close test-tab t)
+      (partial-recall--on-close test-tab t)
 
-    (should (eq 1 (length (hash-table-keys partial-recall--table))))
+      (should (eq 1 (length (hash-table-keys partial-recall--table))))
 
-    (partial-recall--on-close test-tab nil)
+      (partial-recall--on-close test-tab nil)
 
-    (should (eq 0 (length (hash-table-keys partial-recall--table))))))
+      (should (eq 0 (length (hash-table-keys partial-recall--table))))
+
+      (bydi-was-called partial-recall--suppress))))
 
 (ert-deftest pr--on-buffer-list-update--cancels-running-timer ()
   (let ((partial-recall--timer nil))
@@ -362,7 +365,10 @@
 (ert-deftest pr-forget--forgets ()
   (with-tab-history :pre t
 
-    (partial-recall--forget)
+    (bydi (partial-recall--suppress)
+      (partial-recall--forget)
+
+      (bydi-was-called partial-recall--suppress))
 
     (let* ((memory (gethash (alist-get 'pr test-tab) partial-recall--table))
            (ring (partial-recall--memory-ring memory)))
@@ -374,25 +380,88 @@
         (another-temp (generate-new-buffer " *temp*" t))
         (yet-another-temp (generate-new-buffer " *temp*" t)))
 
+    (bydi (partial-recall--suppress)
+      (with-tab-history :pre t
+        (partial-recall--remember another-temp)
+        (partial-recall--remember yet-another-temp)
+
+        (should (eq (ring-size (partial-recall--memory-ring (partial-recall--reality)))
+                    3))
+
+        (partial-recall--forget another-temp)
+
+        (should (eq (ring-size (partial-recall--memory-ring (partial-recall--reality)))
+                    2))
+
+        (partial-recall--forget yet-another-temp)
+
+        (should (eq (ring-size (partial-recall--memory-ring (partial-recall--reality)))
+                    2))
+
+        (kill-buffer another-temp)
+        (kill-buffer yet-another-temp)))))
+
+;; Subconscious
+
+(ert-deftest pr--ensure-subconscious ()
+  (let ((partial-recall--subconscious nil))
+
+    (partial-recall--ensure-subconscious)
+
+    (should partial-recall--subconscious)))
+
+(ert-deftest partial-recall--suppress--remembers ()
+  (let ((partial-recall--subconscious nil))
     (with-tab-history :pre t
-      (partial-recall--remember another-temp)
-      (partial-recall--remember yet-another-temp)
+      (partial-recall--forget)
 
-      (should (eq (ring-size (partial-recall--memory-ring (partial-recall--reality)))
-                  3))
+      (should (eq (ring-length (partial-recall--memory-ring partial-recall--subconscious))
+                  1)))))
 
-      (partial-recall--forget another-temp)
+(ert-deftest partial-recall--suppress--kills ()
+  (let ((partial-recall--subconscious nil))
+    (with-tab-history
 
-      (should (eq (ring-size (partial-recall--memory-ring (partial-recall--reality)))
-                  2))
+      (let ((another-temp (generate-new-buffer " *temp*" t)))
 
-      (partial-recall--forget yet-another-temp)
+        (partial-recall--remember another-temp)
+        (partial-recall--remember (current-buffer))
+        (partial-recall--forget another-temp)
 
-      (should (eq (ring-size (partial-recall--memory-ring (partial-recall--reality)))
-                  2))
+        (bydi ((:always partial-recall--memory-at-capacity-p)
+               kill-buffer)
+          (partial-recall--forget)
 
-      (kill-buffer another-temp)
-      (kill-buffer yet-another-temp))))
+          (bydi-was-called-with kill-buffer another-temp))
+
+        (kill-buffer another-temp)))))
+
+(ert-deftest partial-recall--suppress--just-removes ()
+  (let ((partial-recall--subconscious nil)
+        (partial-recall-repress nil))
+
+    (with-tab-history
+
+      (let ((another-temp (generate-new-buffer " *temp*" t)))
+
+        (partial-recall--remember another-temp)
+        (partial-recall--remember (current-buffer))
+        (partial-recall--forget another-temp)
+
+        (bydi ((:always partial-recall--memory-at-capacity-p)
+               kill-buffer)
+          (partial-recall--forget)
+
+          (bydi-was-not-called kill-buffer))
+
+        (kill-buffer another-temp)))))
+
+(ert-deftest partial-recall--lift ()
+  (let ((partial-recall--subconscious nil))
+    (with-tab-history :pre t :lifts t
+      (partial-recall--forget (current-buffer))
+
+      (should (partial-recall--lift (current-buffer))))))
 
 ;; Setup
 
