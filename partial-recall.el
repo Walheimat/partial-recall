@@ -465,25 +465,23 @@ If FORCE is t, will reclaim even if the threshold wasn't passed."
   "Forget BUFFER.
 
 If SUPPRESS is t, do that."
-  (let* ((buffer (or buffer (current-buffer)))
-         (table partial-recall--table)
-         (subconscious (partial-recall--ensure-subconscious))
-         (maybe-remove (lambda (_key memory)
-                         (when-let* ((ring (partial-recall--memory-ring memory))
-                                     (index (partial-recall--moments-member ring buffer)))
+  (if-let* ((buffer (or buffer (current-buffer)))
+            (maybe-remove (lambda (_key memory)
+                            (when-let* ((ring (partial-recall--memory-ring memory))
+                                        (index (partial-recall--moments-member ring buffer))
+                                        (moment (ring-remove ring index)))
 
-                           (let ((moment (ring-remove ring index)))
+                              (when suppress
+                                (partial-recall--suppress moment))
 
-                             (when suppress
-                               (partial-recall--suppress moment)))
+                              (partial-recall--maybe-resize-memory memory))))
 
-                           (partial-recall--maybe-resize-memory memory)))))
 
-    (when-let ((moment (partial-recall--memory-buffer-p subconscious buffer)))
+            (subconscious (partial-recall--ensure-subconscious))
+            (moment (partial-recall--memory-buffer-p subconscious buffer)))
 
-      (ring-remove (partial-recall--memory-ring subconscious) moment))
-
-    (maphash maybe-remove table)))
+      (ring-remove (partial-recall--memory-ring subconscious) moment)
+    (maphash maybe-remove partial-recall--table)))
 
 (defun partial-recall--implant (&optional buffer excise)
   "Make BUFFER permanent.
