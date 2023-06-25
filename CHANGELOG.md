@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   removed from the subconscious, its buffer is killed if
   `partial-recall-repress` is t. When remembering, moments are
   "lifted" from the subconscious if they exist in it.
+- Lifting can also be peformed using `partial-recall-lift`.
 
 ### Changed
 

@@ -104,6 +104,20 @@
                    (:mock buffer-name :with bydi-rf))
     (should (string= "second" (partial-recall--complete-reality "Some prompt: ")))))
 
+(ert-deftest pr--complete-subconscious ()
+  (let* ((partial-recall--subconscious nil)
+         (buf (generate-new-buffer " *temp*" t))
+         (name (buffer-name buf)))
+
+    (partial-recall--ensure-subconscious)
+
+    (ring-insert (partial-recall--memory-ring partial-recall--subconscious)
+                 (partial-recall--moment-create buf))
+
+    (bydi-with-mock ((:mock completing-read :return name))
+
+      (should (equal buf (partial-recall--complete-subconscious "Some prompt: "))))))
+
 (ert-deftest pr--tab ()
   (with-tab-history :pre t
     (should (string= (partial-recall--tab-name) "test-tab"))))
@@ -375,6 +389,16 @@
 
       (should (eq 0 (ring-length ring))))))
 
+(ert-deftest pr-forget--clears-subconscious ()
+  (with-tab-history :pre t :lifts t
+    (partial-recall--forget (current-buffer) t)
+
+    (should (partial-recall--memory-buffer-p partial-recall--subconscious (current-buffer)))
+
+    (partial-recall--forget (current-buffer))
+
+    (should-not (partial-recall--memory-buffer-p partial-recall--subconscious (current-buffer)))))
+
 (ert-deftest pr-forget--shortens-extended-memory ()
   (let ((partial-recall-buffer-limit 2)
         (another-temp (generate-new-buffer " *temp*" t))
@@ -456,12 +480,22 @@
 
         (kill-buffer another-temp)))))
 
-(ert-deftest partial-recall--lift ()
+(ert-deftest partial-recall--lifted ()
   (let ((partial-recall--subconscious nil))
     (with-tab-history :pre t :lifts t
       (partial-recall--forget (current-buffer) t)
 
-      (should (partial-recall--lift (current-buffer))))))
+      (should (partial-recall--lifted (current-buffer))))))
+
+(ert-deftest partial-recall--lift ()
+  (with-tab-history :lifts t :pre t
+    (partial-recall--forget (current-buffer) t)
+
+    (should (eq (ring-length (partial-recall--memory-ring partial-recall--subconscious)) 1))
+
+    (partial-recall--lift (current-buffer))
+
+    (should (eq (ring-length (partial-recall--memory-ring partial-recall--subconscious)) 0))))
 
 ;; Setup
 
@@ -545,7 +579,9 @@
            partial-recall--forget
            partial-recall--complete-dream
            partial-recall--complete-reality
+           partial-recall--complete-subconscious
            partial-recall--implant
+           partial-recall--lift
            switch-to-buffer)
 
       (call-interactively 'partial-recall-reinforce)
@@ -553,6 +589,7 @@
       (call-interactively 'partial-recall-forget)
       (call-interactively 'partial-recall-switch-to-buffer)
       (call-interactively 'partial-recall-implant)
+      (call-interactively 'partial-recall-lift)
 
       (bydi-was-called partial-recall--reinforce)
       (bydi-was-called partial-recall--reclaim)
@@ -560,6 +597,7 @@
       (bydi-was-called partial-recall--complete-dream)
       (bydi-was-called partial-recall--complete-reality)
       (bydi-was-called partial-recall--implant)
+      (bydi-was-called partial-recall--lift)
       (bydi-was-called switch-to-buffer))))
 
 ;;; partial-recall-test.el ends here

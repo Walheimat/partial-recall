@@ -277,6 +277,17 @@ Defaults to the current buffer."
 
     (cdr-safe (assoc selection a ))))
 
+(defun partial-recall--complete-subconscious (prompt)
+  "Complete subconscious buffer using PROMPT."
+  (let* ((memory (partial-recall--ensure-subconscious))
+         (ring (partial-recall--memory-ring memory))
+         (moments (ring-elements ring))
+         (buffers (mapcar #'partial-recall--moment-buffer moments))
+         (a (mapcar (lambda (it) (cons (buffer-name it) it)) buffers))
+         (selection (completing-read prompt a nil t)))
+
+    (cdr-safe (assoc selection a))))
+
 (defun partial-recall--tab (memory)
   "Get the tab for MEMORY."
   (when-let ((key (partial-recall--memory-key memory))
@@ -394,7 +405,7 @@ This will remember new buffers and maybe reclaim mapped buffers."
 
       (partial-recall--maybe-extend-memory memory)
 
-      (let ((moment (or (partial-recall--lift buffer)
+      (let ((moment (or (partial-recall--lifted buffer)
                         (partial-recall--moment-create buffer))))
 
         (ring-insert ring moment)))))
@@ -523,7 +534,7 @@ If EXCISE is t, remove permanence instead."
 
     (ring-insert ring moment)))
 
-(defun partial-recall--lift (buffer)
+(defun partial-recall--lifted (buffer)
   "Lift BUFFER out of the subconscious if present."
   (when-let* ((memory (partial-recall--ensure-subconscious))
               (moments (partial-recall--memory-ring memory))
@@ -532,6 +543,14 @@ If EXCISE is t, remove permanence instead."
 
     (partial-recall--moment-update-timestamp found)
     found))
+
+(defun partial-recall--lift (buffer)
+  "Lift BUFFER into reality."
+  (when-let* ((moment (partial-recall--lifted buffer))
+              (reality (partial-recall--reality))
+              (ring (partial-recall--memory-ring reality)))
+
+    (ring-insert ring moment)))
 
 ;; Setup
 
@@ -582,7 +601,8 @@ If EXCISE is t, remove permanence instead."
     (define-key map (kbd "r") 'partial-recall-reinforce)
     (define-key map (kbd "c") 'partial-recall-reclaim)
     (define-key map (kbd "f") 'partial-recall-forget)
-    (define-key map (kbd "l") 'partial-recall-menu)
+    (define-key map (kbd "l") 'partial-recall-lift)
+    (define-key map (kbd "m") 'partial-recall-menu)
     (define-key map (kbd "i") 'partial-recall-implant)
     map)
   "Map for `partial-recall-mode' commands.")
@@ -635,6 +655,13 @@ If EXCISE is T, do that instead."
                      current-prefix-arg))
 
   (partial-recall--implant buffer excise))
+
+;;;###autoload
+(defun partial-recall-lift (buffer)
+  "Lift BUFFER out of the subconscious."
+  (interactive (list (partial-recall--complete-subconscious "Lift moment: ")))
+
+  (partial-recall--lift buffer))
 
 (provide 'partial-recall)
 
