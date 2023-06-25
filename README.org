@@ -39,6 +39,7 @@ taken into account.
   (partial-recall-buffer-limit 20) ;; The number of buffers in the ring.
   (partial-recall-max-age 300) ;; The age (in seconds) that will allow the ring to grow.
   (partial-recall-reclaim-min-age 600) ;; The age (in seconds) that will allow reclaiming.
+  (partial-recall-repress t) ;; Whether forgotten buffers should (eventually) be killed.
 
   :config
   (partial-recall-mode)
