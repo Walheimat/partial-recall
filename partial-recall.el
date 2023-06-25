@@ -479,8 +479,9 @@ If SUPPRESS is t, do that."
 
                            (partial-recall--maybe-resize-memory memory)))))
 
-    (when (partial-recall--memory-buffer-p subconscious buffer)
-      (ring-remove (partial-recall--memory-ring subconscious) buffer))
+    (when-let ((moment (partial-recall--memory-buffer-p subconscious buffer)))
+
+      (ring-remove (partial-recall--memory-ring subconscious) moment))
 
     (maphash maybe-remove table)))
 
