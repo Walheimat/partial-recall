@@ -63,6 +63,19 @@ These are buffers that are removed from the subconscious."
   :type 'boolean
   :group 'partial-recall)
 
+(defcustom partial-recall-auto-implant t
+  "Whether to automatically implant buffers.
+
+This is will implant buffers that have met
+`partial-recall-auto-implant-threshold'."
+  :type 'boolean
+  :group 'partial-recall)
+
+(defcustom partial-recall-auto-implant-threshold 10
+  "Minimum of updates before auto-implanting."
+  :type 'integer
+  :group 'partial-recall)
+
 (defcustom partial-recall-mode-lighter " pr"
   "The mode line lighter."
   :type 'string
@@ -139,13 +152,13 @@ moments and the size it had upon construction."
 
     (memq buffer buffers)))
 
-(defun partial-recall--memory-buffer-p (memory buffer)
+(defun partial-recall--memory-buffer-p (buffer memory)
   "Check if MEMORY owns BUFFER."
   (partial-recall--moments-member
    (partial-recall--memory-ring memory)
    buffer))
 
-(defun partial-recall--moment-buffer-p (moment buffer)
+(defun partial-recall--moment-buffer-p (buffer moment)
   "Check if MOMENT owns BUFFER."
   (eq (partial-recall--moment-buffer moment) buffer))
 
@@ -156,22 +169,37 @@ moments and the size it had upon construction."
       (when (equal buffer (partial-recall--moment-buffer (ring-ref moments ind)))
         (throw 'found ind)))))
 
+(defun partial-recall--moment-from-buffer (buffer)
+  "Get the moment that encapsulates BUFFER."
+  (when-let* ((memories (hash-table-values partial-recall--table))
+              (find-memory (apply-partially #'partial-recall--memory-buffer-p buffer))
+              (memory (seq-find find-memory memories))
+              (ring (partial-recall--memory-ring memory))
+              (index (partial-recall--moments-member ring buffer)))
+
+    (ring-ref ring index)))
+
 (defun partial-recall--moment-set-permanence (moment permanence)
   "Set MOMENT PERMANENCE."
   (setf (partial-recall--moment-permanence moment) permanence)
+
   (partial-recall--moment-increment-count moment))
 
 
 (defun partial-recall--moment-update-timestamp (moment)
   "Update the timestamp for MOMENT."
   (setf (partial-recall--moment-timestamp moment) (floor (time-to-seconds)))
+
   (partial-recall--moment-increment-count moment))
 
 (defun partial-recall--moment-increment-count (moment)
   "Increment the update count for MOMENT."
-  (let ((count (partial-recall--moment-update-count moment)))
+  (let* ((count (partial-recall--moment-update-count moment))
+         (updated-count (1+ count)))
 
-    (setf (partial-recall--moment-update-count moment) (1+ count))))
+    (partial-recall--maybe-implant-moment moment updated-count)
+
+    (setf (partial-recall--moment-update-count moment) updated-count)))
 
 ;; Helpers
 
@@ -198,7 +226,7 @@ moments and the size it had upon construction."
   "Check if reality owns BUFFER."
   (when-let ((memory (partial-recall--reality)))
 
-    (partial-recall--memory-buffer-p memory buffer)))
+    (partial-recall--memory-buffer-p buffer memory)))
 
 (defun partial-recall--should-extend-memory-p (memory)
   "Check if MEMORY should extend its ring size.
@@ -243,14 +271,24 @@ the max age."
 
     (not (ring-empty-p moments))))
 
+(defun partial-recall--maybe-implant-moment (moment count)
+  "Check if MOMENT should be implanted automatically.
+
+This is true if COUNT exceeds `partial-recall-auto-implant-threshold'."
+  (when (and partial-recall-auto-implant
+             (> count partial-recall-auto-implant-threshold))
+
+    (setf (partial-recall--moment-permanence moment) t)))
+
 (defun partial-recall--buffer-owner (&optional buffer)
   "Return the memory that owns BUFFER.
 
 Defaults to the current buffer."
   (let* ((buffer (or buffer (current-buffer)))
-         (memories (hash-table-values partial-recall--table)))
+         (memories (hash-table-values partial-recall--table))
+         (find (apply-partially #'partial-recall--memory-buffer-p buffer)))
 
-    (seq-find (lambda (it) (partial-recall--memory-buffer-p it buffer)) memories)))
+    (seq-find find memories)))
 
 (defun partial-recall--reinsert (moment memory)
   "Re-insert MOMENT into MEMORY."
@@ -465,7 +503,8 @@ If FORCE is t, will reclaim even if the threshold wasn't passed."
              (owner (partial-recall--buffer-owner buffer))
              ((not (eq reality owner)))
              (ring (partial-recall--memory-ring owner))
-             (moment (seq-find (lambda (it) (partial-recall--moment-buffer-p it buffer)) (ring-elements ring)))
+             (find (apply-partially #'partial-recall--moment-buffer-p buffer))
+             (moment (seq-find find (ring-elements ring)))
              ((or force
                   (< partial-recall-reclaim-min-age
                      (- (floor (time-to-seconds))
@@ -504,7 +543,8 @@ If EXCISE is t, remove permanence instead."
   (when-let* ((buffer (or buffer (current-buffer)))
               (owner (partial-recall--buffer-owner buffer))
               (ring (partial-recall--memory-ring owner))
-              (moment (seq-find (lambda (it) (partial-recall--moment-buffer-p it buffer)) (ring-elements ring))))
+              (find (apply-partially #'partial-recall--moment-buffer-p buffer))
+              (moment (seq-find find (ring-elements ring))))
 
     (unless (eq (partial-recall--moment-permanence moment) (not excise))
       (partial-recall--moment-set-permanence moment (not excise)))))

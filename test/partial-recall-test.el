@@ -35,7 +35,7 @@
 
     (let ((memory (gethash (alist-get 'pr test-tab) partial-recall--table)))
 
-      (should (partial-recall--memory-buffer-p memory (current-buffer))))))
+      (should (partial-recall--memory-buffer-p (current-buffer) memory)))))
 
 (ert-deftest pr-moment-buffer-p ()
   (with-tab-history :pre t
@@ -45,7 +45,7 @@
            (ring (partial-recall--memory-ring memory))
            (moment (ring-ref ring 0)))
 
-      (should (partial-recall--moment-buffer-p moment (current-buffer))))))
+      (should (partial-recall--moment-buffer-p (current-buffer) moment)))))
 
 ;; Helpers
 
@@ -80,6 +80,16 @@
 
           (should (partial-recall--should-extend-memory-p memory))
           (should-not (partial-recall--should-extend-memory-p memory)))))))
+
+(ert-deftest pr--maybe-implant-moment ()
+  (let ((partial-recall-auto-implant t)
+        (partial-recall-auto-implant-threshold 1))
+    (with-tab-history :pre t
+      (partial-recall--reinforce (current-buffer) t)
+      (partial-recall--reinforce (current-buffer) t)
+
+      (let ((moment (partial-recall--moment-from-buffer (current-buffer))))
+        (should (partial-recall--moment-permanence moment))))))
 
 (ert-deftest pr-recall--buffer-owner ()
   (with-tab-history :pre t
@@ -395,11 +405,11 @@
 
       (partial-recall--forget (current-buffer) t)
 
-      (should (partial-recall--memory-buffer-p sub (current-buffer)))
+      (should (partial-recall--memory-buffer-p (current-buffer) sub))
 
       (partial-recall--forget (current-buffer))
 
-      (should-not (partial-recall--memory-buffer-p sub (current-buffer))))))
+      (should-not (partial-recall--memory-buffer-p (current-buffer) sub)))))
 
 (ert-deftest pr-forget--shortens-extended-memory ()
   (let ((partial-recall-buffer-limit 2)

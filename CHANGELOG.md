@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `partial-recall-repress` is t. When remembering, moments are
   "lifted" from the subconscious if they exist in it.
 - Lifting can also be peformed using `partial-recall-lift`.
+- Moments that have been updated past a certain limit are now
+  auto-implanted, if `partial-recall-auto-implant` is `t` and their
+  update count has exceeded `partial-recall-auto-implant-threshold`.
 
 ### Changed
 
