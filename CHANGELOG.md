@@ -27,6 +27,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `partial-recall-extensions`.
 - The column width is now adapted based on the longest buffer and tab
   name.
+- Code was refactored again into more sensible headings. The tests for
+  the main package were split up using these.
 
 ## [v0.4.0]
 
