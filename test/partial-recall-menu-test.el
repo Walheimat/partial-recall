@@ -6,6 +6,18 @@
 
 (require 'partial-recall-menu nil t)
 
+(ert-deftest prm--format--works-if-empty ()
+  (should (partial-recall-menu--format nil nil)))
+
+(ert-deftest prm--format--sets-column-from-longest ()
+  (let ((buffers '("a" "bb" "ccc"))
+        (tabs '("dddd" "eee" "ff")))
+
+    (should (equal (aref (partial-recall-menu--format buffers tabs) 3)
+                   '("Buffer" 3 t)))
+    (should (equal (aref (partial-recall-menu--format buffers tabs) 4)
+                   '("Tab" 4 t)))))
+
 (ert-deftest prm--revert ()
   (bydi (tabulated-list-init-header
          (:mock partial-recall-menu--print-update-count :return "1")
