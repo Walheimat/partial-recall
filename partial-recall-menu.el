@@ -77,18 +77,18 @@
       (tabulated-list-print))
     buffer))
 
-(defun prm--entry ()
-  "Get current entry as a list of its properties."
-  (let ((entry (tabulated-list-get-id)))
+(defun prm--id ()
+  "Get current ID object."
+  (let ((id (tabulated-list-get-id)))
 
-    (if (null entry)
-        (error "No entry on this line")
-      entry)))
+    (if (null id)
+        (error "Nothing on this line")
+      id)))
 
 (defmacro prm--with-props (args &rest body)
   "Execute BODY with properties bound to ARGS."
   (declare (indent defun))
-  `(cl-destructuring-bind ,args (prm--entry)
+  `(cl-destructuring-bind ,args (prm--id)
      ,@body))
 
 (defun prm--switch (fun &optional no-other-tab)

@@ -56,18 +56,18 @@
 
       (kill-buffer buf))))
 
-(ert-deftest prm--entry ()
+(ert-deftest prm--id ()
   (bydi ((:sometimes tabulated-list-get-id))
 
-    (should (partial-recall-menu--entry))
+    (should (partial-recall-menu--id))
 
     (bydi-toggle-sometimes)
 
-    (should-error (partial-recall-menu--entry) :type 'error)))
+    (should-error (partial-recall-menu--id) :type 'error)))
 
 (ert-deftest prm--switch ()
   (let ((real nil))
-    (bydi ((:mock partial-recall-menu--entry :return (list "tab" 'buffer real))
+    (bydi ((:mock partial-recall-menu--id :return (list "tab" 'buffer real))
            tab-bar-switch-to-tab
            switch-to-buffer)
 
@@ -154,7 +154,7 @@
   (let ((real nil))
 
     (bydi (partial-recall-menu--switch
-           (:mock partial-recall-menu--entry :return (list "tab" 'buffer real))
+           (:mock partial-recall-menu--id :return (list "tab" 'buffer real))
            tabulated-list-set-col
            forward-line
            display-buffer
