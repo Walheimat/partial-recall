@@ -1,4 +1,4 @@
-;;; menu-test.el --- Tests for package. -*- lexical-binding: t; -*-
+;;; partial-recall-menu-test.el --- Tests for package. -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 ;;
@@ -178,7 +178,7 @@
 
 ;;; Code:
 
-;;; menu-test.el ends here
+;;; partial-recall-menu-test.el ends here
 
 ;; Local Variables:
 ;; no-byte-compile: t
