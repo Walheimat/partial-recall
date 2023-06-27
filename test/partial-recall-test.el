@@ -340,6 +340,16 @@
     (should (eq (ring-length (partial-recall--memory-ring (gethash partial-recall--subconscious-key partial-recall--table)))
                 1))))
 
+(ert-deftest partial-recall--suppress--removes-permanence ()
+  (with-tab-history :pre t
+    (let ((moment (partial-recall--moment-from-buffer (current-buffer))))
+
+      (partial-recall--implant (current-buffer))
+      (should (partial-recall--moment-permanence moment))
+
+      (partial-recall--forget (current-buffer) t)
+      (should-not (partial-recall--moment-permanence moment)))))
+
 (ert-deftest partial-recall--suppress--kills ()
   (with-tab-history
 
