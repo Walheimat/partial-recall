@@ -20,16 +20,16 @@
 (defun prm--format (buffers tabs)
   "Get format using BUFFERS and TABS."
   (let* ((buffers-sorted (sort (mapcar #'length buffers) #'>))
-         (longest-buffer (car buffers-sorted))
+         (longest-buffer (car-safe buffers-sorted))
          (tabs-sorted (sort (mapcar #'length tabs) #'>))
-         (longest-tab (car tabs-sorted)))
+         (longest-tab (car-safe tabs-sorted)))
 
     (vector
      '("A" 1 t :pad-right 0)
      '("I" 1 t :pad-right 0)
      '("U" 1 t :pad-right 1)
-     `("Buffer" ,longest-buffer t)
-     `("Tab" ,longest-tab t)
+     `("Buffer" ,(or longest-buffer 6) t)
+     `("Tab" ,(or longest-tab 3) t)
      '("Timestamp" 9 t))))
 
 (defun prm--revert ()
