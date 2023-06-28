@@ -29,7 +29,7 @@
 
       (partial-recall-menu--revert)
 
-      (should (equal `((("test-tab" ,(current-buffer) t) [" " "*" "1" ,(buffer-name) "rem" "today"]))
+      (should (equal `((("test-tab" ,(current-buffer) t nil) [" " "*" "1" ,(buffer-name) "rem" "today"]))
                      tabulated-list-entries))
       (should (equal (vector
                       '("A" 1 t :pad-right 0)
@@ -39,7 +39,11 @@
                       '("Tab" 8 t)
                       '("Timestamp" 9 t))
                      tabulated-list-format))
-      (bydi-was-called tabulated-list-init-header))))
+      (bydi-was-called tabulated-list-init-header)
+
+      (partial-recall-menu--revert t)
+
+      (should partial-recall-menu--subconscious))))
 
 (ert-deftest prm--list ()
   (bydi (partial-recall-menu-mode
@@ -108,15 +112,17 @@
 
 (ert-deftest prm--print-memory ()
   (let ((partial-recall-buffer-limit 10)
-        (partial-recall-menu--null "0"))
+        (partial-recall-menu--null "0")
+        (partial-recall-menu--present "1"))
 
     (with-tab-history :pre t
-      (should (string= "0" (partial-recall-menu--print-memory (partial-recall--reality) t)))
-      (should (string= "test-tab" (partial-recall-menu--print-memory (partial-recall--reality) nil)))
+      (should (string= "1" (partial-recall-menu--print-memory (partial-recall--reality) t nil)))
+      (should (string= "0" (partial-recall-menu--print-memory (partial-recall--reality) nil t)))
+      (should (string= "test-tab" (partial-recall-menu--print-memory (partial-recall--reality) nil nil)))
 
       (ring-resize (partial-recall--memory-ring (partial-recall--reality)) 11)
 
-      (should (string= "test-tab (+1)" (partial-recall-menu--print-memory (partial-recall--reality) nil))))))
+      (should (string= "test-tab (+1)" (partial-recall-menu--print-memory (partial-recall--reality) nil nil))))))
 
 (ert-deftest prm-mode ()
   (with-temp-buffer
@@ -127,10 +133,13 @@
 ;; API
 
 (ert-deftest prm-execute ()
-  (let ((entries '([" "] ["C"] ["F"] nil ["I"] ["R"] ["X"])))
+  (let ((entries '(["C"] ["C" ][" "] ["F"] nil ["I"] ["R"] ["X"]))
+        (sub nil))
 
-    (bydi ((:mock tabulated-list-get-id :return '(t buffer))
-           (:mock tabulated-list-get-entry :with (lambda () (pop entries)))
+    (bydi ((:mock tabulated-list-get-id :with (lambda () (list t 'buffer nil sub)))
+           (:mock tabulated-list-get-entry :with (lambda () (let ((res (pop entries)))
+                                                         (setq sub t)
+                                                         res)))
            (:mock eobp :with (lambda () (null entries)))
            tabulated-list-set-col
            tabulated-list-revert
@@ -138,23 +147,26 @@
            partial-recall--forget
            partial-recall--reinforce
            partial-recall--implant
+           partial-recall--lift
            forward-line)
 
       (with-temp-buffer
         (partial-recall-menu-execute)
 
         (bydi-was-called-n-times partial-recall--reclaim 1)
+        (bydi-was-called-n-times partial-recall--lift 1)
         (bydi-was-called-n-times partial-recall--forget 1)
         (bydi-was-called-n-times partial-recall--reinforce 1)
         (bydi-was-called-n-times partial-recall--implant 2)
-        (bydi-was-called-n-times forward-line 7)
+        (bydi-was-called-n-times forward-line 8)
         (bydi-was-called-n-times tabulated-list-revert 1)))))
 
 (ert-deftest prm-api ()
-  (let ((real nil))
+  (let ((real nil)
+        (sub nil))
 
     (bydi (partial-recall-menu--switch
-           (:mock partial-recall-menu--id :return (list "tab" 'buffer real))
+           (:mock partial-recall-menu--id :return (list "tab" 'buffer real sub))
            tabulated-list-set-col
            forward-line
            display-buffer
