@@ -209,7 +209,7 @@ Defaults to the current buffer."
         (puthash key new-memory table)
         new-memory))))
 
-(defun partial-recall--ensure-subconscious ()
+(defun partial-recall--subconscious ()
   "Return (or create) the subconscious."
   (if-let* ((table partial-recall--table)
             (key partial-recall--subconscious-key)
@@ -222,7 +222,7 @@ Defaults to the current buffer."
 
 (defun partial-recall--lifted (buffer)
   "Lift BUFFER out of the subconscious if present."
-  (when-let* ((memory (partial-recall--ensure-subconscious))
+  (when-let* ((memory (partial-recall--subconscious))
               (moments (partial-recall--memory-ring memory))
               (index (partial-recall--moments-member moments buffer))
               (found (ring-remove moments index)))
@@ -430,7 +430,7 @@ If EXCISE is t, remove permanence instead."
 
 (defun partial-recall--suppress (moment)
   "Suppress MOMENT in the subconscious."
-  (when-let* ((memory (partial-recall--ensure-subconscious))
+  (when-let* ((memory (partial-recall--subconscious))
               (ring (partial-recall--memory-ring memory)))
 
     (when (partial-recall--memory-at-capacity-p memory)
@@ -591,7 +591,7 @@ the max age."
 
 (defun partial-recall--complete-subconscious (prompt)
   "Complete subconscious buffer using PROMPT."
-  (let* ((memory (partial-recall--ensure-subconscious))
+  (let* ((memory (partial-recall--subconscious))
          (ring (partial-recall--memory-ring memory))
          (moments (ring-elements ring))
          (buffers (mapcar #'partial-recall--moment-buffer moments))

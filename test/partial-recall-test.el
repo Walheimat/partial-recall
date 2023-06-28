@@ -48,7 +48,7 @@
 (ert-deftest pr--ensure-subconscious ()
   (let ((partial-recall-table (make-hash-table)))
 
-    (partial-recall--ensure-subconscious)
+    (partial-recall--subconscious)
 
     (should (gethash partial-recall--subconscious-key partial-recall--table))))
 
@@ -297,7 +297,7 @@
 (ert-deftest pr-forget--clears-subconscious ()
   (with-tab-history :pre t :lifts t
 
-    (let ((sub (partial-recall--ensure-subconscious)))
+    (let ((sub (partial-recall--subconscious)))
 
       (partial-recall--forget (current-buffer) t)
 
@@ -503,7 +503,7 @@
   (let* ((partial-recall--table (make-hash-table))
          (buf (generate-new-buffer " *temp*" t))
          (name (buffer-name buf))
-         (sub (partial-recall--ensure-subconscious)))
+         (sub (partial-recall--subconscious)))
 
     (ring-insert (partial-recall--memory-ring sub)
                  (partial-recall--moment-create buf))
