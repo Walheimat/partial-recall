@@ -192,10 +192,10 @@ Defaults to the current buffer."
 
 (defun partial-recall--tab-name (&optional memory)
   "Get the tab name for MEMORY."
-  (when-let ((memory (or memory (partial-recall--reality)))
-             (tab (partial-recall--tab memory)))
-
-    (alist-get 'name tab)))
+  (if-let ((memory (or memory (partial-recall--reality)))
+           (tab (partial-recall--tab memory)))
+      (alist-get 'name tab)
+    ""))
 
 (defun partial-recall--reality ()
   "Get the current memory."
