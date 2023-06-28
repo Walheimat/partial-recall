@@ -450,6 +450,8 @@ If EXCISE is t, remove permanence instead."
               (reality (partial-recall--reality))
               (ring (partial-recall--memory-ring reality)))
 
+    (partial-recall--log "Lifting '%s' out of subconscious" (buffer-name buffer))
+
     (ring-insert ring moment)))
 
 (defun partial-recall--maybe-reinforce-implanted (memory)
