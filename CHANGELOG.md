@@ -30,6 +30,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The column width is now adapted based on the longest buffer and tab
   name.
 - Code was refactored again into more sensible headings.
+- Completion for reality buffers now sets the current buffer as
+  initial input if possible.
 
 ## [v0.4.0]
 

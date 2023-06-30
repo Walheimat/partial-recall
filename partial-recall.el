@@ -587,9 +587,11 @@ the max age."
   (let* ((buffers (partial-recall--mapped-buffers))
          (other-buffers (seq-filter #'partial-recall--reality-owns-buffer-p buffers))
          (a (mapcar (lambda (it) (cons (buffer-name it) it)) other-buffers))
-         (selection (completing-read prompt a nil t)))
+         (current (current-buffer))
+         (initial (when (memq current other-buffers) (buffer-name current)))
+         (selection (completing-read prompt a nil t initial)))
 
-    (cdr-safe (assoc selection a ))))
+    (cdr-safe (assoc selection a))))
 
 (defun partial-recall--complete-subconscious (prompt)
   "Complete subconscious buffer using PROMPT."
