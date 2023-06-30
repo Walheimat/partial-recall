@@ -40,6 +40,8 @@ taken into account.
   (partial-recall-max-age 300) ;; The age (in seconds) that will allow the ring to grow.
   (partial-recall-reclaim-min-age 600) ;; The age (in seconds) that will allow reclaiming.
   (partial-recall-repress t) ;; Whether forgotten buffers should (eventually) be killed.
+  (partial-recall-auto-implant t) ;; Whether moments should get implanted after meeting a threshold.
+  (partial-recall-auto-implant-threshold 10) ;; That very threshold.
 
   :config
   (partial-recall-mode)
@@ -56,7 +58,8 @@ taken into account.
           (append
            marginalia-command-categories
            '((partial-recall-switch-to-buffer . buffer)
-             (partial-recall-steal . buffer)
+             (partial-recall-implant . buffer)
+             (partial-recall-lift . buffer)
              (partial-recall-reclaim . buffer)
              (partial-recall-forget . buffer)
              (partial-recall-reinforce . buffer))))
