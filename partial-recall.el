@@ -232,15 +232,11 @@ Defaults to the current buffer."
 
 (defun partial-recall--moment-set-permanence (moment permanence)
   "Set MOMENT PERMANENCE."
-  (setf (partial-recall--moment-permanence moment) permanence)
-
-  (partial-recall--moment-increment-count moment))
+  (setf (partial-recall--moment-permanence moment) permanence))
 
 (defun partial-recall--moment-update-timestamp (moment)
   "Update the timestamp for MOMENT."
-  (setf (partial-recall--moment-timestamp moment) (floor (time-to-seconds)))
-
-  (partial-recall--moment-increment-count moment))
+  (setf (partial-recall--moment-timestamp moment) (floor (time-to-seconds))))
 
 (defun partial-recall--moment-increment-count (moment)
   "Increment the update count for MOMENT."
@@ -250,6 +246,10 @@ Defaults to the current buffer."
     (partial-recall--maybe-implant-moment moment updated-count)
 
     (setf (partial-recall--moment-update-count moment) updated-count)))
+
+(defun partial-recall--reset-count (moment)
+  "Reset the update count for MOMENT."
+  (setf (partial-recall--moment-update-count moment) 0))
 
 ;; -- Handlers
 
@@ -418,7 +418,8 @@ If EXCISE is t, remove permanence instead."
               (moment (seq-find find (ring-elements ring))))
 
     (unless (eq (partial-recall--moment-permanence moment) (not excise))
-      (partial-recall--moment-set-permanence moment (not excise)))))
+      (partial-recall--moment-set-permanence moment (not excise))
+      (partial-recall--moment-increment-count moment))))
 
 (defun partial-recall--reinsert (moment memory)
   "Re-insert MOMENT into MEMORY."
@@ -426,7 +427,9 @@ If EXCISE is t, remove permanence instead."
               (index (ring-member ring moment)))
 
     (ring-remove+insert+extend ring (ring-ref ring index) t)
-    (partial-recall--moment-update-timestamp moment)))
+
+    (partial-recall--moment-update-timestamp moment)
+    (partial-recall--moment-increment-count moment)))
 
 (defun partial-recall--suppress (moment)
   "Suppress MOMENT in the subconscious."
@@ -440,8 +443,8 @@ If EXCISE is t, remove permanence instead."
         (when partial-recall-repress
           (kill-buffer buffer))))
 
-    (setf (partial-recall--moment-update-count moment) 0)
-    (setf (partial-recall--moment-permanence moment) nil)
+    (partial-recall--reset-count moment)
+    (partial-recall--moment-set-permanence moment nil)
 
     (ring-insert ring moment)))
 
@@ -486,7 +489,7 @@ This is true if COUNT exceeds `partial-recall-auto-implant-threshold'."
   (when (and partial-recall-auto-implant
              (> count partial-recall-auto-implant-threshold))
 
-    (setf (partial-recall--moment-permanence moment) t)))
+    (partial-recall--moment-set-permanence moment t)))
 
 ;; -- Conditionals
 
