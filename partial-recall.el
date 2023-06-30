@@ -440,7 +440,8 @@ If EXCISE is t, remove permanence instead."
         (when partial-recall-repress
           (kill-buffer buffer))))
 
-    (partial-recall--moment-set-permanence moment nil)
+    (setf (partial-recall--moment-update-count moment) 0)
+    (setf (partial-recall--moment-permanence moment) nil)
 
     (ring-insert ring moment)))
 
