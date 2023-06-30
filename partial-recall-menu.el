@@ -30,7 +30,7 @@
      '("I" 1 t :pad-right 0)
      '("U" 1 t :pad-right 1)
      `("Buffer" ,(or longest-buffer 6) t)
-     `("Tab" ,(or longest-tab 3) t)
+     `("Tab" ,(or longest-tab 6) t)
      '("Timestamp" 9 t))))
 
 (defun prm--revert (&optional include-subconscious)
