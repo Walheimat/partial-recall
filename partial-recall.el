@@ -183,6 +183,12 @@ Defaults to the current buffer."
 
     (partial-recall--moment-update-count moment)))
 
+(defun partial-recall--name (memory)
+  "Get the name of MEMORY."
+  (if (partial-recall--subconscious-p memory)
+      "subconscious"
+    (partial-recall--tab-name memory)))
+
 (defun partial-recall--tab (memory)
   "Get the tab for MEMORY."
   (when-let ((key (partial-recall--memory-key memory))
@@ -226,6 +232,8 @@ Defaults to the current buffer."
               (moments (partial-recall--memory-ring memory))
               (index (partial-recall--moments-member moments buffer))
               (found (ring-remove moments index)))
+
+    (partial-recall--log "Lifting '%s' out of the subconscious" (buffer-name buffer))
 
     (partial-recall--moment-update-timestamp found)
     found))
@@ -322,31 +330,6 @@ This will remember new buffers and maybe reclaim mapped buffers."
 
         (ring-insert ring moment)))))
 
-(defun partial-recall--swap (a b moment)
-  "Swap MOMENT from memory A to B."
-  (and-let* ((a-ring (partial-recall--memory-ring a))
-             (b-ring (partial-recall--memory-ring b))
-             (index (ring-member a-ring moment)))
-
-    (let ((removed (ring-remove a-ring index)))
-
-      (partial-recall--maybe-reinforce-implanted b)
-
-      (when (and (partial-recall--memory-at-capacity-p b)
-                 (partial-recall--should-extend-memory-p b))
-        (ring-extend b-ring 1))
-
-      (ring-insert b-ring removed)
-
-      (partial-recall--moment-update-timestamp moment))))
-
-(defun partial-recall--recollect (buffer)
-  "Recollect the BUFFER."
-  (if (partial-recall--reality-buffer-p buffer)
-      (partial-recall--reinforce buffer)
-    (when partial-recall-reclaim
-      (partial-recall--reclaim buffer))))
-
 (defun partial-recall--reinforce (buffer &optional force)
   "Reinforce the BUFFER.
 
@@ -359,8 +342,6 @@ If FORCE is t, re-insertion and update will always be performed."
              (moments (partial-recall--memory-ring reality))
              (index (partial-recall--moments-member moments buffer))
              (moment (ring-ref moments index)))
-
-    (partial-recall--log "Reinforcing buffer '%s'" (buffer-name buffer))
 
     (partial-recall--reinsert moment reality)))
 
@@ -380,8 +361,6 @@ If FORCE is t, will reclaim even if the threshold wasn't passed."
                   (< partial-recall-reclaim-min-age
                      (- (floor (time-to-seconds))
                         (partial-recall--moment-timestamp moment))))))
-
-    (partial-recall--log "Reclaiming '%s' from '%s'" (buffer-name buffer) (partial-recall--tab-name owner))
 
     (partial-recall--swap owner reality moment)))
 
@@ -421,16 +400,6 @@ If EXCISE is t, remove permanence instead."
       (partial-recall--moment-set-permanence moment (not excise))
       (partial-recall--moment-increment-count moment))))
 
-(defun partial-recall--reinsert (moment memory)
-  "Re-insert MOMENT into MEMORY."
-  (when-let* ((ring (partial-recall--memory-ring memory))
-              (index (ring-member ring moment)))
-
-    (ring-remove+insert+extend ring (ring-ref ring index) t)
-
-    (partial-recall--moment-update-timestamp moment)
-    (partial-recall--moment-increment-count moment)))
-
 (defun partial-recall--suppress (moment)
   "Suppress MOMENT in the subconscious."
   (when-let* ((memory (partial-recall--subconscious))
@@ -454,9 +423,51 @@ If EXCISE is t, remove permanence instead."
               (reality (partial-recall--reality))
               (ring (partial-recall--memory-ring reality)))
 
-    (partial-recall--log "Lifting '%s' out of subconscious" (buffer-name buffer))
-
     (ring-insert ring moment)))
+
+(defun partial-recall--recollect (buffer)
+  "Recollect the BUFFER."
+  (if (partial-recall--reality-buffer-p buffer)
+      (partial-recall--reinforce buffer)
+    (when partial-recall-reclaim
+      (partial-recall--reclaim buffer))))
+
+(defun partial-recall--swap (a b moment)
+  "Swap MOMENT from memory A to B."
+  (and-let* ((a-ring (partial-recall--memory-ring a))
+             (b-ring (partial-recall--memory-ring b))
+             (a-tab (partial-recall--name a))
+             (b-tab (partial-recall--name b))
+             (index (ring-member a-ring moment)))
+
+    (let* ((removed (ring-remove a-ring index))
+           (buffer (partial-recall--moment-buffer removed)))
+
+      (partial-recall--log "Swapping '%s' from '%s' to '%s'" (buffer-name buffer) a-tab b-tab)
+
+      (partial-recall--maybe-reinforce-implanted b)
+
+      (when (and (partial-recall--memory-at-capacity-p b)
+                 (partial-recall--should-extend-memory-p b))
+        (ring-extend b-ring 1))
+
+      (ring-insert b-ring removed)
+
+      (partial-recall--moment-update-timestamp moment))))
+
+(defun partial-recall--reinsert (moment memory)
+  "Re-insert MOMENT into MEMORY."
+  (when-let* ((ring (partial-recall--memory-ring memory))
+              (index (ring-member ring moment))
+              (moment (ring-ref ring index))
+              (buffer (partial-recall--moment-buffer moment)))
+
+    (partial-recall--log "Re-inserting buffer '%s'" (buffer-name buffer))
+
+    (ring-remove+insert+extend ring moment t)
+
+    (partial-recall--moment-update-timestamp moment)
+    (partial-recall--moment-increment-count moment)))
 
 (defun partial-recall--maybe-reinforce-implanted (memory)
   "Maybe reinforce oldest moment in MEMORY."
@@ -474,12 +485,16 @@ If EXCISE is t, remove permanence instead."
 
     (when (and (not (partial-recall--memory-at-capacity-p memory))
                (> curr orig))
+      (partial-recall--log "Resizing %s" (partial-recall--name memory))
+
       (ring-resize ring (1- (ring-size ring))))))
 
 (defun partial-recall--maybe-extend-memory (memory)
   "Maybe extend MEMORY."
   (when (and (partial-recall--memory-at-capacity-p memory)
              (partial-recall--should-extend-memory-p memory))
+    (partial-recall--log "Extending %s" (partial-recall--name memory))
+
     (ring-extend (partial-recall--memory-ring memory) 1)))
 
 (defun partial-recall--maybe-implant-moment (moment count)
@@ -488,6 +503,8 @@ If EXCISE is t, remove permanence instead."
 This is true if COUNT exceeds `partial-recall-auto-implant-threshold'."
   (when (and partial-recall-auto-implant
              (> count partial-recall-auto-implant-threshold))
+
+    (partial-recall--log "Implanting %s" (partial-recall--moment-buffer moment))
 
     (partial-recall--moment-set-permanence moment t)))
 
