@@ -41,17 +41,15 @@ INCLUDE-SUBCONSCIOUS is t."
   (let* ((entries nil)
          (buffer-names nil)
          (tab-names nil)
-         (all-memories (hash-table-values partial-recall--table))
-         (filtered (if (or include-subconscious prm--subconscious)
-                       all-memories
-                     (seq-filter (lambda (it) (not (partial-recall--subconscious-p it))) all-memories))))
+         (filter (if include-subconscious #'identity (lambda (it) (not (partial-recall--subconscious-p it)))))
+         (memories (seq-filter filter (hash-table-values partial-recall--table))))
 
-    (dolist (memory filtered)
+    (dolist (memory memories)
 
       (let* ((real (eq memory (partial-recall--reality)))
              (sub (partial-recall--subconscious-p memory))
              (tab-name (partial-recall--tab-name memory))
-             (mem-pp (prm--print-memory memory real sub)))
+             (mem-pp (prm--print-memory memory)))
 
         (push tab-name tab-names)
 
@@ -132,14 +130,14 @@ If NO-OTHER-TAB is t, raise an error if that would be necessary."
   "Format PERMANENCE."
   (if permanence prm--present prm--empty))
 
-(defun prm--print-memory (memory real subconscious)
-  "Format MEMORY depending on whether it is REAL or SUBCONSCIOUS."
+(defun prm--print-memory (memory)
+  "Format MEMORY."
   (let ((orig-size (partial-recall--memory-orig-size memory))
         (actual-size (ring-size (partial-recall--memory-ring memory)))
         (tab-name (cond
-                   (real
+                   ((partial-recall--reality-p memory)
                     prm--present)
-                   (subconscious
+                   ((partial-recall--subconscious-p memory)
                     prm--null)
                    (t
                     (partial-recall--tab-name memory)))))

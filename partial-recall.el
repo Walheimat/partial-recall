@@ -539,6 +539,10 @@ This is true if COUNT exceeds `partial-recall-auto-implant-threshold'."
 
     (memq buffer buffers)))
 
+(defun partial-recall--reality-p (memory)
+  "Check if MEMORY is the reality."
+  (eq (partial-recall--reality) memory))
+
 (defun partial-recall--reality-buffer-p (buffer)
   "Check if BUFFER belongs to the current memory."
   (when-let* ((reality (partial-recall--reality))

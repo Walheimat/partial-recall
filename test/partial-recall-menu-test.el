@@ -116,13 +116,14 @@
         (partial-recall-menu--present "1"))
 
     (with-tab-history :pre t
-      (should (string= "1" (partial-recall-menu--print-memory (partial-recall--reality) t nil)))
-      (should (string= "0" (partial-recall-menu--print-memory (partial-recall--reality) nil t)))
-      (should (string= "test-tab" (partial-recall-menu--print-memory (partial-recall--reality) nil nil)))
+      (should (string= "1" (partial-recall-menu--print-memory (partial-recall--reality))))
+      (should (string= "0" (partial-recall-menu--print-memory (partial-recall--subconscious))))
+      (bydi ((:ignore partial-recall--reality-p))
+        (should (string= "test-tab" (partial-recall-menu--print-memory (partial-recall--reality))))
 
-      (ring-resize (partial-recall--memory-ring (partial-recall--reality)) 11)
+        (ring-resize (partial-recall--memory-ring (partial-recall--reality)) 11)
 
-      (should (string= "test-tab (+1)" (partial-recall-menu--print-memory (partial-recall--reality) nil nil))))))
+        (should (string= "test-tab (+1)" (partial-recall-menu--print-memory (partial-recall--reality))))))))
 
 (ert-deftest prm-mode ()
   (with-temp-buffer
