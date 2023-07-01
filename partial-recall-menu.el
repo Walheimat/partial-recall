@@ -42,7 +42,7 @@ INCLUDE-SUBCONSCIOUS is t."
          (buffer-names nil)
          (tab-names nil)
          (filter (if include-subconscious #'identity (lambda (it) (not (partial-recall--subconscious-p it)))))
-         (memories (seq-filter filter (hash-table-values partial-recall--table))))
+         (memories (seq-filter filter (partial-recall--memories))))
 
     (dolist (memory memories)
 

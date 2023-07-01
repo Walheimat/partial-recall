@@ -149,7 +149,7 @@ PID and `recent-keys' vector."
 
 Defaults to the current buffer."
   (let* ((buffer (or buffer (current-buffer)))
-         (memories (hash-table-values partial-recall--table))
+         (memories (partial-recall--memories))
          (find (apply-partially #'partial-recall--memory-buffer-p buffer)))
 
     (seq-find find memories)))
@@ -165,7 +165,7 @@ Defaults to the current buffer."
 
 (defun partial-recall--moment-from-buffer (buffer)
   "Get the moment that encapsulates BUFFER."
-  (when-let* ((memories (hash-table-values partial-recall--table))
+  (when-let* ((memories (partial-recall--memories))
               (find-memory (apply-partially #'partial-recall--memory-buffer-p buffer))
               (memory (seq-find find-memory memories))
               (ring (partial-recall--memory-ring memory))
@@ -202,6 +202,10 @@ Defaults to the current buffer."
            (tab (partial-recall--tab memory)))
       (alist-get 'name tab)
     ""))
+
+(defun partial-recall--memories ()
+  "Get all memories."
+  (hash-table-values partial-recall--table))
 
 (defun partial-recall--reality ()
   "Get the current memory."
