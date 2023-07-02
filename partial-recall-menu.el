@@ -1,6 +1,9 @@
 ;;; partial-recall-menu.el --- Menu for `partial-recall' buffers -*- lexical-binding: t; -*-
 
 ;; Author: Krister Schuchardt <krister.schuchardt@gmail.com>
+;; Homepage: https://github.com/Walheimat/partial-recall
+;; Version: 0.5.0
+;; Package-Requires: ((emacs "28.1"))
 
 ;;; Commentary:
 
@@ -41,25 +44,25 @@ INCLUDE-SUBCONSCIOUS is t."
   (let* ((entries nil)
          (buffer-names nil)
          (tab-names nil)
-         (filter (if include-subconscious #'identity (lambda (it) (not (partial-recall--subconscious-p it)))))
-         (memories (seq-filter filter (partial-recall--memories))))
+         (filter (if include-subconscious #'identity (lambda (it) (not (pr--subconscious-p it)))))
+         (memories (seq-filter filter (pr--memories))))
 
     (dolist (memory memories)
 
-      (let* ((real (eq memory (partial-recall--reality)))
-             (sub (partial-recall--subconscious-p memory))
-             (tab-name (partial-recall--tab-name memory))
+      (let* ((real (eq memory (pr--reality)))
+             (sub (pr--subconscious-p memory))
+             (tab-name (pr--tab-name memory))
              (mem-pp (prm--print-memory memory)))
 
         (push tab-name tab-names)
 
-        (dolist (moment (ring-elements (partial-recall--memory-ring memory)))
+        (dolist (moment (ring-elements (mem-ring memory)))
 
-          (let* ((buffer (partial-recall--moment-buffer moment))
+          (let* ((buffer (mom-buffer moment))
                  (name (buffer-name buffer))
-                 (count (prm--print-update-count (partial-recall--moment-update-count moment)))
-                 (ts (prm--print-timestamp (partial-recall--moment-timestamp moment)))
-                 (implanted (prm--print-permanence (partial-recall--moment-permanence moment)))
+                 (count (prm--print-update-count (mom-update-count moment)))
+                 (ts (prm--print-timestamp (mom-timestamp moment)))
+                 (implanted (prm--print-permanence (mom-permanence moment)))
                  (item (list tab-name buffer real sub))
                  (line (vector prm--empty implanted count name mem-pp ts)))
 
@@ -132,15 +135,15 @@ If NO-OTHER-TAB is t, raise an error if that would be necessary."
 
 (defun prm--print-memory (memory)
   "Format MEMORY."
-  (let ((orig-size (partial-recall--memory-orig-size memory))
-        (actual-size (ring-size (partial-recall--memory-ring memory)))
+  (let ((orig-size (mem-orig-size memory))
+        (actual-size (ring-size (mem-ring memory)))
         (tab-name (cond
-                   ((partial-recall--reality-p memory)
+                   ((pr--reality-p memory)
                     prm--present)
-                   ((partial-recall--subconscious-p memory)
+                   ((pr--subconscious-p memory)
                     prm--null)
                    (t
-                    (partial-recall--tab-name memory)))))
+                    (pr--tab-name memory)))))
 
     (if (not (eq orig-size actual-size))
         (format "%s (+%d)" tab-name (- actual-size orig-size))
@@ -166,9 +169,9 @@ If NO-OTHER-TAB is t, raise an error if that would be necessary."
 
 ;; API
 
-(defun prm-execute ()
+(defun partial-recall-menu-execute ()
   "Forget, steal and implant buffers."
-  (interactive nil prm-mode)
+  (interactive nil partial-recall-menu-mode)
 
   (save-excursion
     (goto-char (point-min))
@@ -191,19 +194,19 @@ If NO-OTHER-TAB is t, raise an error if that would be necessary."
 
               (cond ((equal action "C")
                      (if sub
-                         (partial-recall--lift buffer)
-                       (partial-recall--reclaim buffer t))
+                         (pr--lift buffer)
+                       (pr--reclaim buffer t))
                      (tabulated-list-set-col 0 prm--empty t))
                     ((equal action "F")
-                     (partial-recall--forget buffer t))
+                     (pr--forget buffer t))
                     ((equal action "R")
-                     (partial-recall--reinforce buffer t)
+                     (pr--reinforce buffer t)
                      (tabulated-list-set-col 0 prm--empty t))
                     ((equal action "I")
-                     (partial-recall--implant buffer)
+                     (pr--implant buffer)
                      (tabulated-list-set-col 0 prm--empty t))
                     ((equal action "X")
-                     (partial-recall--implant buffer t)
+                     (pr--implant buffer t)
                      (tabulated-list-set-col 0 prm--empty t))
                     (t nil))
 
@@ -212,7 +215,7 @@ If NO-OTHER-TAB is t, raise an error if that would be necessary."
       (when needs-update
         (tabulated-list-revert)))))
 
-(defun prm-switch-to-buffer ()
+(defun partial-recall-menu-switch-to-buffer ()
   "Switch to buffer.
 
 If OTHER-WINDOW is t, do that."
@@ -220,7 +223,7 @@ If OTHER-WINDOW is t, do that."
 
   (prm--switch #'switch-to-buffer))
 
-(defun prm-switch-to-buffer-other-window ()
+(defun partial-recall-menu-switch-to-buffer-other-window ()
   "Switch to buffer.
 
 If OTHER-WINDOW is t, do that."
@@ -228,7 +231,7 @@ If OTHER-WINDOW is t, do that."
 
   (prm--switch #'switch-to-buffer-other-window t))
 
-(defun prm-reclaim-buffer ()
+(defun partial-recall-menu-reclaim-buffer ()
   "Reclaim buffer."
   (interactive nil partial-recall-menu-mode)
 
@@ -238,7 +241,7 @@ If OTHER-WINDOW is t, do that."
       (tabulated-list-set-col 0 "C" t)
       (forward-line 1))))
 
-(defun prm-reinforce-buffer ()
+(defun partial-recall-menu-reinforce-buffer ()
   "Reinforce buffer."
   (interactive nil partial-recall-menu-mode)
 
@@ -252,7 +255,7 @@ If OTHER-WINDOW is t, do that."
       (tabulated-list-set-col 0 "R" t)
       (forward-line 1)))))
 
-(defun prm-forget-buffer ()
+(defun partial-recall-menu-forget-buffer ()
   "Forget the buffer."
   (interactive nil partial-recall-menu-mode)
 
@@ -260,7 +263,7 @@ If OTHER-WINDOW is t, do that."
     (tabulated-list-set-col 0 "F" t)
     (forward-line 1)))
 
-(defun prm-implant-buffer (&optional excise)
+(defun partial-recall-menu-implant-buffer (&optional excise)
   "Implant the buffer.
 
 If EXCISE is t, do that instead."
@@ -287,5 +290,8 @@ buffers."
 ;;; partial-recall-menu.el ends here
 
 ;; Local Variables:
-;; read-symbol-shorthands: (("prm-" . "partial-recall-menu-"))
+;; read-symbol-shorthands: (("prm-" . "partial-recall-menu-")
+;;                          ("pr-" . "partial-recall-")
+;;                          ("mom-" . "partial-recall--moment-")
+;;                          ("mem-" . "partial-recall--memory-"))
 ;; End:
