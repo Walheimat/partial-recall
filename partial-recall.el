@@ -17,6 +17,18 @@
 ;; grow if the oldest one is still relatively young and (2) to allow
 ;; reclaiming buffers from other tabs if they're relatively old.
 ;; Buffers are called moments in the context of this package.
+;;
+;; Moments can be reclaimed from other memories, they can be
+;; forgotten, they can be implanted and they can be reinforced. All of
+;; these things happen automatically but can be performed explicitly
+;; by the user as well.
+;;
+;; When moments are forgotten, they are added to a special kind of
+;; memory: the subconscious. Once they leave the subconscious as well,
+;; their buffers are killed. When a moment is implanted, it will not
+;; leave the memory automatically anymore, instead it is reinforced
+;; (reinserted). Continually re-visiting a moment will automatically
+;; implant it.
 
 ;;; Code:
 
