@@ -36,7 +36,7 @@
       (let ((another-temp (generate-new-buffer " *temp*" t)))
 
         (partial-recall--remember another-temp)
-        (partial-recall--reinforce (current-buffer))
+        (partial-recall--reinforce (current-buffer) t)
 
         (should (eq 1 (partial-recall--update-count)))
         (kill-buffer another-temp)))))
@@ -237,6 +237,7 @@
 
   (with-tab-history
     (let ((count nil)
+          (seconds '(6 8 10 12))
           (get-count (lambda ()
                        (let* ((reality (partial-recall--reality))
                               (moments (partial-recall--memory-ring reality))
@@ -244,15 +245,18 @@
                               (moment (ring-ref moments (partial-recall--moments-member moments buffer))))
                          (partial-recall--moment-update-count moment))))
           (partial-recall-buffer-limit 2)
+          (partial-recall-reinforce-min-age 3)
           (another-temp (generate-new-buffer " *temp*" t)))
 
-      (partial-recall--remember (current-buffer))
+      (bydi ((:mock time-to-seconds :with (lambda () (pop seconds))))
+        (partial-recall--remember (current-buffer))
 
-      (setq count (funcall get-count))
+        (setq count (funcall get-count))
 
-      (partial-recall--remember another-temp)
-      (should (partial-recall--reinforce (current-buffer)))
-      (should-not (eq count (funcall get-count)))
+        (partial-recall--remember another-temp)
+
+        (should (partial-recall--reinforce (current-buffer)))
+        (should-not (eq count (funcall get-count))))
 
       (kill-buffer another-temp))))
 

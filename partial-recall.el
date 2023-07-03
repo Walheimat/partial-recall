@@ -70,6 +70,11 @@ Has no effect if `partial-recall-reclaim' is nil."
   :type 'integer
   :group 'partial-recall)
 
+(defcustom partial-recall-reinforce-min-age (* 2 60)
+  "Threshold in seconds that when exceeded allows reinforcing."
+  :type 'integer
+  :group 'partial-recall)
+
 (defcustom partial-recall-repress t
   "Whether `partial-recall-suppress' may kill buffers.
 
@@ -349,15 +354,16 @@ This will remember new buffers and maybe reclaim mapped buffers."
 (defun partial-recall--reinforce (buffer &optional force)
   "Reinforce the BUFFER.
 
-If the buffer is close to being lost to the memory, it is
-re-inserted and its timestamp updated.
+If its moment age has exceeded a certain threshold, it is
+reinserted.
 
 If FORCE is t, re-insertion and update will always be performed."
   (and-let* ((reality (partial-recall--reality))
-             ((or force (partial-recall--memory-at-capacity-p reality)))
              (moments (partial-recall--memory-ring reality))
              (index (partial-recall--moments-member moments buffer))
-             (moment (ring-ref moments index)))
+             (moment (ring-ref moments index))
+             ((or force
+                  (partial-recall--exceeds-p moment partial-recall-reinforce-min-age))))
 
     (partial-recall--reinsert moment reality)))
 
@@ -374,9 +380,7 @@ If FORCE is t, will reclaim even if the threshold wasn't passed."
              (find (apply-partially #'partial-recall--moment-buffer-p buffer))
              (moment (seq-find find (ring-elements ring)))
              ((or force
-                  (< partial-recall-reclaim-min-age
-                     (- (floor (time-to-seconds))
-                        (partial-recall--moment-timestamp moment))))))
+                  (partial-recall--exceeds-p moment partial-recall-reclaim-min-age))))
 
     (partial-recall--swap owner reality moment)))
 
@@ -580,9 +584,7 @@ the max age."
   (when-let* ((ring (partial-recall--memory-ring memory))
               (to-remove (partial-recall--ring-oldest ring)))
 
-    (> partial-recall-max-age
-       (- (floor (time-to-seconds))
-          (partial-recall--moment-timestamp to-remove)))))
+    (partial-recall--falls-below-p to-remove partial-recall-max-age)))
 
 (defun partial-recall--has-buffers-p (&optional memory)
   "Check if the MEMORY has buffers."
@@ -594,6 +596,18 @@ the max age."
 (defun partial-recall--subconscious-p (memory)
   "Check if MEMORY is the subconscious."
   (string= partial-recall--subconscious-key (partial-recall--memory-key memory)))
+
+(defun partial-recall--exceeds-p (moment threshold)
+  "Check if MOMENT's age exceeds THRESHOLD."
+  (< threshold
+     (- (floor (time-to-seconds))
+        (partial-recall--moment-timestamp moment))))
+
+(defun partial-recall--falls-below-p (moment threshold)
+  "Check if MOMENT's age falls below THRESHOLD."
+  (> threshold
+     (- (floor (time-to-seconds))
+        (partial-recall--moment-timestamp moment))))
 
 ;; -- Utility
 
