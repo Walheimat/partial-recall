@@ -36,7 +36,7 @@
 (require 'ring)
 (require 'subr-x)
 
-;; -- Customization
+;;; -- Customization
 
 (defgroup partial-recall nil
   "Short-term (buffer) memory."
@@ -100,7 +100,7 @@ This is will implant buffers that have met
   :type 'string
   :group 'partial-recall)
 
-;; -- Internal variables
+;;; -- Internal variables
 
 (defvar partial-recall--table (make-hash-table))
 (defvar partial-recall--subconscious-key "subconscious")
@@ -108,7 +108,7 @@ This is will implant buffers that have met
 (defvar partial-recall--last-checked nil)
 (defvar partial-recall--log nil)
 
-;; -- Structures
+;;; -- Structures
 
 (cl-defstruct (partial-recall--moment
                (:constructor partial-recall--moment-create
@@ -136,7 +136,7 @@ A memory is a key that connects it to the hash table, a ring of
 moments and the size it had upon construction."
   key ring orig-size)
 
-;; -- Accessors
+;;; -- Accessors
 
 (defun partial-recall--key (&optional tab)
   "Get the hash key of TAB."
@@ -280,7 +280,7 @@ Defaults to the current buffer."
   "Reset the update count for MOMENT."
   (setf (partial-recall--moment-update-count moment) 0))
 
-;; -- Handlers
+;;; -- Handlers
 
 (defun partial-recall--handle-buffer (buffer)
   "Handle BUFFER.
@@ -334,7 +334,7 @@ This will remember new buffers and maybe reclaim mapped buffers."
     (dolist (tab tabs)
       (partial-recall--on-close tab nil))))
 
-;; -- Actions
+;;; -- Actions
 
 (defun partial-recall--remember (buffer)
   "Remember the BUFFER for this tab."
@@ -528,7 +528,7 @@ This is true if COUNT exceeds `partial-recall-auto-implant-threshold'."
 
     (partial-recall--moment-set-permanence moment t)))
 
-;; -- Conditionals
+;;; -- Conditionals
 
 (defun partial-recall--memory-at-capacity-p (memory)
   "Check if MEMORY is at capacity."
@@ -609,7 +609,7 @@ the max age."
      (- (floor (time-to-seconds))
         (partial-recall--moment-timestamp moment))))
 
-;; -- Utility
+;;; -- Utility
 
 (defun partial-recall--warn (message)
   "Warn about MESSAGE."
@@ -626,7 +626,7 @@ the max age."
 
   (setq partial-recall--log (not partial-recall--log)))
 
-;; -- Completion
+;;; -- Completion
 
 (defun partial-recall--complete-dream (prompt)
   "Complete dream buffer using PROMPT."
@@ -659,7 +659,7 @@ the max age."
 
     (cdr-safe (assoc selection a))))
 
-;; -- Setup
+;;; -- Setup
 
 (defun partial-recall--fix-up-primary-tab ()
   "Fix up the primary tab."
@@ -698,7 +698,7 @@ the max age."
   (remove-hook 'tab-bar-tab-post-open-functions #'partial-recall--on-create)
   (remove-hook 'delete-frame-functions #'partial-recall--on-frame-delete))
 
-;; -- API
+;;; -- API
 
 ;;;###autoload
 (defvar partial-recall-command-map
