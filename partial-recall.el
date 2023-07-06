@@ -107,6 +107,7 @@ This is will implant buffers that have met
 (defvar partial-recall--timer nil)
 (defvar partial-recall--last-checked nil)
 (defvar partial-recall--log nil)
+(defvar partial-recall--switch-to-buffer-function #'switch-to-buffer)
 
 ;;; -- Structures
 
@@ -282,6 +283,23 @@ Defaults to the current buffer."
 
 ;;; -- Handlers
 
+(defun partial-recall--after-switch-to-buffer (buffer &optional norecord &rest _)
+  "Schedule handling BUFFER.
+
+Don't do anything if NORECORD is t."
+  (unless norecord
+    (with-current-buffer buffer
+      (and-let* ((buffer (current-buffer))
+                 (new (not (eq partial-recall--last-checked buffer)))
+                 (file-name (buffer-file-name buffer)))
+
+        (when partial-recall--timer
+          (cancel-timer partial-recall--timer)
+          (setq partial-recall--timer nil))
+
+        (setq partial-recall--timer
+              (run-at-time 0.5 nil #'partial-recall--handle-buffer buffer))))))
+
 (defun partial-recall--handle-buffer (buffer)
   "Handle BUFFER.
 
@@ -313,19 +331,9 @@ This will remember new buffers and maybe reclaim mapped buffers."
 
     (remhash tab-key table)))
 
-(defun partial-recall--on-buffer-list-update ()
-  "Schedule handling the current buffer."
-  (with-current-buffer (window-buffer)
-    (and-let* ((buffer (current-buffer))
-               (new (not (eq partial-recall--last-checked buffer)))
-               (file-name (buffer-file-name buffer)))
-
-      (when partial-recall--timer
-        (cancel-timer partial-recall--timer)
-        (setq partial-recall--timer nil))
-
-      (setq partial-recall--timer
-            (run-at-time 0.5 nil #'partial-recall--handle-buffer buffer)))))
+(defun partial-recall--on-find-file ()
+  "Handle finding a file."
+  (partial-recall--after-switch-to-buffer (current-buffer)))
 
 (defun partial-recall--on-frame-delete (frame)
   "Clear hashes associated with FRAME."
@@ -682,18 +690,24 @@ the max age."
 
   (partial-recall--queue-fix-up)
 
+  (advice-add
+   partial-recall--switch-to-buffer-function :after
+   #'partial-recall--after-switch-to-buffer)
+  (add-hook 'find-file-hook #'partial-recall--on-find-file)
   (add-hook 'after-make-frame-functions #'partial-recall--queue-fix-up)
   (add-hook 'kill-buffer-hook #'partial-recall--forget)
-  (add-hook 'buffer-list-update-hook #'partial-recall--on-buffer-list-update)
   (add-hook 'tab-bar-tab-pre-close-functions #'partial-recall--on-close)
   (add-hook 'tab-bar-tab-post-open-functions #'partial-recall--on-create)
   (add-hook 'delete-frame-functions #'partial-recall--on-frame-delete))
 
 (defun partial-recall-mode--teardown ()
   "Tear down `partial-recall-mode'."
+  (advice-remove
+   partial-recall--switch-to-buffer-function
+   #'partial-recall--after-switch-to-buffer)
+  (remove-hook 'find-file-hook #'partial-recall--on-find-file)
   (remove-hook 'after-make-frame-functions #'partial-recall--queue-fix-up)
   (remove-hook 'kill-buffer-hook #'partial-recall--forget)
-  (remove-hook 'buffer-list-update-hook #'partial-recall--on-buffer-list-update)
   (remove-hook 'tab-bar-tab-pre-close-functions #'partial-recall--on-close)
   (remove-hook 'tab-bar-tab-post-open-functions #'partial-recall--on-create)
   (remove-hook 'delete-frame-functions #'partial-recall--on-frame-delete))

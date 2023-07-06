@@ -60,6 +60,21 @@
 
 ;; -- Handlers
 
+(ert-deftest pr--after-switch-to-buffer--cancels-running-timer ()
+  (let ((partial-recall--timer nil))
+
+    (bydi ((:always buffer-file-name)
+           (:ignore partial-recall--mapped-buffer-p)
+           cancel-timer
+           run-at-time)
+
+      (setq partial-recall--timer 'timer)
+      (partial-recall--after-switch-to-buffer (current-buffer))
+
+      (bydi-was-called cancel-timer)
+
+      (bydi-was-called run-at-time))))
+
 (ert-deftest pr--handle-buffer ()
   (with-tab-history
     (bydi (partial-recall--remember
@@ -104,20 +119,12 @@
 
       (bydi-was-called partial-recall--suppress))))
 
-(ert-deftest pr--on-buffer-list-update--cancels-running-timer ()
-  (let ((partial-recall--timer nil))
+(ert-deftest pr--on-find-file ()
+  (bydi (partial-recall--after-switch-to-buffer)
 
-    (bydi ((:always buffer-file-name)
-           (:ignore partial-recall--mapped-buffer-p)
-           cancel-timer
-           run-at-time)
+    (partial-recall--on-find-file)
 
-      (setq partial-recall--timer 'timer)
-      (partial-recall--on-buffer-list-update)
-
-      (bydi-was-called cancel-timer)
-
-      (bydi-was-called run-at-time))))
+    (bydi-was-called partial-recall--after-switch-to-buffer)))
 
 (ert-deftest pr--on-frame-delete ()
   (defvar tab-bar-tabs-function nil)
