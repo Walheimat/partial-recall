@@ -283,22 +283,19 @@ Defaults to the current buffer."
 
 ;;; -- Handlers
 
-(defun partial-recall--after-switch-to-buffer (buffer &optional norecord &rest _)
-  "Schedule handling BUFFER.
+(defun partial-recall--schedule-buffer (buffer)
+  "Schedule handling BUFFER."
+  (with-current-buffer buffer
+    (and-let* ((buffer (current-buffer))
+               (new (not (eq partial-recall--last-checked buffer)))
+               (file-name (buffer-file-name buffer)))
 
-Don't do anything if NORECORD is t."
-  (unless norecord
-    (with-current-buffer buffer
-      (and-let* ((buffer (current-buffer))
-                 (new (not (eq partial-recall--last-checked buffer)))
-                 (file-name (buffer-file-name buffer)))
+      (when partial-recall--timer
+        (cancel-timer partial-recall--timer)
+        (setq partial-recall--timer nil))
 
-        (when partial-recall--timer
-          (cancel-timer partial-recall--timer)
-          (setq partial-recall--timer nil))
-
-        (setq partial-recall--timer
-              (run-at-time 0.5 nil #'partial-recall--handle-buffer buffer))))))
+      (setq partial-recall--timer
+            (run-at-time 0.5 nil #'partial-recall--handle-buffer buffer)))))
 
 (defun partial-recall--handle-buffer (buffer)
   "Handle BUFFER.
@@ -310,6 +307,13 @@ This will remember new buffers and maybe reclaim mapped buffers."
     (if (partial-recall--mapped-buffer-p buffer)
         (partial-recall--recollect buffer)
       (partial-recall--remember buffer))))
+
+(defun partial-recall--after-switch-to-buffer (buffer &optional norecord &rest _)
+  "Schedule the BUFFER that was switched to.
+
+Don't do anything if NORECORD is t."
+  (unless norecord
+    (partial-recall--schedule-buffer buffer)))
 
 (defun partial-recall--on-create (tab)
   "Equip TAB with a unique hash key."
@@ -333,7 +337,7 @@ This will remember new buffers and maybe reclaim mapped buffers."
 
 (defun partial-recall--on-find-file ()
   "Handle finding a file."
-  (partial-recall--after-switch-to-buffer (current-buffer)))
+  (partial-recall--schedule-buffer (current-buffer)))
 
 (defun partial-recall--on-frame-delete (frame)
   "Clear hashes associated with FRAME."
