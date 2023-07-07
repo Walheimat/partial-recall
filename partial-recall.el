@@ -632,11 +632,6 @@ the max age."
   (when partial-recall--log
     (apply 'message fmt args)))
 
-(defun partial-recall-toggle-logging ()
-  "Toggle logging certain actions."
-  (interactive)
-
-  (setq partial-recall--log (not partial-recall--log)))
 
 ;;; -- Completion
 
@@ -717,6 +712,12 @@ the max age."
   (remove-hook 'delete-frame-functions #'partial-recall--on-frame-delete))
 
 ;;; -- API
+
+(defun partial-recall-toggle-logging ()
+  "Toggle logging certain actions."
+  (interactive)
+
+  (setq partial-recall--log (not partial-recall--log)))
 
 ;;;###autoload
 (defvar partial-recall-command-map
