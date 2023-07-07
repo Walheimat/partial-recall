@@ -92,12 +92,22 @@
 ;; Utility
 
 (ert-deftest prm--print-timestamp ()
-  (bydi (format-time-string
-         (:mock seconds-to-time :return 'time))
-    (partial-recall-menu--print-timestamp 1)
+  (let ((partial-recall-menu--excess-time 2)
+        (seconds '(1 6)))
 
-    (bydi-was-called-with seconds-to-time 1)
-    (bydi-was-called-with format-time-string (list "%H:%M:%S" 'time))))
+    (bydi (format-time-string
+           (:mock seconds-to-time :return 'time)
+           (:mock time-to-seconds :with (lambda () (pop seconds))))
+
+      (partial-recall-menu--print-timestamp 1)
+
+      (bydi-was-called-with seconds-to-time 1)
+      (bydi-was-called-with format-time-string (list "%H:%M:%S" 'time))
+
+
+      (partial-recall-menu--print-timestamp 3)
+
+      (bydi-was-called-with format-time-string (list "   %d/%m" 'time)))))
 
 (ert-deftest prm--print-update-count ()
   (let ((partial-recall-menu--empty "e"))

@@ -19,6 +19,8 @@
 (defvar prm--empty " ")
 (defvar prm--null "-")
 (defvar prm--present "*")
+(defvar prm--excess-time (* 60 60 12))
+
 (defvar-local prm--subconscious nil)
 
 (defun prm--format (buffers tabs)
@@ -122,7 +124,11 @@ If NO-OTHER-TAB is t, raise an error if that would be necessary."
 
 (defun prm--print-timestamp (timestamp)
   "Format TIMESTAMP."
-  (format-time-string "%H:%M:%S" (seconds-to-time timestamp)))
+  (if (< prm--excess-time
+         (- (floor (time-to-seconds))
+            timestamp))
+      (format-time-string "   %d/%m" (seconds-to-time timestamp))
+    (format-time-string "%H:%M:%S" (seconds-to-time timestamp))))
 
 (defun prm--print-update-count (update-count)
   "Format UPDATE-COUNT."

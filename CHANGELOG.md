@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- `partial-recall-menu` now displays timestamps that are older than 12
+  hours by printing a date.
+
 ### Fixed
 
 - `partial-recall-menu-execute` no longer deletes entries which led to
