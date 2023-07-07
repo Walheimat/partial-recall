@@ -632,6 +632,30 @@ the max age."
   (when partial-recall--log
     (apply 'message fmt args)))
 
+(defun partial-recall--repr (instance)
+  "Print a readable representation of INSTANCE."
+  (pcase (type-of instance)
+
+    ('partial-recall--moment
+     (let ((buffer (partial-recall--moment-buffer instance))
+           (ts (partial-recall--moment-timestamp instance)))
+
+       (format
+        "#<moment %s (%s)>"
+        (buffer-name buffer)
+        (format-time-string "%H:%M:%S" (seconds-to-time ts)))))
+
+    ('partial-recall--memory
+     (let ((ring (partial-recall--memory-ring instance))
+           (name (partial-recall--name instance)))
+
+       (format
+        "#<memory %s (%d/%d)>"
+        name
+        (ring-length ring)
+        (ring-size ring))))
+
+    (unknown (user-error "No representation for %s type" unknown))))
 
 ;;; -- Completion
 

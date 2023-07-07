@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `partial-recall--repr` to print a readable representation of a
+  memory or moment instance.
+
 ### Changed
 
 - `partial-recall-menu` now displays timestamps that are older than 12

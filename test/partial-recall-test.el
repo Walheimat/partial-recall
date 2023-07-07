@@ -493,6 +493,21 @@
 
       (should (string= messages "test: one two\n")))))
 
+(ert-deftest pr--repr ()
+  (bydi-with-mock ((:mock format-time-string :return "now")
+                   (:mock partial-recall--name :return "test"))
+
+    (let* ((partial-recall-buffer-limit 3)
+           (memory (partial-recall--memory-create "test"))
+           (buffer (get-buffer-create "test-print"))
+           (moment (partial-recall--moment-create buffer)))
+
+      (should (string= "#<memory test (0/3)>" (partial-recall--repr memory)))
+      (should (string= "#<moment test-print (now)>" (partial-recall--repr moment)))
+      (should-error (partial-recall--repr 'hello) :type 'user-error)
+
+      (kill-buffer buffer))))
+
 ;; -- Completion
 
 (ert-deftest pr--complete-dream ()
