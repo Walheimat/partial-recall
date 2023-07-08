@@ -21,9 +21,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `partial-recall-menu-execute` no longer deletes entries which led to
   buffers to be forgotten to be ignored.
-- `partial-recall--reinforce` no longer repeatedly reinforces the same
-  moment. It is now dependent on exceeding new threshold
-  `partial-recall-reinforce-min-age`.
 
 ## [v0.5.0]
 

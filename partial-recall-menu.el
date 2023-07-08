@@ -209,7 +209,7 @@ If NO-OTHER-TAB is t, raise an error if that would be necessary."
                     ((equal action "F")
                      (pr--forget buffer t))
                     ((equal action "R")
-                     (pr--reinforce buffer t)
+                     (pr--reinforce buffer)
                      (tabulated-list-set-col 0 prm--empty t))
                     ((equal action "I")
                      (pr--implant buffer)

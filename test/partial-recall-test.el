@@ -36,7 +36,7 @@
       (let ((another-temp (generate-new-buffer " *temp*" t)))
 
         (partial-recall--remember another-temp)
-        (partial-recall--reinforce (current-buffer) t)
+        (partial-recall--reinforce (current-buffer))
 
         (should (eq 1 (partial-recall--update-count)))
         (kill-buffer another-temp)))))
@@ -238,10 +238,6 @@
       (bydi-was-not-called partial-recall--reclaim))))
 
 (ert-deftest pr-reinforce--reinforces-old-buffers ()
-  (with-tab-history :pre t
-    (should-not (partial-recall--reinforce (current-buffer)))
-    (should (partial-recall--reinforce (current-buffer) t)))
-
   (with-tab-history
     (let ((count nil)
           (seconds '(6 8 10 12))
@@ -252,7 +248,6 @@
                               (moment (ring-ref moments (partial-recall--moments-member moments buffer))))
                          (partial-recall--moment-update-count moment))))
           (partial-recall-buffer-limit 2)
-          (partial-recall-reinforce-min-age 3)
           (another-temp (generate-new-buffer " *temp*" t)))
 
       (bydi ((:mock time-to-seconds :with (lambda () (pop seconds))))
@@ -414,8 +409,8 @@
   (let ((partial-recall-auto-implant t)
         (partial-recall-auto-implant-threshold 1))
     (with-tab-history :pre t
-      (partial-recall--reinforce (current-buffer) t)
-      (partial-recall--reinforce (current-buffer) t)
+      (partial-recall--reinforce (current-buffer))
+      (partial-recall--reinforce (current-buffer))
 
       (let ((moment (partial-recall--moment-from-buffer (current-buffer))))
         (should (partial-recall--moment-permanence moment))))))

@@ -70,11 +70,6 @@ Has no effect if `partial-recall-reclaim' is nil."
   :type 'integer
   :group 'partial-recall)
 
-(defcustom partial-recall-reinforce-min-age (* 2 60)
-  "Threshold in seconds that when exceeded allows reinforcing."
-  :type 'integer
-  :group 'partial-recall)
-
 (defcustom partial-recall-repress t
   "Whether `partial-recall-suppress' may kill buffers.
 
@@ -363,19 +358,12 @@ Don't do anything if NORECORD is t."
 
         (ring-insert ring moment)))))
 
-(defun partial-recall--reinforce (buffer &optional force)
-  "Reinforce the BUFFER.
-
-If its moment age has exceeded a certain threshold, it is
-reinserted.
-
-If FORCE is t, re-insertion and update will always be performed."
+(defun partial-recall--reinforce (buffer)
+  "Reinforce the BUFFER in reality."
   (and-let* ((reality (partial-recall--reality))
              (moments (partial-recall--memory-ring reality))
              (index (partial-recall--moments-member moments buffer))
-             (moment (ring-ref moments index))
-             ((or force
-                  (partial-recall--exceeds-p moment partial-recall-reinforce-min-age))))
+             (moment (ring-ref moments index)))
 
     (partial-recall--reinsert moment reality)))
 
@@ -488,13 +476,13 @@ If EXCISE is t, remove permanence instead."
       (partial-recall--moment-update-timestamp moment))))
 
 (defun partial-recall--reinsert (moment memory)
-  "Re-insert MOMENT into MEMORY."
-  (when-let* ((ring (partial-recall--memory-ring memory))
-              (index (ring-member ring moment))
-              (moment (ring-ref ring index))
-              (buffer (partial-recall--moment-buffer moment)))
+  "Reinforce MOMENT into MEMORY."
+  (and-let* ((ring (partial-recall--memory-ring memory))
+             (name (partial-recall--name memory))
+             ((ring-member ring moment))
+             (buffer (partial-recall--moment-buffer moment)))
 
-    (partial-recall--log "Re-inserting buffer '%s'" (buffer-name buffer))
+    (partial-recall--log "Re-inserting buffer '%s' in '%s'" (buffer-name buffer) name)
 
     (ring-remove+insert+extend ring moment t)
 
@@ -778,7 +766,7 @@ the max age."
   "Reinforce BUFFER."
   (interactive (list (partial-recall--complete-reality "Re-inforce moment: ")))
 
-  (partial-recall--reinforce buffer t))
+  (partial-recall--reinforce buffer))
 
 ;;;###autoload
 (defun partial-recall-reclaim (buffer)
