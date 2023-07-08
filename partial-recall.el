@@ -176,11 +176,14 @@ Defaults to the current buffer."
 
     (mapcar #'partial-recall--moment-buffer mapped)))
 
-(defun partial-recall--moment-from-buffer (buffer)
-  "Get the moment that encapsulates BUFFER."
-  (when-let* ((memories (partial-recall--memories))
-              (find-memory (apply-partially #'partial-recall--memory-buffer-p buffer))
-              (memory (seq-find find-memory memories))
+(defun partial-recall--moment-from-buffer (buffer &optional memory)
+  "Get the moment that encapsulates BUFFER.
+
+Searches all memories unless MEMORY is provided."
+  (when-let* ((memory (or memory
+                          (let ((memories (partial-recall--memories))
+                                (find-memory (apply-partially #'partial-recall--memory-buffer-p buffer)))
+                            (seq-find find-memory memories))))
               (ring (partial-recall--memory-ring memory))
               (index (partial-recall--moments-member ring buffer)))
 
@@ -189,10 +192,7 @@ Defaults to the current buffer."
 (defun partial-recall--update-count (&optional buffer)
   "Get the update count of BUFFER."
   (when-let* ((buffer (or buffer (current-buffer)))
-              (reality (partial-recall--reality))
-              (moments (partial-recall--memory-ring reality))
-              (index (partial-recall--moments-member moments buffer))
-              (moment (ring-ref moments index)))
+              (moment (partial-recall--moment-from-buffer buffer)))
 
     (partial-recall--moment-update-count moment)))
 
@@ -246,9 +246,7 @@ Defaults to the current buffer."
 (defun partial-recall--lifted (buffer)
   "Lift BUFFER out of the subconscious if present."
   (when-let* ((memory (partial-recall--subconscious))
-              (moments (partial-recall--memory-ring memory))
-              (index (partial-recall--moments-member moments buffer))
-              (found (ring-remove moments index)))
+              (found (partial-recall--remove-buffer buffer memory)))
 
     (partial-recall--log "Lifting '%s' out of the subconscious" (buffer-name buffer))
 
@@ -275,6 +273,14 @@ Defaults to the current buffer."
 (defun partial-recall--reset-count (moment)
   "Reset the update count for MOMENT."
   (setf (partial-recall--moment-update-count moment) 0))
+
+(defun partial-recall--remove-buffer (buffer memory)
+  "Remove BUFFER from MEMORY and return it."
+  (when-let* ((moments (partial-recall--memory-ring memory))
+              (index (partial-recall--moments-member moments buffer))
+              (removed (ring-remove moments index)))
+
+    removed))
 
 ;;; -- Handlers
 
@@ -361,9 +367,7 @@ Don't do anything if NORECORD is t."
 (defun partial-recall--reinforce (buffer)
   "Reinforce the BUFFER in reality."
   (and-let* ((reality (partial-recall--reality))
-             (moments (partial-recall--memory-ring reality))
-             (index (partial-recall--moments-member moments buffer))
-             (moment (ring-ref moments index)))
+             (moment (partial-recall--moment-from-buffer buffer reality)))
 
     (partial-recall--reinsert moment reality)))
 
@@ -376,9 +380,7 @@ If FORCE is t, will reclaim even if the threshold wasn't passed."
   (and-let* ((reality (partial-recall--reality))
              (owner (partial-recall--buffer-owner buffer))
              ((not (eq reality owner)))
-             (ring (partial-recall--memory-ring owner))
-             (find (apply-partially #'partial-recall--moment-buffer-p buffer))
-             (moment (seq-find find (ring-elements ring)))
+             (moment (partial-recall--moment-from-buffer buffer owner))
              ((or force
                   (partial-recall--exceeds-p moment partial-recall-reclaim-min-age))))
 
@@ -392,9 +394,7 @@ If SUPPRESS is t, do that."
          (removed nil)
          (maybe-remove (lambda (key memory)
                          (when-let* (((not removed))
-                                     (ring (partial-recall--memory-ring memory))
-                                     (index (partial-recall--moments-member ring buffer))
-                                     (moment (ring-remove ring index)))
+                                     (moment (partial-recall--remove-buffer buffer memory)))
 
                            (setq removed t)
 
@@ -411,10 +411,7 @@ If SUPPRESS is t, do that."
 
 If EXCISE is t, remove permanence instead."
   (when-let* ((buffer (or buffer (current-buffer)))
-              (owner (partial-recall--buffer-owner buffer))
-              (ring (partial-recall--memory-ring owner))
-              (find (apply-partially #'partial-recall--moment-buffer-p buffer))
-              (moment (seq-find find (ring-elements ring))))
+              (moment (partial-recall--moment-from-buffer buffer)))
 
     (unless (eq (partial-recall--moment-permanence moment) (not excise))
       (partial-recall--moment-set-permanence moment (not excise))
