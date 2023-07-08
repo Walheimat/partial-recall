@@ -110,11 +110,15 @@
       (bydi-was-called-with format-time-string (list "   %d/%m" 'time)))))
 
 (ert-deftest prm--print-update-count ()
-  (let ((partial-recall-menu--empty "e"))
+  (let ((partial-recall-menu--empty "e")
+        (partial-recall-menu--persistence ["a" "b" "c"])
+        (partial-recall-auto-implant-threshold 5))
 
     (should (string= "e" (partial-recall-menu--print-update-count 0)))
-    (should (string= "1" (partial-recall-menu--print-update-count 1)))
-    (should (string= "+" (partial-recall-menu--print-update-count 11)))))
+    (should (string= "e" (partial-recall-menu--print-update-count 1)))
+    (should (string= "a" (partial-recall-menu--print-update-count 2)))
+    (should (string= "b" (partial-recall-menu--print-update-count 3)))
+    (should (string= "c" (partial-recall-menu--print-update-count 5)))))
 
 (ert-deftest prm--print-permanence ()
   (should (string= " " (partial-recall-menu--print-permanence nil)))

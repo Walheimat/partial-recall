@@ -19,6 +19,7 @@
 (defvar prm--empty " ")
 (defvar prm--null "-")
 (defvar prm--present "*")
+(defvar prm--persistence ["░" "▒" "▓"])
 (defvar prm--excess-time (* 60 60 12))
 
 (defvar-local prm--subconscious nil)
@@ -132,11 +133,16 @@ If NO-OTHER-TAB is t, raise an error if that would be necessary."
 
 (defun prm--print-update-count (update-count)
   "Format UPDATE-COUNT."
-  (if (zerop update-count)
-      prm--empty
-    (if (> update-count 9)
-        "+"
-      (number-to-string update-count))))
+  (let ((threshold partial-recall-auto-implant-threshold))
+
+    (cond
+     ((>= update-count threshold)
+      (aref prm--persistence 2))
+     ((> update-count (/ threshold 2))
+      (aref prm--persistence 1))
+     ((> update-count (/ threshold 3))
+      (aref prm--persistence 0))
+     (t prm--empty))))
 
 (defun prm--print-permanence (permanence)
   "Format PERMANENCE."
