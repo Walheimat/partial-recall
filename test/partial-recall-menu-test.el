@@ -111,14 +111,17 @@
 
 (ert-deftest prm--print-update-count ()
   (let ((partial-recall-menu--empty "e")
-        (partial-recall-menu--persistence ["a" "b" "c"])
-        (partial-recall-auto-implant-threshold 5))
+        (partial-recall-menu--persistence-blocks ["a" "b" "c" "d"])
+        (partial-recall-menu--persistence-ratios '(0.25 0.5 0.75 1))
+        (partial-recall-auto-implant-threshold 4))
 
     (should (string= "e" (partial-recall-menu--print-update-count 0)))
-    (should (string= "e" (partial-recall-menu--print-update-count 1)))
-    (should (string= "a" (partial-recall-menu--print-update-count 2)))
-    (should (string= "b" (partial-recall-menu--print-update-count 3)))
-    (should (string= "c" (partial-recall-menu--print-update-count 5)))))
+    (should (string= "a" (partial-recall-menu--print-update-count 1)))
+    (should (string= "b" (partial-recall-menu--print-update-count 2)))
+    (should (string= "c" (partial-recall-menu--print-update-count 3)))
+    (should (string= "d" (partial-recall-menu--print-update-count 4)))
+    (should (string= "d" (partial-recall-menu--print-update-count 5)))
+    (should (string= "d" (partial-recall-menu--print-update-count 6)))))
 
 (ert-deftest prm--print-permanence ()
   (should (string= " " (partial-recall-menu--print-permanence nil)))
