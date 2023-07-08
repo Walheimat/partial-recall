@@ -251,6 +251,7 @@ Searches all memories unless MEMORY is provided."
     (partial-recall--log "Lifting '%s' out of the subconscious" (buffer-name buffer))
 
     (partial-recall--moment-update-timestamp found)
+
     found))
 
 (defun partial-recall--moment-set-permanence (moment permanence)
@@ -269,6 +270,18 @@ Searches all memories unless MEMORY is provided."
     (partial-recall--maybe-implant-moment moment updated-count)
 
     (setf (partial-recall--moment-update-count moment) updated-count)))
+
+(defun partial-recall--moment-refresh (moment &optional reset)
+  "Refresh MOMENT.
+
+This will update its timestamp and increment its update count. If
+RESET is t, reset the update count instead and remove permanence."
+  (if reset
+      (progn
+        (partial-recall--reset-count moment)
+        (partial-recall--moment-set-permanence moment nil))
+    (partial-recall--moment-update-timestamp moment)
+    (partial-recall--moment-increment-count moment)))
 
 (defun partial-recall--reset-count (moment)
   "Reset the update count for MOMENT."
@@ -351,18 +364,18 @@ Don't do anything if NORECORD is t."
 
 (defun partial-recall--remember (buffer)
   "Remember the BUFFER for this tab."
-  (when-let* ((memory (partial-recall--reality))
-              (ring (partial-recall--memory-ring memory)))
+  (and-let* ((memory (partial-recall--reality))
+             (ring (partial-recall--memory-ring memory))
+             ((not (partial-recall--moments-member ring buffer))))
 
-    (unless (partial-recall--moments-member ring buffer)
-      (partial-recall--maybe-reinforce-implanted memory)
+    (partial-recall--maybe-reinsert-implanted memory)
 
-      (partial-recall--maybe-extend-memory memory)
+    (partial-recall--maybe-extend-memory memory)
 
-      (let ((moment (or (partial-recall--lifted buffer)
-                        (partial-recall--moment-create buffer))))
+    (let ((moment (or (partial-recall--lifted buffer)
+                      (partial-recall--moment-create buffer))))
 
-        (ring-insert ring moment)))))
+      (ring-insert ring moment))))
 
 (defun partial-recall--reinforce (buffer)
   "Reinforce the BUFFER in reality."
@@ -414,6 +427,9 @@ If EXCISE is t, remove permanence instead."
               (moment (partial-recall--moment-from-buffer buffer)))
 
     (unless (eq (partial-recall--moment-permanence moment) (not excise))
+
+      (partial-recall--log "Implanting %s" (partial-recall--moment-buffer moment))
+
       (partial-recall--moment-set-permanence moment (not excise))
       (partial-recall--moment-increment-count moment))))
 
@@ -429,8 +445,7 @@ If EXCISE is t, remove permanence instead."
         (when partial-recall-repress
           (kill-buffer buffer))))
 
-    (partial-recall--reset-count moment)
-    (partial-recall--moment-set-permanence moment nil)
+    (partial-recall--moment-refresh moment t)
 
     (ring-insert ring moment)))
 
@@ -462,15 +477,15 @@ If EXCISE is t, remove permanence instead."
 
       (partial-recall--log "Swapping '%s' from '%s' to '%s'" (buffer-name buffer) a-tab b-tab)
 
-      (partial-recall--maybe-reinforce-implanted b)
+      (partial-recall--maybe-reinsert-implanted b)
 
       (when (and (partial-recall--memory-at-capacity-p b)
                  (partial-recall--should-extend-memory-p b))
         (ring-extend b-ring 1))
 
-      (ring-insert b-ring removed)
+      (partial-recall--moment-refresh moment)
 
-      (partial-recall--moment-update-timestamp moment))))
+      (ring-insert b-ring removed))))
 
 (defun partial-recall--reinsert (moment memory)
   "Reinforce MOMENT into MEMORY."
@@ -481,12 +496,11 @@ If EXCISE is t, remove permanence instead."
 
     (partial-recall--log "Re-inserting buffer '%s' in '%s'" (buffer-name buffer) name)
 
-    (ring-remove+insert+extend ring moment t)
+    (partial-recall--moment-refresh moment)
 
-    (partial-recall--moment-update-timestamp moment)
-    (partial-recall--moment-increment-count moment)))
+    (ring-remove+insert+extend ring moment t)))
 
-(defun partial-recall--maybe-reinforce-implanted (memory)
+(defun partial-recall--maybe-reinsert-implanted (memory)
   "Maybe reinforce oldest moment in MEMORY."
   (and-let* ((ring (partial-recall--memory-ring memory))
              (oldest (partial-recall--ring-oldest ring))
@@ -521,9 +535,7 @@ This is true if COUNT exceeds `partial-recall-auto-implant-threshold'."
   (when (and partial-recall-auto-implant
              (> count partial-recall-auto-implant-threshold))
 
-    (partial-recall--log "Implanting %s" (partial-recall--moment-buffer moment))
-
-    (partial-recall--moment-set-permanence moment t)))
+    (partial-recall--implant (partial-recall--moment-buffer moment))))
 
 ;;; -- Conditionals
 

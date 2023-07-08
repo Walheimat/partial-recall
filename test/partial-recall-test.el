@@ -203,7 +203,7 @@
 
     (bydi ((:mock partial-recall--tab-name :return "tab")
            (:mock buffer-name :return "buffer")
-           partial-recall--maybe-reinforce-implanted
+           partial-recall--maybe-reinsert-implanted
            partial-recall--moment-update-timestamp
            (:always partial-recall--memory-at-capacity-p)
            (:always partial-recall--should-extend-memory-p))
