@@ -135,17 +135,18 @@ If NO-OTHER-TAB is t, raise an error if that would be necessary."
 
 (defun prm--print-update-count (update-count)
   "Format UPDATE-COUNT."
-  (let ((threshold partial-recall-auto-implant-threshold)
-        (index 0)
-        (max-index (1- (length prm--persistence-ratios))))
+  (let* ((threshold partial-recall-auto-implant-threshold)
+         (index 0)
+         (max-index (1- (length prm--persistence-ratios)))
+         (text (if (zerop update-count)
+                   prm--empty
+                 (while (and (> update-count (* threshold (nth index prm--persistence-ratios)))
+                             (< index max-index))
+                   (setq index (1+ index)))
 
-    (if (zerop update-count)
-        prm--empty
-      (while (and (> update-count (* threshold (nth index prm--persistence-ratios)))
-                  (< index max-index))
-        (setq index (1+ index)))
+                 (aref prm--persistence-blocks index))))
 
-      (aref prm--persistence-blocks index))))
+    (propertize text 'face 'shadow)))
 
 (defun prm--print-permanence (permanence)
   "Format PERMANENCE."
