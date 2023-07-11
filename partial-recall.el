@@ -798,7 +798,9 @@ This will always force-reclaim."
   "Implant the BUFFER.
 
 If EXCISE is T, do that instead."
-  (interactive (list (partial-recall--complete-reality "Implant moment: ")
+  (interactive (list (partial-recall--complete-reality (if current-prefix-arg
+                                                           "Excise moment: "
+                                                         "Implant moment: "))
                      current-prefix-arg))
 
   (partial-recall--implant buffer excise))
