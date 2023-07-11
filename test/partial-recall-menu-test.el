@@ -13,28 +13,26 @@
   (let ((buffers '("a" "bb" "ccc"))
         (tabs '("dddd" "eee" "ff")))
 
-    (should (equal (aref (partial-recall-menu--format buffers tabs) 3)
+    (should (equal (aref (partial-recall-menu--format buffers tabs) 2)
                    '("Buffer" 3 t)))
-    (should (equal (aref (partial-recall-menu--format buffers tabs) 4)
+    (should (equal (aref (partial-recall-menu--format buffers tabs) 3)
                    '("Tab" 4 t)))))
 
 (ert-deftest prm--revert ()
   (bydi (tabulated-list-init-header
-         (:mock partial-recall-menu--print-update-count :return "1")
          (:mock partial-recall-menu--print-timestamp :return "today")
          (:mock partial-recall-menu--print-memory :return "rem")
-         (:mock partial-recall-menu--print-permanence :return "*"))
+         (:mock partial-recall-menu--print-presence :return "*"))
 
     (with-tab-history :pre t
 
       (partial-recall-menu--revert)
 
-      (should (equal `((("test-tab" ,(current-buffer) t nil) [" " "*" "1" ,(buffer-name) "rem" "today"]))
+      (should (equal `((("test-tab" ,(current-buffer) t nil) [" " "*" ,(buffer-name) "rem" "today"]))
                      tabulated-list-entries))
       (should (equal (vector
                       '("A" 1 t :pad-right 0)
-                      '("I" 1 t :pad-right 0)
-                      '("U" 1 t :pad-right 1)
+                      '("P" 1 t :pad-right 1)
                       `("Buffer" ,(length (buffer-name)) t)
                       '("Tab" 8 t)
                       '("Timestamp" 9 t))
@@ -115,17 +113,13 @@
         (partial-recall-menu--persistence-ratios '(0.25 0.5 0.75 1))
         (partial-recall-auto-implant-threshold 4))
 
-    (should (string= "e" (partial-recall-menu--print-update-count 0)))
-    (should (string= "a" (partial-recall-menu--print-update-count 1)))
-    (should (string= "b" (partial-recall-menu--print-update-count 2)))
-    (should (string= "c" (partial-recall-menu--print-update-count 3)))
-    (should (string= "d" (partial-recall-menu--print-update-count 4)))
-    (should (string= "d" (partial-recall-menu--print-update-count 5)))
-    (should (string= "d" (partial-recall-menu--print-update-count 6)))))
-
-(ert-deftest prm--print-permanence ()
-  (should (string= " " (partial-recall-menu--print-permanence nil)))
-  (should (string= "*" (partial-recall-menu--print-permanence t))))
+    (should (string= "e" (partial-recall-menu--print-presence 0 nil)))
+    (should (string= "a" (partial-recall-menu--print-presence 1 nil)))
+    (should (string= "b" (partial-recall-menu--print-presence 2 nil)))
+    (should (string= "c" (partial-recall-menu--print-presence 3 nil)))
+    (should (string= "d" (partial-recall-menu--print-presence 4 nil)))
+    (should (string= "d" (partial-recall-menu--print-presence 5 nil)))
+    (should (string= "d" (partial-recall-menu--print-presence 6 t)))))
 
 (ert-deftest prm--print-memory ()
   (let ((partial-recall-buffer-limit 10)

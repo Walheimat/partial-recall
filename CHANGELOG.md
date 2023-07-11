@@ -16,8 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `partial-recall-menu` now displays timestamps that are older than 12
   hours by printing a date.
-- `partial-recall-menu` now displays the update count using blcok
-  elements.
+- `partial-recall-menu` now displays the update count and whether it
+  is implanted using block elements. The implanted state is indicated
+  by face color. The actual values are displayed in the columns help
+  echo.
 
 ### Fixed
 

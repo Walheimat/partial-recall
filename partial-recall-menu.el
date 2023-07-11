@@ -35,8 +35,7 @@
 
     (vector
      '("A" 1 t :pad-right 0)
-     '("I" 1 t :pad-right 0)
-     '("U" 1 t :pad-right 1)
+     '("P" 1 t :pad-right 1)
      `("Buffer" ,(or longest-buffer 6) t)
      `("Tab" ,(or longest-tab 6) t)
      '("Timestamp" 9 t))))
@@ -68,11 +67,11 @@ INCLUDE-SUBCONSCIOUS is t."
 
           (let* ((buffer (mom-buffer moment))
                  (name (buffer-name buffer))
-                 (count (prm--print-update-count (mom-update-count moment)))
                  (ts (prm--print-timestamp (mom-timestamp moment)))
-                 (implanted (prm--print-permanence (mom-permanence moment)))
+                 (implanted (mom-permanence moment))
+                 (presence (prm--print-presence (mom-update-count moment) implanted))
                  (item (list tab-name buffer real sub))
-                 (line (vector prm--empty implanted count name mem-pp ts)))
+                 (line (vector prm--empty presence name mem-pp ts)))
 
             (push name buffer-names)
 
@@ -133,8 +132,10 @@ If NO-OTHER-TAB is t, raise an error if that would be necessary."
       (format-time-string "   %d/%m" (seconds-to-time timestamp))
     (format-time-string "%H:%M:%S" (seconds-to-time timestamp))))
 
-(defun prm--print-update-count (update-count)
-  "Format UPDATE-COUNT."
+(defun prm--print-presence (update-count implanted)
+  "Format presence using UPDATE-COUNT.
+
+If the moment is IMPLANTED, signal that."
   (let* ((threshold partial-recall-auto-implant-threshold)
          (index 0)
          (max-index (1- (length prm--persistence-ratios)))
@@ -144,13 +145,11 @@ If NO-OTHER-TAB is t, raise an error if that would be necessary."
                              (< index max-index))
                    (setq index (1+ index)))
 
-                 (aref prm--persistence-blocks index))))
+                 (aref prm--persistence-blocks index)))
+         (face (if implanted 'success 'shadow))
+         (help (format "Updates: %s, Implanted: %s" update-count implanted)))
 
-    (propertize text 'face 'shadow)))
-
-(defun prm--print-permanence (permanence)
-  "Format PERMANENCE."
-  (if permanence prm--present prm--empty))
+    (propertize text 'face face 'help-echo help)))
 
 (defun prm--print-memory (memory)
   "Format MEMORY."
