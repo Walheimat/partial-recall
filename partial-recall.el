@@ -250,17 +250,19 @@ Searches all memories unless MEMORY is provided."
 
     (partial-recall--log "Lifting '%s' out of the subconscious" (buffer-name buffer))
 
-    (partial-recall--moment-update-timestamp found)
-
-    found))
+    (partial-recall--moment-update-timestamp found)))
 
 (defun partial-recall--moment-set-permanence (moment permanence)
   "Set MOMENT PERMANENCE."
-  (setf (partial-recall--moment-permanence moment) permanence))
+  (setf (partial-recall--moment-permanence moment) permanence)
+
+  moment)
 
 (defun partial-recall--moment-update-timestamp (moment)
   "Update the timestamp for MOMENT."
-  (setf (partial-recall--moment-timestamp moment) (floor (time-to-seconds))))
+  (setf (partial-recall--moment-timestamp moment) (floor (time-to-seconds)))
+
+  moment)
 
 (defun partial-recall--moment-increment-count (moment)
   "Increment the update count for MOMENT."
@@ -269,7 +271,9 @@ Searches all memories unless MEMORY is provided."
 
     (partial-recall--maybe-implant-moment moment updated-count)
 
-    (setf (partial-recall--moment-update-count moment) updated-count)))
+    (setf (partial-recall--moment-update-count moment) updated-count)
+
+    moment))
 
 (defun partial-recall--moment-refresh (moment &optional reset)
   "Refresh MOMENT.
@@ -285,7 +289,9 @@ RESET is t, reset the update count instead and remove permanence."
 
 (defun partial-recall--reset-count (moment)
   "Reset the update count for MOMENT."
-  (setf (partial-recall--moment-update-count moment) 0))
+  (setf (partial-recall--moment-update-count moment) 0)
+
+  moment)
 
 (defun partial-recall--remove-buffer (buffer memory)
   "Remove BUFFER from MEMORY and return it."
