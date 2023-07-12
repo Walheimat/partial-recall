@@ -533,6 +533,7 @@ If EXCISE is t, remove permanence instead."
 
 This is true if COUNT exceeds `partial-recall-auto-implant-threshold'."
   (when (and partial-recall-auto-implant
+             (not (partial-recall--moment-permanence moment))
              (> count partial-recall-auto-implant-threshold))
 
     (partial-recall--implant (partial-recall--moment-buffer moment))))

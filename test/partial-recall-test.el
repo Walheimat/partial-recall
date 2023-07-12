@@ -409,8 +409,16 @@
   (let ((partial-recall-auto-implant t)
         (partial-recall-auto-implant-threshold 1))
     (with-tab-history :pre t
-      (partial-recall--reinforce (current-buffer))
-      (partial-recall--reinforce (current-buffer))
+
+      (bydi ((:spy partial-recall--maybe-implant-moment)
+             (:spy partial-recall--implant))
+
+        (partial-recall--reinforce (current-buffer))
+        (partial-recall--reinforce (current-buffer))
+        (partial-recall--reinforce (current-buffer))
+
+        (bydi-was-called-n-times partial-recall--maybe-implant-moment 4)
+        (bydi-was-called-n-times partial-recall--implant 1))
 
       (let ((moment (partial-recall--moment-from-buffer (current-buffer))))
         (should (partial-recall--moment-permanence moment))))))
