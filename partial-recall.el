@@ -85,7 +85,7 @@ This is will implant buffers that have met
   :type 'boolean
   :group 'partial-recall)
 
-(defcustom partial-recall-auto-implant-threshold 10
+(defcustom partial-recall-auto-implant-threshold 4
   "Minimum of updates before auto-implanting."
   :type 'integer
   :group 'partial-recall)
