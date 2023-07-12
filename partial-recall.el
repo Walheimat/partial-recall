@@ -706,6 +706,21 @@ the max age."
 
     (cdr-safe (assoc selection a))))
 
+(defun partial-recall--complete-any (prompt)
+  "Complete any buffer using PROMPT.
+
+Mapped buffers and non-file buffers are not considered."
+  (let* ((buffers (buffer-list))
+         (file-buffers (seq-filter #'buffer-file-name buffers))
+         (candidates (seq-filter (lambda (it) (not (partial-recall--mapped-buffer-p it))) file-buffers))
+         (a (mapcar (lambda (it) (cons (buffer-name it) it)) candidates))
+         (current (current-buffer))
+         (initial (unless (partial-recall--mapped-buffer-p current)
+                    (buffer-name (current-buffer))))
+         (selection (completing-read prompt a nil t initial)))
+
+    (cdr-safe (assoc selection a))))
+
 ;;; -- Setup
 
 (defun partial-recall--fix-up-primary-tab ()
@@ -764,11 +779,12 @@ the max age."
   (let ((map (make-sparse-keymap)))
 
     (define-key map (kbd "b") 'partial-recall-switch-to-buffer)
-    (define-key map (kbd "r") 'partial-recall-reinforce)
+    (define-key map (kbd "m") 'partial-recall-remember)
+    (define-key map (kbd "i") 'partial-recall-reinforce)
     (define-key map (kbd "c") 'partial-recall-reclaim)
     (define-key map (kbd "f") 'partial-recall-forget)
-    (define-key map (kbd "l") 'partial-recall-lift)
-    (define-key map (kbd "m") 'partial-recall-menu)
+    (define-key map (kbd "s") 'partial-recall-lift)
+    (define-key map (kbd "l") 'partial-recall-menu)
     (define-key map (kbd "i") 'partial-recall-implant)
     map)
   "Map for `partial-recall-mode' commands.")
@@ -781,6 +797,13 @@ the max age."
   (if partial-recall-mode
       (partial-recall-mode--setup)
     (partial-recall-mode--teardown)))
+
+;;;###autoload
+(defun partial-recall-remember (buffer)
+  "Remember BUFFER."
+  (interactive (list (partial-recall--complete-any "Remember buffer: ")))
+
+  (partial-recall--remember buffer))
 
 ;;;###autoload
 (defun partial-recall-switch-to-buffer (buffer)

@@ -568,6 +568,20 @@
 
       (should (equal buf (partial-recall--complete-subconscious "Some prompt: "))))))
 
+(ert-deftest pr--complete-any ()
+  (bydi (completing-read
+         (:mock buffer-list :return '(a b c d))
+         (:mock buffer-name :with bydi-rf)
+         (:mock buffer-file-name :with bydi-rf)
+         (:mock partial-recall--mapped-buffers :return '(a c))
+         (:mock partial-recall--mapped-buffer-p :with (lambda (it) (memq it '(a c))))
+         (:mock current-buffer :return 'current))
+
+    (partial-recall--complete-any "Some prompt: ")
+
+    (bydi-was-called-with completing-read
+      '("Some prompt: " ((b . b) (d . d)) nil t current))))
+
 ;;; -- Setup
 
 (ert-deftest pr--fix-up-primary-tab ()
@@ -650,8 +664,10 @@
            partial-recall--complete-dream
            partial-recall--complete-reality
            partial-recall--complete-subconscious
+           partial-recall--complete-any
            partial-recall--implant
            partial-recall--lift
+           partial-recall--remember
            switch-to-buffer)
 
       (call-interactively 'partial-recall-reinforce)
@@ -660,6 +676,7 @@
       (call-interactively 'partial-recall-switch-to-buffer)
       (call-interactively 'partial-recall-implant)
       (call-interactively 'partial-recall-lift)
+      (call-interactively 'partial-recall-remember)
 
       (bydi-was-called partial-recall--reinforce)
       (bydi-was-called partial-recall--reclaim)
@@ -668,6 +685,7 @@
       (bydi-was-called partial-recall--complete-reality)
       (bydi-was-called partial-recall--implant)
       (bydi-was-called partial-recall--lift)
+      (bydi-was-called partial-recall--remember)
       (bydi-was-called switch-to-buffer))))
 
 ;;; Code:

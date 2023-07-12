@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the buffer of the selected buffer is the scheduled buffer before
   handling it. This makes sure that only buffers are handled that
   weren't just switch to by accident.
+- `partial-recall-remember` as a user-facing command. It was added
+  because the user can now end up with a buffer that's not in memory.
+  It provides a list of unmapped file buffers providing the current
+  buffer as initial buffer.
 
 ### Changed
 
