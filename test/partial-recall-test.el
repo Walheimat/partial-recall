@@ -6,7 +6,7 @@
 
 (require 'partial-recall nil t)
 
-;; -- Accessors
+;;; -- Accessors
 
 (ert-deftest pr--key--returns-if-set ()
   (bydi ((:mock tab-bar--current-tab :return test-tab))
@@ -58,7 +58,7 @@
 
     (should (partial-recall--lifted (current-buffer)))))
 
-;; -- Handlers
+;;; -- Handlers
 
 (ert-deftest pr--after-switch-to-buffer--cancels-running-timer ()
   (let ((partial-recall--timer nil))
@@ -423,7 +423,7 @@
       (let ((moment (partial-recall--moment-from-buffer (current-buffer))))
         (should (partial-recall--moment-permanence moment))))))
 
-;; -- Conditionals
+;;; -- Conditionals
 
 (ert-deftest pr--memory-buffer-p ()
   (with-tab-history :pre t
@@ -511,7 +511,7 @@
 
       (kill-buffer buffer))))
 
-;; -- Completion
+;;; -- Completion
 
 (ert-deftest pr--complete-dream ()
   (bydi-with-mock ((:mock completing-read :return "second")
@@ -552,8 +552,7 @@
 
       (should (equal buf (partial-recall--complete-subconscious "Some prompt: "))))))
 
-;; -- Setup
-
+;;; -- Setup
 
 (ert-deftest pr--fix-up-primary-tab ()
   (let ((tab-bar-mode nil)
