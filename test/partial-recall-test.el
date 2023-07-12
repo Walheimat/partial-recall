@@ -41,6 +41,18 @@
         (should (eq 1 (partial-recall--update-count)))
         (kill-buffer another-temp)))))
 
+(ert-deftest pr--name ()
+  (with-tab-history
+    (let ((reality (partial-recall--reality)))
+
+      (bydi ((:sometimes partial-recall--subconscious-p))
+
+        (should (string= partial-recall--subconscious-key (partial-recall--name reality)))
+
+        (bydi-toggle-sometimes)
+
+        (should (string= "test-tab" (partial-recall--name reality)))))))
+
 (ert-deftest pr--tab ()
   (with-tab-history :pre t
     (should (string= (partial-recall--tab-name) "test-tab"))))

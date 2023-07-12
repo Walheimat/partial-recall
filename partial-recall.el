@@ -199,7 +199,7 @@ Searches all memories unless MEMORY is provided."
 (defun partial-recall--name (memory)
   "Get the name of MEMORY."
   (if (partial-recall--subconscious-p memory)
-      "subconscious"
+      partial-recall--subconscious-key
     (partial-recall--tab-name memory)))
 
 (defun partial-recall--tab (memory)
@@ -443,6 +443,7 @@ If EXCISE is t, remove permanence instead."
              (buffer (partial-recall--moment-buffer removed)))
 
         (when partial-recall-repress
+          (partial-recall--log "Repressing buffer %s" buffer)
           (kill-buffer buffer))))
 
     (partial-recall--moment-refresh moment t)
