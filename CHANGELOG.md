@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `partial-recall--repr` to print a readable representation of a
   memory or moment instance.
+- Custom variable `partial-recall-handle-delay` that determines the
+  amount of seconds to wait until a buffer is handled. The default it
+  3 seconds. `partial-recall--handle-buffer` will now check whether
+  the buffer of the selected buffer is the scheduled buffer before
+  handling it. This makes sure that only buffers are handled that
+  weren't just switch to by accident.
 
 ### Changed
 

@@ -42,6 +42,11 @@
   "Short-term (buffer) memory."
   :group 'partial-recall)
 
+(defcustom partial-recall-handle-delay 3
+  "The delay in seconds after which a buffer will be handled."
+  :type 'integer
+  :group 'partial-recall)
+
 (defcustom partial-recall-buffer-limit 10
   "The amount of buffers to recall.
 
@@ -315,13 +320,19 @@ RESET is t, reset the update count instead and remove permanence."
         (setq partial-recall--timer nil))
 
       (setq partial-recall--timer
-            (run-at-time 0.5 nil #'partial-recall--handle-buffer buffer)))))
+            (run-at-time
+             partial-recall-handle-delay
+             nil
+             #'partial-recall--handle-buffer buffer)))))
 
 (defun partial-recall--handle-buffer (buffer)
   "Handle BUFFER.
 
-This will remember new buffers and maybe reclaim mapped buffers."
-  (when (buffer-live-p buffer)
+This will remember new buffers and maybe reclaim mapped buffers.
+If in between the scheduling of handling this buffer the current
+buffer has changed, it will be ignored."
+  (when (and (buffer-live-p buffer)
+             (eq buffer (window-buffer (selected-window))))
     (setq partial-recall--last-checked buffer)
 
     (if (partial-recall--mapped-buffer-p buffer)

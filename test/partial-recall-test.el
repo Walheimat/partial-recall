@@ -73,7 +73,9 @@
 ;;; -- Handlers
 
 (ert-deftest pr--after-switch-to-buffer--cancels-running-timer ()
-  (let ((partial-recall--timer nil))
+  (let ((partial-recall--timer nil)
+        (partial-recall-handle-delay 1)
+        (buffer (current-buffer)))
 
     (bydi ((:always buffer-file-name)
            (:ignore partial-recall--mapped-buffer-p)
@@ -81,16 +83,17 @@
            run-at-time)
 
       (setq partial-recall--timer 'timer)
-      (partial-recall--after-switch-to-buffer (current-buffer))
+      (partial-recall--after-switch-to-buffer buffer)
 
       (bydi-was-called cancel-timer)
 
-      (bydi-was-called run-at-time))))
+      (bydi-was-called-with run-at-time `(1 nil partial-recall--handle-buffer ,buffer)))))
 
 (ert-deftest pr--handle-buffer ()
   (with-tab-history
     (bydi (partial-recall--remember
            (:always buffer-live-p)
+           (:mock window-buffer :return (current-buffer))
            (:ignore partial-recall--mapped-buffer-p))
 
       (partial-recall--handle-buffer (current-buffer))
@@ -101,6 +104,7 @@
     (bydi (partial-recall--remember
            partial-recall--recollect
            (:always buffer-live-p)
+           (:mock window-buffer :return (current-buffer))
            (:always partial-recall--mapped-buffer-p))
 
       (partial-recall--handle-buffer (current-buffer))
