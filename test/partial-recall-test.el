@@ -177,6 +177,7 @@
   (with-tab-history
     (bydi ((:always partial-recall--memory-at-capacity-p)
            (:always partial-recall--should-extend-memory-p)
+           partial-recall--maybe-forget-oldest-moment
            ring-extend)
 
       (partial-recall--remember (current-buffer))
@@ -201,10 +202,11 @@
       (let ((another-temp (generate-new-buffer " *temp*" t)))
 
         (bydi ((:always partial-recall--memory-at-capacity-p)
-               (:ignore partial-recall--should-extend-memory-p))
-          (partial-recall--remember another-temp))
+               (:ignore partial-recall--should-extend-memory-p)
+               partial-recall--suppress)
+          (partial-recall--remember another-temp)
 
-        (should (eq 1 (ring-size (partial-recall--memory-ring (partial-recall--reality)))))
+          (bydi-was-called partial-recall--suppress))
 
         (kill-buffer another-temp)))))
 

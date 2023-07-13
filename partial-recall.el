@@ -385,9 +385,7 @@ Don't do anything if NORECORD is t."
              (ring (partial-recall--memory-ring memory))
              ((not (partial-recall--moments-member ring buffer))))
 
-    (partial-recall--maybe-reinsert-implanted memory)
-
-    (partial-recall--maybe-extend-memory memory)
+    (partial-recall--probe-memory memory)
 
     (let ((moment (or (partial-recall--lifted buffer)
                       (partial-recall--moment-create buffer))))
@@ -452,6 +450,7 @@ If EXCISE is t, remove permanence instead."
 
 (defun partial-recall--suppress (moment)
   "Suppress MOMENT in the subconscious."
+
   (when-let* ((memory (partial-recall--subconscious))
               (ring (partial-recall--memory-ring memory)))
 
@@ -518,6 +517,15 @@ If EXCISE is t, remove permanence instead."
 
     (ring-remove+insert+extend ring moment t)))
 
+(defun partial-recall--probe-memory (memory)
+  "Probe MEMORY.
+
+This will resize, extend and forget if necessary."
+  (partial-recall--maybe-reinsert-implanted memory)
+  (partial-recall--maybe-resize-memory memory)
+  (partial-recall--maybe-extend-memory memory)
+  (partial-recall--maybe-suppress-oldest-moment memory))
+
 (defun partial-recall--maybe-reinsert-implanted (memory)
   "Maybe reinforce oldest moment in MEMORY."
   (and-let* ((ring (partial-recall--memory-ring memory))
@@ -545,6 +553,15 @@ If EXCISE is t, remove permanence instead."
     (partial-recall--log "Extending %s" (partial-recall--name memory))
 
     (ring-extend (partial-recall--memory-ring memory) 1)))
+
+(defun partial-recall--maybe-suppress-oldest-moment (memory)
+  "Get the oldest moment in MEMORY if it is endangered."
+  (and-let* (((partial-recall--memory-at-capacity-p memory))
+             (ring (partial-recall--memory-ring memory))
+             ((not (zerop (ring-length ring))))
+             (removed (ring-remove ring)))
+
+    (partial-recall--suppress removed)))
 
 (defun partial-recall--maybe-implant-moment (moment count)
   "Check if MOMENT should be implanted automatically.

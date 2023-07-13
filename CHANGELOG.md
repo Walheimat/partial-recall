@@ -35,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `partial-recall-menu-execute` no longer deletes entries which led to
   buffers to be forgotten to be ignored.
+- Forgetting moments now suppresses them.
 
 ## [v0.5.0]
 
