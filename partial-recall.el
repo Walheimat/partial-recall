@@ -450,7 +450,6 @@ If EXCISE is t, remove permanence instead."
 
 (defun partial-recall--suppress (moment)
   "Suppress MOMENT in the subconscious."
-
   (when-let* ((memory (partial-recall--subconscious))
               (ring (partial-recall--memory-ring memory)))
 
@@ -520,19 +519,25 @@ If EXCISE is t, remove permanence instead."
 (defun partial-recall--probe-memory (memory)
   "Probe MEMORY.
 
-This will resize, extend and forget if necessary."
-  (partial-recall--maybe-reinsert-implanted memory)
+This will reinsert and suppress moments as well as extend the
+memory if necessary."
   (partial-recall--maybe-resize-memory memory)
+  (partial-recall--maybe-reinsert-implanted memory)
   (partial-recall--maybe-extend-memory memory)
   (partial-recall--maybe-suppress-oldest-moment memory))
 
 (defun partial-recall--maybe-reinsert-implanted (memory)
-  "Maybe reinforce oldest moment in MEMORY."
+  "Maybe reinforce oldest moments in MEMORY."
   (and-let* ((ring (partial-recall--memory-ring memory))
-             (oldest (partial-recall--ring-oldest ring))
-             ((partial-recall--moment-permanence oldest)))
+             (oldest (partial-recall--ring-oldest ring)))
 
-    (partial-recall--reinsert oldest memory)))
+    (let ((checked nil))
+
+      (while (and (not (memq oldest checked))
+                  (partial-recall--moment-permanence oldest))
+        (partial-recall--reinsert oldest memory)
+        (push oldest checked)
+        (setq oldest (partial-recall--ring-oldest ring))))))
 
 (defun partial-recall--maybe-resize-memory (memory)
   "Maybe resize MEMORY if it has grown but could shrink."
