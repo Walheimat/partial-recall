@@ -21,6 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   because the user can now end up with a buffer that's not in memory.
   It provides a list of unmapped file buffers providing the current
   buffer as initial buffer.
+- `partial-recall--forget` will now delete any window displaying the
+  buffer to forget.
 
 ### Changed
 

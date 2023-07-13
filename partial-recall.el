@@ -432,6 +432,8 @@ If SUPPRESS is t, do that."
 
                            (partial-recall--maybe-resize-memory memory)))))
 
+    (partial-recall--clean-up-buffer buffer)
+
     (maphash maybe-remove partial-recall--table)))
 
 (defun partial-recall--implant (&optional buffer excise)
@@ -515,6 +517,16 @@ If EXCISE is t, remove permanence instead."
     (partial-recall--moment-refresh moment)
 
     (ring-remove+insert+extend ring moment t)))
+
+(defun partial-recall--clean-up-buffer (buffer)
+  "Clean up BUFFER if necessary."
+  (when-let* ((windows (window-list))
+              (displayed (seq-find (lambda (it) (eq (window-buffer it) buffer)) windows)))
+
+    (delete-window displayed))
+
+  (when (eq partial-recall--last-checked buffer)
+    (setq partial-recall--last-checked nil)))
 
 (defun partial-recall--probe-memory (memory)
   "Probe MEMORY.

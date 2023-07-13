@@ -153,6 +153,7 @@
 
       (bydi-was-called-n-times partial-recall--on-close 2))))
 
+;;; -- Actions
 
 (ert-deftest pr-remember--remembers ()
   (with-tab-history
@@ -440,6 +441,20 @@
 
       (let ((moment (partial-recall--moment-from-buffer (current-buffer))))
         (should (partial-recall--moment-permanence moment))))))
+
+(ert-deftest pr--clean-up-buffer ()
+  (let ((partial-recall--last-checked (current-buffer)))
+
+    (partial-recall--clean-up-buffer (current-buffer))
+
+    (should-not partial-recall--last-checked))
+
+  (bydi ((:mock window-buffer :return (current-buffer))
+         delete-window)
+
+    (partial-recall--clean-up-buffer (current-buffer))
+
+    (bydi-was-called delete-window)))
 
 ;;; -- Conditionals
 
