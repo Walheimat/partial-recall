@@ -30,6 +30,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   is implanted using block elements. The implanted state is indicated
   by face color. The actual values are displayed in the columns help
   echo.
+- `partial-recall-{max-age, reclaim-min-age}` have been increased to
+  10 and 30 minutes respectively.
 
 ### Fixed
 
