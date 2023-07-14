@@ -14,9 +14,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Custom variable `partial-recall-handle-delay` that determines the
   amount of seconds to wait until a buffer is handled. The default it
   3 seconds. `partial-recall--handle-buffer` will now check whether
-  the buffer of the selected buffer is the scheduled buffer before
+  the buffer of the selected window is the scheduled buffer before
   handling it. This makes sure that only buffers are handled that
-  weren't just switch to by accident.
+  weren't just switch to by accident. If the minibuffer was entered
+  before handling, the check is made against the previously selected
+  window's buffer.
 - `partial-recall-remember` as a user-facing command. It was added
   because the user can now end up with a buffer that's not in memory.
   It provides a list of unmapped file buffers providing the current

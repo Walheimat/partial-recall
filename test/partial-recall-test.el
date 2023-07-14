@@ -93,11 +93,13 @@
   (with-tab-history
     (bydi (partial-recall--remember
            (:always buffer-live-p)
+           minibuffer-selected-window
            (:mock window-buffer :return (current-buffer))
            (:ignore partial-recall--mapped-buffer-p))
 
       (partial-recall--handle-buffer (current-buffer))
-      (bydi-was-called partial-recall--remember))))
+      (bydi-was-called partial-recall--remember)
+      (bydi-was-called minibuffer-selected-window))))
 
 (ert-deftest pr--handle-buffer--reclaims ()
   (with-tab-history
@@ -658,7 +660,6 @@
     (partial-recall-mode--teardown)
 
     (bydi-was-called-n-times remove-hook 6)))
-
 
 (ert-deftest pr-mode ()
   (bydi (partial-recall-mode--setup

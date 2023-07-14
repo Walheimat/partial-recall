@@ -316,8 +316,7 @@ RESET is t, reset the update count instead and remove permanence."
                (file-name (buffer-file-name buffer)))
 
       (when partial-recall--timer
-        (cancel-timer partial-recall--timer)
-        (setq partial-recall--timer nil))
+        (cancel-timer partial-recall--timer))
 
       (setq partial-recall--timer
             (run-at-time
@@ -330,14 +329,19 @@ RESET is t, reset the update count instead and remove permanence."
 
 This will remember new buffers and maybe reclaim mapped buffers.
 If in between the scheduling of handling this buffer the current
-buffer has changed, it will be ignored."
-  (when (and (buffer-live-p buffer)
-             (eq buffer (window-buffer (selected-window))))
-    (setq partial-recall--last-checked buffer)
+buffer has changed, it will be ignored.
 
-    (if (partial-recall--mapped-buffer-p buffer)
-        (partial-recall--recollect buffer)
-      (partial-recall--remember buffer))))
+The buffer used for comparison is the `window-buffer' unless
+we're in the minibuffer, then it's `minibuffer-selected-window'."
+  (let ((compare-to (window-buffer (minibuffer-selected-window))))
+
+    (when (and (buffer-live-p buffer)
+               (eq buffer compare-to))
+      (setq partial-recall--last-checked buffer)
+
+      (if (partial-recall--mapped-buffer-p buffer)
+          (partial-recall--recollect buffer)
+        (partial-recall--remember buffer)))))
 
 (defun partial-recall--after-switch-to-buffer (buffer &optional norecord &rest _)
   "Schedule the BUFFER that was switched to.
