@@ -42,7 +42,7 @@
   "Short-term (buffer) memory."
   :group 'partial-recall)
 
-(defcustom partial-recall-handle-delay 3
+(defcustom partial-recall-handle-delay 5
   "The delay in seconds after which a buffer will be handled."
   :type 'integer
   :group 'partial-recall)
@@ -55,7 +55,7 @@ quick succession. See `partial-recall-max-age'."
   :type 'integer
   :group 'partial-recall)
 
-(defcustom partial-recall-max-age (* 10 60)
+(defcustom partial-recall-max-age (* 30 60)
   "Threshold in seconds that will allow a memory to grow.
 
 If the oldest moment is younger than the threshold, the limit is
@@ -68,7 +68,7 @@ increased and the buffer will remain."
   :type 'boolean
   :group 'partial-recall)
 
-(defcustom partial-recall-reclaim-min-age (* 30 60)
+(defcustom partial-recall-reclaim-min-age (* 60 60)
   "Threshold in seconds that when exceeded allows reclaiming.
 
 Has no effect if `partial-recall-reclaim' is nil."
