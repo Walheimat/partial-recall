@@ -172,11 +172,15 @@ Defaults to the current buffer."
 
     (seq-find find memories)))
 
-(defun partial-recall--mapped-buffers ()
-  "Get all mapped buffers."
+(defun partial-recall--mapped-buffers (&optional include-subconscious)
+  "Get all mapped buffers.
+
+This excludes moments in the subconscious unless
+INCLUDE-SUBCONSCIOUS is t."
   (let ((mapped (cl-loop for k being the hash-keys of partial-recall--table
                          using (hash-values memory)
-                         unless (string= k partial-recall--subconscious-key)
+                         unless (and (not include-subconscious)
+                                     (string= k partial-recall--subconscious-key))
                          append (ring-elements (partial-recall--memory-ring memory)))))
 
     (mapcar #'partial-recall--moment-buffer mapped)))
@@ -619,9 +623,12 @@ This is true if COUNT exceeds `partial-recall-auto-implant-threshold'."
       (when (equal buffer (partial-recall--moment-buffer (ring-ref moments ind)))
         (throw 'found ind)))))
 
-(defun partial-recall--mapped-buffer-p (buffer)
-  "Check if BUFFER is mapped."
-  (let ((buffers (partial-recall--mapped-buffers)))
+(defun partial-recall--mapped-buffer-p (buffer &optional include-subconscious)
+  "Check if BUFFER is mapped.
+
+This excludes moments in the subconscious unless
+INCLUDE-SUBCONSCIOUS is t."
+  (let ((buffers (partial-recall--mapped-buffers include-subconscious)))
 
     (memq buffer buffers)))
 
@@ -750,10 +757,10 @@ the max age."
 Mapped buffers and non-file buffers are not considered."
   (let* ((buffers (buffer-list))
          (file-buffers (seq-filter #'buffer-file-name buffers))
-         (candidates (seq-filter (lambda (it) (not (partial-recall--mapped-buffer-p it))) file-buffers))
+         (candidates (seq-filter (lambda (it) (not (partial-recall--mapped-buffer-p it t))) file-buffers))
          (a (mapcar (lambda (it) (cons (buffer-name it) it)) candidates))
          (current (current-buffer))
-         (initial (unless (partial-recall--mapped-buffer-p current)
+         (initial (unless (partial-recall--mapped-buffer-p current t)
                     (buffer-name (current-buffer))))
          (selection (completing-read prompt a nil t initial)))
 

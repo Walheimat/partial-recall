@@ -36,6 +36,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   echo.
 - `partial-recall-{max-age, reclaim-min-age}` have been increased to
   10 and 30 minutes respectively.
+- The list of mapped file buffers can now include those stored in the
+  subconscious by passing the appropriate argument.
 
 ### Fixed
 

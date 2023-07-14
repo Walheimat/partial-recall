@@ -593,7 +593,7 @@
          (:mock buffer-name :with bydi-rf)
          (:mock buffer-file-name :with bydi-rf)
          (:mock partial-recall--mapped-buffers :return '(a c))
-         (:mock partial-recall--mapped-buffer-p :with (lambda (it) (memq it '(a c))))
+         (:mock partial-recall--mapped-buffer-p :with (lambda (it &rest _) (memq it '(a c))))
          (:mock current-buffer :return 'current))
 
     (partial-recall--complete-any "Some prompt: ")
