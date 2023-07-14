@@ -155,6 +155,34 @@
 
       (bydi-was-called-n-times partial-recall--on-close 2))))
 
+(ert-deftest pr--on-minibuffer-setup--records-for-triggers ()
+  (let ((partial-recall-record-triggers '(a b c))
+        (this-command 'b))
+
+    (bydi (minibuffer-selected-window
+           (:mock window-buffer :return 'mini))
+
+      (partial-recall--on-minibuffer-setup)
+
+      (bydi-was-called minibuffer-selected-window)
+      (should (eq 'mini partial-recall--before-minibuffer))
+
+      (setq this-command 'd
+            partial-recall--before-minibuffer nil)
+      (bydi-clear-mocks)
+
+      (partial-recall--on-minibuffer-setup)
+
+      (bydi-was-not-called minibuffer-selected-window)
+      (should-not partial-recall--before-minibuffer))))
+
+(ert-deftest pr--on-minibuffer-setup--deletes-recording ()
+  (let ((partial-recall--before-minibuffer 'something))
+
+    (partial-recall--on-minibuffer-exit)
+
+    (should-not partial-recall--before-minibuffer)))
+
 ;;; -- Actions
 
 (ert-deftest pr-remember--remembers ()
@@ -651,7 +679,7 @@
       (partial-recall-mode--setup)
 
       (bydi-was-called partial-recall--queue-fix-up)
-      (bydi-was-called-n-times add-hook 6)
+      (bydi-was-called-n-times add-hook 8)
       (bydi-was-called tab-bar-mode))))
 
 (ert-deftest pr--teardown ()
@@ -659,7 +687,7 @@
 
     (partial-recall-mode--teardown)
 
-    (bydi-was-called-n-times remove-hook 6)))
+    (bydi-was-called-n-times remove-hook 8)))
 
 (ert-deftest pr-mode ()
   (bydi (partial-recall-mode--setup

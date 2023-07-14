@@ -42,7 +42,7 @@
   "Short-term (buffer) memory."
   :group 'partial-recall)
 
-(defcustom partial-recall-handle-delay 5
+(defcustom partial-recall-handle-delay 4
   "The delay in seconds after which a buffer will be handled."
   :type 'integer
   :group 'partial-recall)
@@ -100,6 +100,11 @@ This is will implant buffers that have met
   :type 'string
   :group 'partial-recall)
 
+(defcustom partial-recall-record-triggers '(consult-buffer)
+  "Commands that should trigger recording the buffer."
+  :type '(repeat symbol)
+  :group 'partial-recall)
+
 ;;; -- Internal variables
 
 (defvar partial-recall--table (make-hash-table))
@@ -108,6 +113,7 @@ This is will implant buffers that have met
 (defvar partial-recall--last-checked nil)
 (defvar partial-recall--log nil)
 (defvar partial-recall--switch-to-buffer-function #'switch-to-buffer)
+(defvar partial-recall--before-minibuffer nil)
 
 ;;; -- Structures
 
@@ -337,7 +343,7 @@ buffer has changed, it will be ignored.
 
 The buffer used for comparison is the `window-buffer' unless
 we're in the minibuffer, then it's `minibuffer-selected-window'."
-  (let ((compare-to (window-buffer (minibuffer-selected-window))))
+  (let ((compare-to (partial-recall--window-buffer)))
 
     (when (and (buffer-live-p buffer)
                (eq buffer compare-to))
@@ -384,6 +390,17 @@ Don't do anything if NORECORD is t."
 
     (dolist (tab tabs)
       (partial-recall--on-close tab nil))))
+
+(defun partial-recall--on-minibuffer-setup ()
+  "Maybe record the buffer before entry."
+  (and-let* (((memq this-command partial-recall-record-triggers))
+             (buffer (window-buffer (minibuffer-selected-window))))
+
+    (setq partial-recall--before-minibuffer buffer)))
+
+(defun partial-recall--on-minibuffer-exit ()
+  "Delete the recorded buffer."
+  (setq partial-recall--before-minibuffer nil))
 
 ;;; -- Actions
 
@@ -718,6 +735,15 @@ the max age."
 
     (unknown (user-error "No representation for %s type" unknown))))
 
+(defun partial-recall--window-buffer ()
+  "Get the appropriate window buffer.
+
+This is either the recorded buffer, the selected window's buffer
+or the buffer of the window selected before entering the
+minibuffer."
+  (or partial-recall--before-minibuffer
+      (window-buffer (minibuffer-selected-window))))
+
 ;;; -- Completion
 
 (defun partial-recall--complete-dream (prompt)
@@ -792,6 +818,8 @@ Mapped buffers and non-file buffers are not considered."
   (advice-add
    partial-recall--switch-to-buffer-function :after
    #'partial-recall--after-switch-to-buffer)
+  (add-hook 'minibuffer-setup-hook #'partial-recall--on-minibuffer-setup)
+  (add-hook 'minibuffer-exit-hook #'partial-recall--on-minibuffer-exit)
   (add-hook 'find-file-hook #'partial-recall--on-find-file)
   (add-hook 'after-make-frame-functions #'partial-recall--queue-fix-up)
   (add-hook 'kill-buffer-hook #'partial-recall--forget)
@@ -804,6 +832,8 @@ Mapped buffers and non-file buffers are not considered."
   (advice-remove
    partial-recall--switch-to-buffer-function
    #'partial-recall--after-switch-to-buffer)
+  (remove-hook 'minibuffer-setup-hook #'partial-recall--on-minibuffer-setup)
+  (remove-hook 'minibuffer-exit-hook #'partial-recall--on-minibuffer-exit)
   (remove-hook 'find-file-hook #'partial-recall--on-find-file)
   (remove-hook 'after-make-frame-functions #'partial-recall--queue-fix-up)
   (remove-hook 'kill-buffer-hook #'partial-recall--forget)
