@@ -824,13 +824,13 @@ Mapped buffers and non-file buffers are not considered."
   (let ((map (make-sparse-keymap)))
 
     (define-key map (kbd "b") 'partial-recall-switch-to-buffer)
-    (define-key map (kbd "m") 'partial-recall-remember)
-    (define-key map (kbd "i") 'partial-recall-reinforce)
     (define-key map (kbd "c") 'partial-recall-reclaim)
     (define-key map (kbd "f") 'partial-recall-forget)
-    (define-key map (kbd "s") 'partial-recall-lift)
-    (define-key map (kbd "l") 'partial-recall-menu)
     (define-key map (kbd "i") 'partial-recall-implant)
+    (define-key map (kbd "i") 'partial-recall-reinforce)
+    (define-key map (kbd "l") 'partial-recall-menu)
+    (define-key map (kbd "m") 'partial-recall-remember)
+    (define-key map (kbd "s") 'partial-recall-lift)
     map)
   "Map for `partial-recall-mode' commands.")
 

@@ -36,12 +36,14 @@ taken into account.
 #+begin_src emacs-lisp
 (use-package partial-recall
   :custom
-  (partial-recall-buffer-limit 20) ;; The number of buffers in the ring.
-  (partial-recall-max-age 300) ;; The age (in seconds) that will allow the ring to grow.
-  (partial-recall-reclaim-min-age 600) ;; The age (in seconds) that will allow reclaiming.
+  (partial-recall-handle-delay 5) ;; The delay before a buffer is handled (remembered or re-inforced).
+  (partial-recall-buffer-limit 10) ;; The number of buffers in the ring.
+  (partial-recall-max-age 1800) ;; The age (in seconds) that will allow the ring to grow.
+  (partial-recall-reclaim-min-age 3600) ;; The age (in seconds) that will allow reclaiming.
   (partial-recall-repress t) ;; Whether forgotten buffers should (eventually) be killed.
   (partial-recall-auto-implant t) ;; Whether moments should get implanted after meeting a threshold.
-  (partial-recall-auto-implant-threshold 10) ;; That very threshold.
+  (partial-recall-auto-implant-threshold 4) ;; That very threshold.
+  (partial-recall-mode-lighter " pr") ;; What you will in the mode-line.
 
   :config
   (partial-recall-mode)
@@ -57,17 +59,30 @@ taken into account.
     (setq marginalia-command-categories
           (append
            marginalia-command-categories
-           '((partial-recall-switch-to-buffer . buffer)
+           '((partial-recall-forget . buffer)
              (partial-recall-implant . buffer)
              (partial-recall-lift . buffer)
              (partial-recall-reclaim . buffer)
-             (partial-recall-forget . buffer)
-             (partial-recall-reinforce . buffer))))
-
-  :bind
-  (("C-c b" . partial-recall-switch-to-buffer)
-   ("C-c l" . partial-recall-menu))
+             (partial-recall-reinforce . buffer)
+             (partial-recall-remember . buffer)
+             (partial-recall-switch-to-buffer . buffer)))
 
   :bind-keymap
-  (("C-c B" . partial-recall-command-map)))
+  (("C-c b" . partial-recall-command-map)))
 #+end_src
+
+I suggest to just bind the command map as shown above, otherwise you
+probably want to bind the following commands:
+
+- =partial-recall-forget=
+- =partial-recall-implant=
+- =partial-recall-lift=
+- =partial-recall-menu=
+- =partial-recall-reclaim=
+- =partial-recall-reinforce=
+- =partial-recall-remember=
+- =partial-recall-switch-to-buffer=
+
+Other commands:
+
+- =partial-recall-toggle-loggin=
