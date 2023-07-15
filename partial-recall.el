@@ -509,7 +509,7 @@ If EXCISE is t, remove permanence instead."
               (reality (partial-recall--reality))
               (ring (partial-recall--memory-ring reality)))
 
-    (ring-insert ring moment)))
+    (ring-insert+extend ring moment)))
 
 (defun partial-recall--recollect (buffer)
   "Recollect the BUFFER."
