@@ -44,6 +44,8 @@ taken into account.
   (partial-recall-auto-implant t) ;; Whether moments should get implanted after meeting a threshold.
   (partial-recall-auto-implant-threshold 4) ;; That very threshold.
   (partial-recall-mode-lighter " pr") ;; What you will in the mode-line.
+  (partial-recall-log nil) ;; Whether to log actions.
+  (partial-recall-log-level 1) ;; Info log level (0 is debug).
 
   :config
   (partial-recall-mode)
@@ -82,7 +84,3 @@ probably want to bind the following commands:
 - =partial-recall-reinforce=
 - =partial-recall-remember=
 - =partial-recall-switch-to-buffer=
-
-Other commands:
-
-- =partial-recall-toggle-loggin=

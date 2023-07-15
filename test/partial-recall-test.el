@@ -548,16 +548,23 @@
     (bydi-was-called-with display-warning (list 'partial-recall "Testing" :warning))))
 
 (ert-deftest pr--log ()
-  (let ((partial-recall--log nil))
+  (let ((partial-recall-log nil)
+        (partial-recall-log-level 1))
 
     (should-not (partial-recall--log "test: %s %s" "one" "two"))
 
-    (partial-recall-toggle-logging)
+    (setq partial-recall-log t)
 
     (ert-with-message-capture messages
       (partial-recall--log "test: %s %s" "one" "two")
 
-      (should (string= messages "test: one two\n")))))
+      (partial-recall--debug "test: %s" "three")
+
+      (setq partial-recall-log-level 0)
+
+      (partial-recall--debug "test: %s" "four")
+
+      (should (string= messages "test: one two\ntest: four\n")))))
 
 (ert-deftest pr--repr ()
   (bydi-with-mock ((:mock format-time-string :return "now")

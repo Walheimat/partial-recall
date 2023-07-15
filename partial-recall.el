@@ -105,13 +105,22 @@ This is will implant buffers that have met
   :type '(repeat symbol)
   :group 'partial-recall)
 
+(defcustom partial-recall-log nil
+  "Whether to log actions."
+  :type 'boolean
+  :group 'partial-recall)
+
+(defcustom partial-recall-log-level 1
+  "The degree to which actions are logged."
+  :type '(choice (const :tag "Info" 1)
+                 (const :tag "Debug" 0)))
+
 ;;; -- Internal variables
 
 (defvar partial-recall--table (make-hash-table))
 (defvar partial-recall--subconscious-key "subconscious")
 (defvar partial-recall--timer nil)
 (defvar partial-recall--last-checked nil)
-(defvar partial-recall--log nil)
 (defvar partial-recall--switch-to-buffer-function #'switch-to-buffer)
 (defvar partial-recall--before-minibuffer nil)
 
@@ -345,6 +354,8 @@ The buffer used for comparison is the `window-buffer' unless
 we're in the minibuffer, then it's `minibuffer-selected-window'."
   (let ((compare-to (partial-recall--window-buffer)))
 
+    (partial-recall--debug "Comparing %s to %s" buffer compare-to)
+
     (when (and (buffer-live-p buffer)
                (eq buffer compare-to))
       (setq partial-recall--last-checked buffer)
@@ -537,7 +548,7 @@ If EXCISE is t, remove permanence instead."
              ((ring-member ring moment))
              (buffer (partial-recall--moment-buffer moment)))
 
-    (partial-recall--log "Re-inserting buffer '%s' in '%s'" (buffer-name buffer) name)
+    (partial-recall--debug "Re-inserting buffer '%s' in '%s'" (buffer-name buffer) name)
 
     (partial-recall--moment-refresh moment)
 
@@ -584,7 +595,7 @@ memory if necessary."
 
     (when (and (not (partial-recall--memory-at-capacity-p memory))
                (> curr orig))
-      (partial-recall--log "Resizing %s" (partial-recall--name memory))
+      (partial-recall--debug "Resizing %s" (partial-recall--name memory))
 
       (ring-resize ring (1- (ring-size ring))))))
 
@@ -592,7 +603,7 @@ memory if necessary."
   "Maybe extend MEMORY."
   (when (and (partial-recall--memory-at-capacity-p memory)
              (partial-recall--should-extend-memory-p memory))
-    (partial-recall--log "Extending %s" (partial-recall--name memory))
+    (partial-recall--debug "Extending %s" (partial-recall--name memory))
 
     (ring-extend (partial-recall--memory-ring memory) 1)))
 
@@ -707,8 +718,13 @@ the max age."
 
 (defun partial-recall--log (fmt &rest args)
   "Use ARGS to format FMT if not silenced."
-  (when partial-recall--log
+  (when partial-recall-log
     (apply 'message fmt args)))
+
+(defun partial-recall--debug (fmt &rest args)
+  "Use ARGS to format FMT if debug is enabled."
+  (when (< partial-recall-log-level 1)
+    (apply 'partial-recall--log fmt args)))
 
 (defun partial-recall--repr (instance)
   "Print a readable representation of INSTANCE."
@@ -842,12 +858,6 @@ Mapped buffers and non-file buffers are not considered."
   (remove-hook 'delete-frame-functions #'partial-recall--on-frame-delete))
 
 ;;; -- API
-
-(defun partial-recall-toggle-logging ()
-  "Toggle logging certain actions."
-  (interactive)
-
-  (setq partial-recall--log (not partial-recall--log)))
 
 ;;;###autoload
 (defvar partial-recall-command-map

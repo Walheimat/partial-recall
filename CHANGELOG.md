@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   buffer as initial buffer.
 - `partial-recall--forget` will now delete any window displaying the
   buffer to forget.
+- `partial-recall--debug` to log debug messages.
 
 ### Changed
 
@@ -46,6 +47,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Forgetting moments now suppresses them.
 - All implanted moments that are on the verge of being forgotten are
   now reinforced when remembering a new moment.
+- `partial-recall-toggle-logging` in favor of using custom variables.
 
 ## [v0.5.0]
 
