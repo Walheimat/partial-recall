@@ -440,13 +440,16 @@ Don't do anything if NORECORD is t."
 
 If BUFFER is nil, reclaim the current buffer.
 
-If FORCE is t, will reclaim even if the threshold wasn't passed."
+If FORCE is t, will reclaim even if it was implanted or the
+threshold wasn't passed."
   (and-let* ((reality (partial-recall--reality))
              (owner (partial-recall--buffer-owner buffer))
              ((not (eq reality owner)))
              (moment (partial-recall--moment-from-buffer buffer owner))
              ((or force
-                  (partial-recall--exceeds-p moment partial-recall-reclaim-min-age))))
+                  (and
+                   (not (partial-recall--moment-permanence moment))
+                   (partial-recall--exceeds-p moment partial-recall-reclaim-min-age)))))
 
     (partial-recall--swap owner reality moment)))
 

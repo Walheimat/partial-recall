@@ -323,9 +323,19 @@
         (bydi ((:mock partial-recall--reality :return mock-reality)
                partial-recall--swap)
 
-          (partial-recall--reclaim (current-buffer))
+          (let ((moment (partial-recall--moment-from-buffer (current-buffer))))
 
-          (bydi-was-called partial-recall--swap))))))
+            (partial-recall--moment-set-permanence moment t)
+
+            (partial-recall--reclaim (current-buffer))
+
+            (bydi-was-not-called partial-recall--swap)
+
+            (partial-recall--moment-set-permanence moment nil)
+
+            (partial-recall--reclaim (current-buffer))
+
+            (bydi-was-called partial-recall--swap)))))))
 
 (ert-deftest pr-reclaim--no-op-for-same ()
   (with-tab-history :pre t

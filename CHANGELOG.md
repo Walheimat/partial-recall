@@ -39,6 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   10 and 30 minutes respectively.
 - The list of mapped file buffers can now include those stored in the
   subconscious by passing the appropriate argument.
+- Implanted moments can no longer be reclaimed.
 
 ### Fixed
 
