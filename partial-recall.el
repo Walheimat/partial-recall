@@ -351,7 +351,7 @@ If in between scheduling and handling the buffer it can no longer
 be found, it will be ignored."
   (when (partial-recall--find-buffer buffer)
 
-    (partial-recall--debug "Found %" buffer)
+    (partial-recall--debug "Found %s" buffer)
 
     (if (partial-recall--mapped-buffer-p buffer)
         (partial-recall--recollect buffer)
