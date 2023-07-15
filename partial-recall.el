@@ -411,7 +411,11 @@ Don't do anything if NORECORD is t."
 ;;; -- Actions
 
 (defun partial-recall--remember (buffer)
-  "Remember the BUFFER for this tab."
+  "Remember the BUFFER for this tab.
+
+This will either create a new moment for the buffer or reclaim
+one from the subconscious, assuming no such moment is already
+part of the current reality."
   (and-let* ((memory (partial-recall--reality))
              (ring (partial-recall--memory-ring memory))
              ((not (partial-recall--moments-member ring buffer))))
@@ -424,7 +428,9 @@ Don't do anything if NORECORD is t."
       (ring-insert ring moment))))
 
 (defun partial-recall--reinforce (buffer)
-  "Reinforce the BUFFER in reality."
+  "Reinforce the BUFFER in reality.
+
+This will re-insert the buffer's moment."
   (and-let* ((reality (partial-recall--reality))
              (moment (partial-recall--moment-from-buffer buffer reality)))
 
@@ -451,7 +457,8 @@ threshold wasn't passed."
 (defun partial-recall--forget (&optional buffer suppress)
   "Forget BUFFER.
 
-If SUPPRESS is t, do that."
+This will remove the buffer's moment from the memory. If SUPPRESS
+is t, the forgotten moment goes into the subconscious."
   (let* ((buffer (or buffer (current-buffer)))
          (removed nil)
          (maybe-remove (lambda (key memory)
@@ -471,7 +478,10 @@ If SUPPRESS is t, do that."
     (maphash maybe-remove partial-recall--table)))
 
 (defun partial-recall--implant (&optional buffer excise)
-  "Make BUFFER permanent.
+  "Make BUFFER's moment permanent.
+
+A permanent moment can not be reclaimed and will not be
+automatically forgotten.
 
 If EXCISE is t, remove permanence instead."
   (when-let* ((buffer (or buffer (current-buffer)))
@@ -512,14 +522,21 @@ If EXCISE is t, remove permanence instead."
     (ring-insert ring moment)))
 
 (defun partial-recall--recollect (buffer)
-  "Recollect the BUFFER."
+  "Recollect the BUFFER.
+
+Recollection happens to mapped buffers. Those belonging to the
+current reality are reinforced. Those of other memories
+are (potentially) reclaimed."
   (if (partial-recall--reality-buffer-p buffer)
       (partial-recall--reinforce buffer)
     (when partial-recall-reclaim
       (partial-recall--reclaim buffer))))
 
 (defun partial-recall--swap (a b moment)
-  "Swap MOMENT from memory A to B."
+  "Swap MOMENT from memory A to B.
+
+Both memories will be probed. Memory A after the moment was
+removed, memory B before it is inserted."
   (and-let* ((a-ring (partial-recall--memory-ring a))
              (b-ring (partial-recall--memory-ring b))
              (a-tab (partial-recall--name a))
@@ -531,6 +548,7 @@ If EXCISE is t, remove permanence instead."
 
       (partial-recall--log "Swapping '%s' from '%s' to '%s'" (buffer-name buffer) a-tab b-tab)
 
+      (partial-recall--probe-memory a)
       (partial-recall--probe-memory b)
 
       (partial-recall--moment-refresh moment)
@@ -538,7 +556,9 @@ If EXCISE is t, remove permanence instead."
       (ring-insert b-ring removed))))
 
 (defun partial-recall--reinsert (moment memory)
-  "Reinforce MOMENT into MEMORY."
+  "Reinsert MOMENT into MEMORY.
+
+This removes, inserts and extends. The moment is refreshed."
   (and-let* ((ring (partial-recall--memory-ring memory))
              (name (partial-recall--name memory))
              ((ring-member ring moment))
@@ -551,11 +571,14 @@ If EXCISE is t, remove permanence instead."
     (ring-remove+insert+extend ring moment t)))
 
 (defun partial-recall--clean-up-buffer (buffer)
-  "Clean up BUFFER if necessary."
-  (when-let* ((windows (window-list))
-              (displayed (seq-find (lambda (it) (eq (window-buffer it) buffer)) windows)))
+  "Clean up BUFFER if necessary.
 
-    (delete-window displayed))
+Deletes any window currently displaying it and makes sure it is
+no longer recorded as the last checked buffer."
+  (when-let* ((windows (window-list)))
+    (dolist (window windows)
+      (when (eq (window-buffer window) buffer)
+        (delete-window window))))
 
   (when (eq partial-recall--last-checked buffer)
     (setq partial-recall--last-checked nil)))
@@ -563,15 +586,18 @@ If EXCISE is t, remove permanence instead."
 (defun partial-recall--probe-memory (memory)
   "Probe MEMORY.
 
-This will reinsert and suppress moments as well as resize and
-extend the memory if necessary."
+This will reinsert implanted moments, suppress removed moments,
+as well as resize and extend the memory if necessary."
   (partial-recall--maybe-resize-memory memory)
   (partial-recall--maybe-reinsert-implanted memory)
   (partial-recall--maybe-extend-memory memory)
   (partial-recall--maybe-suppress-oldest-moment memory))
 
 (defun partial-recall--maybe-reinsert-implanted (memory)
-  "Maybe reinforce oldest moments in MEMORY."
+  "Maybe reinforce oldest moments in MEMORY.
+
+This will loop over the moments in reverse and makes sure to
+re-insert any implanted one."
   (and-let* ((ring (partial-recall--memory-ring memory))
              (oldest (partial-recall--ring-oldest ring)))
 
@@ -596,7 +622,9 @@ extend the memory if necessary."
       (ring-resize ring (1- (ring-size ring))))))
 
 (defun partial-recall--maybe-extend-memory (memory)
-  "Maybe extend MEMORY."
+  "Maybe extend MEMORY.
+
+See `partial-recall--should-extend-memory-p'."
   (when (and (partial-recall--memory-at-capacity-p memory)
              (partial-recall--should-extend-memory-p memory))
     (partial-recall--debug "Extending %s" (partial-recall--name memory))
@@ -604,7 +632,10 @@ extend the memory if necessary."
     (ring-extend (partial-recall--memory-ring memory) 1)))
 
 (defun partial-recall--maybe-suppress-oldest-moment (memory)
-  "Get the oldest moment in MEMORY if it is endangered."
+  "Suppress the oldest moment in MEMORY if necessary.
+
+This will be any moment that would be removed anyway by insertion
+beyond the memory's limit."
   (and-let* (((partial-recall--memory-at-capacity-p memory))
              (ring (partial-recall--memory-ring memory))
              ((not (zerop (ring-length ring))))
