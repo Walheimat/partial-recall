@@ -25,7 +25,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `partial-recall-remember` as a user-facing command. It was added
   because the user can now end up with a buffer that's not in memory.
   It provides a list of unmapped file buffers providing the current
-  buffer as initial buffer. The selected buffer is switched to.
+  buffer as initial buffer. The selected buffer is switched to. If
+  called with a prefix argument, all buffers can be remembered.
 - `partial-recall--forget` will now delete any window displaying the
   buffer to forget.
 - Custom variables `partial-recall-log` and

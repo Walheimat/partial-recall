@@ -820,13 +820,15 @@ This also checks for buffers that might have been obscured."
 
     (cdr-safe (assoc selection a))))
 
-(defun partial-recall--complete-any (prompt)
+(defun partial-recall--complete-any (prompt &optional allow-non-file)
   "Complete any buffer using PROMPT.
 
-Mapped buffers and non-file buffers are not considered."
-  (let* ((buffers (buffer-list))
-         (file-buffers (seq-filter #'buffer-file-name buffers))
-         (candidates (seq-filter (lambda (it) (not (partial-recall--mapped-buffer-p it t))) file-buffers))
+Mapped buffers and non-file buffers (unless ALLOW-NON-FILE is t)
+are not considered."
+  (let* ((buffers (if allow-non-file
+                      (buffer-list)
+                    (seq-filter #'buffer-file-name (buffer-list))))
+         (candidates (seq-filter (lambda (it) (not (partial-recall--mapped-buffer-p it t))) buffers))
          (a (mapcar (lambda (it) (cons (buffer-name it) it)) candidates))
          (current (current-buffer))
          (initial (unless (partial-recall--mapped-buffer-p current t)
@@ -912,8 +914,12 @@ Mapped buffers and non-file buffers are not considered."
 
 ;;;###autoload
 (defun partial-recall-remember (buffer)
-  "Remember BUFFER."
-  (interactive (list (partial-recall--complete-any "Remember buffer: ")))
+  "Remember BUFFER.
+
+The buffer is selected from a list of unmapped file buffers. If
+called with a prefix argument, the selection will be widened to
+all buffers."
+  (interactive (list (partial-recall--complete-any "Remember buffer: " current-prefix-arg)))
 
   (partial-recall--remember buffer)
 

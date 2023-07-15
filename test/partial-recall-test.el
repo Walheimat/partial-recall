@@ -638,12 +638,17 @@
   (bydi (completing-read
          (:mock buffer-list :return '(a b c d))
          (:mock buffer-name :with bydi-rf)
-         (:mock buffer-file-name :with bydi-rf)
+         (:mock buffer-file-name :with (lambda (it) (memq it '(b))))
          (:mock partial-recall--mapped-buffers :return '(a c))
          (:mock partial-recall--mapped-buffer-p :with (lambda (it &rest _) (memq it '(a c))))
          (:mock current-buffer :return 'current))
 
     (partial-recall--complete-any "Some prompt: ")
+
+    (bydi-was-called-with completing-read
+      '("Some prompt: " ((b . b)) nil t current))
+
+    (partial-recall--complete-any "Some prompt: " t)
 
     (bydi-was-called-with completing-read
       '("Some prompt: " ((b . b) (d . d)) nil t current))))
