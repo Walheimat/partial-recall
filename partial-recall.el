@@ -888,7 +888,9 @@ Mapped buffers and non-file buffers are not considered."
   "Remember BUFFER."
   (interactive (list (partial-recall--complete-any "Remember buffer: ")))
 
-  (partial-recall--remember buffer))
+  (partial-recall--remember buffer)
+
+  (funcall partial-recall--switch-to-buffer-function buffer))
 
 ;;;###autoload
 (defun partial-recall-switch-to-buffer (buffer)

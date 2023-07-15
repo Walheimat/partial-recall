@@ -739,7 +739,7 @@
       (bydi-was-called partial-recall--implant)
       (bydi-was-called partial-recall--lift)
       (bydi-was-called partial-recall--remember)
-      (bydi-was-called switch-to-buffer))))
+      (bydi-was-called-n-times switch-to-buffer 2))))
 
 ;;; Code:
 
