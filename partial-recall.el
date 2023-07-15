@@ -509,7 +509,9 @@ If EXCISE is t, remove permanence instead."
               (reality (partial-recall--reality))
               (ring (partial-recall--memory-ring reality)))
 
-    (ring-insert+extend ring moment)))
+    (partial-recall--probe-memory reality)
+
+    (ring-insert ring moment)))
 
 (defun partial-recall--recollect (buffer)
   "Recollect the BUFFER."
@@ -531,11 +533,7 @@ If EXCISE is t, remove permanence instead."
 
       (partial-recall--log "Swapping '%s' from '%s' to '%s'" (buffer-name buffer) a-tab b-tab)
 
-      (partial-recall--maybe-reinsert-implanted b)
-
-      (when (and (partial-recall--memory-at-capacity-p b)
-                 (partial-recall--should-extend-memory-p b))
-        (ring-extend b-ring 1))
+      (partial-recall--probe-memory b)
 
       (partial-recall--moment-refresh moment)
 
@@ -567,8 +565,8 @@ If EXCISE is t, remove permanence instead."
 (defun partial-recall--probe-memory (memory)
   "Probe MEMORY.
 
-This will reinsert and suppress moments as well as extend the
-memory if necessary."
+This will reinsert and suppress moments as well as resize and
+extend the memory if necessary."
   (partial-recall--maybe-resize-memory memory)
   (partial-recall--maybe-reinsert-implanted memory)
   (partial-recall--maybe-extend-memory memory)
