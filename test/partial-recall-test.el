@@ -91,15 +91,17 @@
 
 (ert-deftest pr--handle-buffer ()
   (with-tab-history
-    (bydi (partial-recall--remember
-           (:always buffer-live-p)
-           minibuffer-selected-window
-           (:mock window-buffer :return (current-buffer))
-           (:ignore partial-recall--mapped-buffer-p))
+    (let ((buffers (list (current-buffer))))
 
-      (partial-recall--handle-buffer (current-buffer))
-      (bydi-was-called partial-recall--remember)
-      (bydi-was-called minibuffer-selected-window))))
+      (bydi (partial-recall--remember
+             (:always buffer-live-p)
+             (:mock window-list :return buffers)
+             (:mock window-buffer :with bydi-rf)
+             (:ignore partial-recall--mapped-buffer-p))
+
+        (partial-recall--handle-buffer (current-buffer))
+        (bydi-was-called partial-recall--remember)
+        (bydi-was-called window-list)))))
 
 (ert-deftest pr--handle-buffer--reclaims ()
   (with-tab-history

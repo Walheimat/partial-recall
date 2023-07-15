@@ -42,7 +42,7 @@
   "Short-term (buffer) memory."
   :group 'partial-recall)
 
-(defcustom partial-recall-handle-delay 4
+(defcustom partial-recall-handle-delay 3
   "The delay in seconds after which a buffer will be handled."
   :type 'integer
   :group 'partial-recall)
@@ -347,22 +347,17 @@ RESET is t, reset the update count instead and remove permanence."
   "Handle BUFFER.
 
 This will remember new buffers and maybe reclaim mapped buffers.
-If in between the scheduling of handling this buffer the current
-buffer has changed, it will be ignored.
+If in between scheduling and handling the buffer it can no longer
+be found, it will be ignored."
+  (when (partial-recall--find-buffer buffer)
 
-The buffer used for comparison is the `window-buffer' unless
-we're in the minibuffer, then it's `minibuffer-selected-window'."
-  (let ((compare-to (partial-recall--window-buffer)))
+    (partial-recall--debug "Found %" buffer)
 
-    (partial-recall--debug "Comparing %s to %s" buffer compare-to)
+    (if (partial-recall--mapped-buffer-p buffer)
+        (partial-recall--recollect buffer)
+      (partial-recall--remember buffer))
 
-    (when (and (buffer-live-p buffer)
-               (eq buffer compare-to))
-      (setq partial-recall--last-checked buffer)
-
-      (if (partial-recall--mapped-buffer-p buffer)
-          (partial-recall--recollect buffer)
-        (partial-recall--remember buffer)))))
+    (setq partial-recall--last-checked buffer)))
 
 (defun partial-recall--after-switch-to-buffer (buffer &optional norecord &rest _)
   "Schedule the BUFFER that was switched to.
@@ -752,14 +747,14 @@ the max age."
 
     (unknown (user-error "No representation for %s type" unknown))))
 
-(defun partial-recall--window-buffer ()
-  "Get the appropriate window buffer.
+(defun partial-recall--find-buffer (buffer)
+  "Find BUFFER in the current frame.
 
-This is either the recorded buffer, the selected window's buffer
-or the buffer of the window selected before entering the
-minibuffer."
-  (or partial-recall--before-minibuffer
-      (window-buffer (minibuffer-selected-window))))
+This also checks for buffers that might have been obscured."
+  (and buffer
+       (buffer-live-p buffer)
+       (or (eq buffer partial-recall--before-minibuffer)
+           (memq buffer (mapcar #'window-buffer (window-list))))))
 
 ;;; -- Completion
 
