@@ -332,7 +332,7 @@ RESET is t, reset the update count instead and remove permanence."
   (with-current-buffer buffer
     (and-let* ((buffer (current-buffer))
                (new (not (eq partial-recall--last-checked buffer)))
-               (file-name (buffer-file-name buffer)))
+               ((partial-recall--meaningful-buffer-p buffer)))
 
       (when partial-recall--timer
         (cancel-timer partial-recall--timer))
@@ -496,8 +496,10 @@ If EXCISE is t, remove permanence instead."
 
 (defun partial-recall--suppress (moment)
   "Suppress MOMENT in the subconscious."
-  (when-let* ((memory (partial-recall--subconscious))
-              (ring (partial-recall--memory-ring memory)))
+  (and-let* ((buffer (partial-recall--moment-buffer moment))
+             ((partial-recall--meaningful-buffer-p buffer))
+             (memory (partial-recall--subconscious))
+             (ring (partial-recall--memory-ring memory)))
 
     (when (partial-recall--memory-at-capacity-p memory)
       (let* ((removed (ring-remove ring))
@@ -737,6 +739,10 @@ the max age."
      (- (floor (time-to-seconds))
         (partial-recall--moment-timestamp moment))))
 
+(defun partial-recall--meaningful-buffer-p (buffer)
+  "Check if BUFFER should be remembered."
+  (not (null (buffer-file-name buffer))))
+
 ;;; -- Utility
 
 (defun partial-recall--warn (message)
@@ -827,7 +833,7 @@ Mapped buffers and non-file buffers (unless ALLOW-NON-FILE is t)
 are not considered."
   (let* ((buffers (if allow-non-file
                       (buffer-list)
-                    (seq-filter #'buffer-file-name (buffer-list))))
+                    (seq-filter #'partial-recall--meaningful-buffer-p (buffer-list))))
          (candidates (seq-filter (lambda (it) (not (partial-recall--mapped-buffer-p it t))) buffers))
          (a (mapcar (lambda (it) (cons (buffer-name it) it)) candidates))
          (current (current-buffer))

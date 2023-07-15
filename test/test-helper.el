@@ -25,6 +25,7 @@ ignore calls to `partial-recall--lift'."
   (declare (indent defun))
   `(bydi ((:mock tab-bar--current-tab :return test-tab)
           (:mock tab-bar-tabs :return (list test-tab))
+          (:always partial-recall--meaningful-buffer-p)
           ,(unless lifts '(:ignore partial-recall--lifted)))
      (let ((partial-recall--table (make-hash-table)))
 
