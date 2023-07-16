@@ -580,7 +580,7 @@ no longer recorded as the last checked buffer."
   (when-let* ((windows (window-list)))
     (dolist (window windows)
       (when (eq (window-buffer window) buffer)
-        (delete-window window))))
+        (quit-window nil window))))
 
   (when (eq partial-recall--last-checked buffer)
     (setq partial-recall--last-checked nil)))

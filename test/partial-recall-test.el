@@ -492,11 +492,11 @@
     (should-not partial-recall--last-checked))
 
   (bydi ((:mock window-buffer :return (current-buffer))
-         delete-window)
+         quit-window)
 
     (partial-recall--clean-up-buffer (current-buffer))
 
-    (bydi-was-called delete-window)))
+    (bydi-was-called quit-window)))
 
 ;;; -- Conditionals
 
