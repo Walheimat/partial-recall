@@ -272,7 +272,7 @@ Searches all memories unless MEMORY is provided."
   (when-let* ((memory (partial-recall--subconscious))
               (found (partial-recall--remove-buffer buffer memory)))
 
-    (partial-recall--log "Lifting '%s' out of the subconscious" (buffer-name buffer))
+    (partial-recall--log "Lifting '%s' out of the subconscious" found)
 
     (partial-recall--moment-update-timestamp found)))
 
@@ -489,7 +489,7 @@ If EXCISE is t, remove permanence instead."
 
     (unless (eq (partial-recall--moment-permanence moment) (not excise))
 
-      (partial-recall--log "Implanting %s" (partial-recall--moment-buffer moment))
+      (partial-recall--log "Implanting %s" moment)
 
       (partial-recall--moment-set-permanence moment (not excise))
       (partial-recall--moment-increment-count moment))))
@@ -506,8 +506,10 @@ If EXCISE is t, remove permanence instead."
              (buffer (partial-recall--moment-buffer removed)))
 
         (when partial-recall-repress
-          (partial-recall--log "Repressing buffer %s" buffer)
+          (partial-recall--log "Repressing moment %s" removed)
           (kill-buffer buffer))))
+
+    (partial-recall--debug "Suppressing moment %s" moment)
 
     (partial-recall--moment-refresh moment t)
 
@@ -541,14 +543,11 @@ Both memories will be probed. Memory A after the moment was
 removed, memory B before it is inserted."
   (and-let* ((a-ring (partial-recall--memory-ring a))
              (b-ring (partial-recall--memory-ring b))
-             (a-tab (partial-recall--name a))
-             (b-tab (partial-recall--name b))
              (index (ring-member a-ring moment)))
 
-    (let* ((removed (ring-remove a-ring index))
-           (buffer (partial-recall--moment-buffer removed)))
+    (let* ((removed (ring-remove a-ring index)))
 
-      (partial-recall--log "Swapping '%s' from '%s' to '%s'" (buffer-name buffer) a-tab b-tab)
+      (partial-recall--log "Swapping '%s' from '%s' to '%s'" removed a b)
 
       (partial-recall--probe-memory a)
       (partial-recall--probe-memory b)
@@ -562,11 +561,10 @@ removed, memory B before it is inserted."
 
 This removes, inserts and extends. The moment is refreshed."
   (and-let* ((ring (partial-recall--memory-ring memory))
-             (name (partial-recall--name memory))
              ((ring-member ring moment))
              (buffer (partial-recall--moment-buffer moment)))
 
-    (partial-recall--debug "Re-inserting buffer '%s' in '%s'" (buffer-name buffer) name)
+    (partial-recall--debug "Re-inserting buffer '%s' in '%s'" moment memory)
 
     (partial-recall--moment-refresh moment)
 
@@ -619,7 +617,7 @@ re-insert any implanted one."
 
     (when (and (not (partial-recall--memory-at-capacity-p memory))
                (> curr orig))
-      (partial-recall--debug "Resizing %s" (partial-recall--name memory))
+      (partial-recall--debug "Resizing %s" memory)
 
       (ring-resize ring (1- (ring-size ring))))))
 
@@ -629,7 +627,7 @@ re-insert any implanted one."
 See `partial-recall--should-extend-memory-p'."
   (when (and (partial-recall--memory-at-capacity-p memory)
              (partial-recall--should-extend-memory-p memory))
-    (partial-recall--debug "Extending %s" (partial-recall--name memory))
+    (partial-recall--debug "Extending %s" memory)
 
     (ring-extend (partial-recall--memory-ring memory) 1)))
 
@@ -752,20 +750,20 @@ the max age."
 (defun partial-recall--log (fmt &rest args)
   "Use ARGS to format FMT if not silenced."
   (when partial-recall-log
-    (apply 'message fmt args)))
+    (apply 'message fmt (mapcar #'partial-recall--repr args))))
 
 (defun partial-recall--debug (fmt &rest args)
   "Use ARGS to format FMT if debug is enabled."
   (when (< partial-recall-log-level 1)
     (apply 'partial-recall--log fmt args)))
 
-(defun partial-recall--repr (instance)
-  "Print a readable representation of INSTANCE."
-  (pcase (type-of instance)
+(defun partial-recall--repr (thing)
+  "Format THING if it's a custom structure."
+  (pcase (type-of thing)
 
     ('partial-recall--moment
-     (let ((buffer (partial-recall--moment-buffer instance))
-           (ts (partial-recall--moment-timestamp instance)))
+     (let ((buffer (partial-recall--moment-buffer thing))
+           (ts (partial-recall--moment-timestamp thing)))
 
        (format
         "#<moment %s (%s)>"
@@ -773,16 +771,15 @@ the max age."
         (format-time-string "%H:%M:%S" (seconds-to-time ts)))))
 
     ('partial-recall--memory
-     (let ((ring (partial-recall--memory-ring instance))
-           (name (partial-recall--name instance)))
+     (let ((ring (partial-recall--memory-ring thing))
+           (name (partial-recall--name thing)))
 
        (format
         "#<memory %s (%d/%d)>"
         name
         (ring-length ring)
         (ring-size ring))))
-
-    (unknown (user-error "No representation for %s type" unknown))))
+    (_ thing)))
 
 (defun partial-recall--find-buffer (buffer)
   "Find BUFFER in the current frame.

@@ -567,16 +567,34 @@
 
     (setq partial-recall-log t)
 
-    (ert-with-message-capture messages
-      (partial-recall--log "test: %s %s" "one" "two")
+    (shut-up
+      (ert-with-message-capture messages
+        (partial-recall--log "test: %s %s" "one" "two")
 
-      (partial-recall--debug "test: %s" "three")
+        (partial-recall--debug "test: %s" "three")
 
-      (setq partial-recall-log-level 0)
+        (setq partial-recall-log-level 0)
 
-      (partial-recall--debug "test: %s" "four")
+        (partial-recall--debug "test: %s" "four")
 
-      (should (string= messages "test: one two\ntest: four\n")))))
+        (should (string= messages "test: one two\ntest: four\n"))))))
+
+(ert-deftest pr--log--uses-repr ()
+  (with-tab-history
+    (bydi-with-mock ((:mock format-time-string :return "now")
+                     (:mock partial-recall--name :return "test"))
+
+      (let* ((buffer (get-buffer-create "test-repr"))
+             (moment (partial-recall--moment-create buffer))
+             (partial-recall-log t)
+             (partial-recall-log-level 0))
+
+        (shut-up
+          (ert-with-message-capture messages
+            (partial-recall--debug "The moment %s was %s" moment "found")
+            (should (string= "The moment #<moment test-repr (now)> was found\n" messages))))
+
+        (kill-buffer buffer)))))
 
 (ert-deftest pr--repr ()
   (bydi-with-mock ((:mock format-time-string :return "now")
@@ -589,7 +607,7 @@
 
       (should (string= "#<memory test (0/3)>" (partial-recall--repr memory)))
       (should (string= "#<moment test-print (now)>" (partial-recall--repr moment)))
-      (should-error (partial-recall--repr 'hello) :type 'user-error)
+      (should (eq 'hello (partial-recall--repr 'hello)))
 
       (kill-buffer buffer))))
 
