@@ -4,6 +4,7 @@
 (development
  (depends-on "bydi" :git "https://github.com/Walheimat/bydi" :branch "trunk")
  (depends-on "ert-runner")
+ (depends-on "shut-up")
  (depends-on "undercover")
  (depends-on "compat"))
 
