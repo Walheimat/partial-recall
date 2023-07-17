@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `partial-recall--{log,debug}` now use `partial-recall--repr` to
   print moments and memories.
+- `partial-recall-reclaim` now switches to the reclaimed buffer.
 
 ## [v0.6.1]
 

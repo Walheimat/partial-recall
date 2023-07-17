@@ -949,7 +949,10 @@ all buffers."
 This will always force-reclaim."
   (interactive (list (partial-recall--complete-dream "Reclaim moment: ")))
 
-  (partial-recall--reclaim buffer t))
+  (when-let* ((reclaimed (partial-recall--reclaim buffer t))
+              (buffer (partial-recall--moment-buffer reclaimed)))
+
+    (funcall partial-recall--switch-to-buffer-function buffer)))
 
 ;;;###autoload
 (defun partial-recall-forget (buffer)

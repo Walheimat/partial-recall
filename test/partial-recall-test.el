@@ -744,10 +744,12 @@
     (bydi-was-called partial-recall-mode--teardown)))
 
 (ert-deftest pr--api ()
-  (let ((partial-recall-mode nil))
+  (let* ((partial-recall-mode nil)
+         (buffer (get-buffer-create "api"))
+         (moment (partial-recall--moment-create buffer)))
 
     (bydi (partial-recall--reinforce
-           partial-recall--reclaim
+           (:mock partial-recall--reclaim :return moment)
            partial-recall--forget
            partial-recall--complete-dream
            partial-recall--complete-reality
@@ -774,7 +776,9 @@
       (bydi-was-called partial-recall--implant)
       (bydi-was-called partial-recall--lift)
       (bydi-was-called partial-recall--remember)
-      (bydi-was-called-n-times switch-to-buffer 2))))
+      (bydi-was-called-n-times switch-to-buffer 3))
+
+    (kill-buffer buffer)))
 
 ;;; Code:
 
