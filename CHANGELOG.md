@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Addeed
+
+- Custom variable `partial-recall-log-prefix` to do just that. The
+  default is "PR: ".
+
 ### Changed
 
 - `partial-recall--{log,debug}` now use `partial-recall--repr` to

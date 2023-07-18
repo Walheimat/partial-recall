@@ -561,7 +561,8 @@
 
 (ert-deftest pr--log ()
   (let ((partial-recall-log nil)
-        (partial-recall-log-level 1))
+        (partial-recall-log-level 1)
+        (partial-recall-log-prefix nil))
 
     (should-not (partial-recall--log "test: %s %s" "one" "two"))
 
@@ -587,12 +588,13 @@
       (let* ((buffer (get-buffer-create "test-repr"))
              (moment (partial-recall--moment-create buffer))
              (partial-recall-log t)
-             (partial-recall-log-level 0))
+             (partial-recall-log-level 0)
+             (partial-recall-log-prefix "Test: "))
 
         (shut-up
           (ert-with-message-capture messages
             (partial-recall--debug "The moment %s was %s" moment "found")
-            (should (string= "The moment #<moment test-repr (now)> was found\n" messages))))
+            (should (string= "Test: The moment #<moment test-repr (now)> was found\n" messages))))
 
         (kill-buffer buffer)))))
 

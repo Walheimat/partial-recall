@@ -113,7 +113,14 @@ This is will implant buffers that have met
 (defcustom partial-recall-log-level 1
   "The degree to which actions are logged."
   :type '(choice (const :tag "Info" 1)
-                 (const :tag "Debug" 0)))
+                 (const :tag "Debug" 0))
+  :group 'partial-recall)
+
+(defcustom partial-recall-log-prefix "PR: "
+  "The prefix used for log messages."
+  :type '(choice (const :tag "Text" "PR: ")
+                 (const :tag "None" nil))
+  :group 'partial-recall)
 
 ;;; -- Internal variables
 
@@ -750,7 +757,10 @@ the max age."
 (defun partial-recall--log (fmt &rest args)
   "Use ARGS to format FMT if not silenced."
   (when partial-recall-log
-    (apply 'message fmt (mapcar #'partial-recall--repr args))))
+    (let ((fmt (concat partial-recall-log-prefix fmt))
+          (args (mapcar #'partial-recall--repr args)))
+
+      (apply 'message fmt args))))
 
 (defun partial-recall--debug (fmt &rest args)
   "Use ARGS to format FMT if debug is enabled."
