@@ -60,7 +60,8 @@ INCLUDE-SUBCONSCIOUS is t."
              (tab-name (pr--tab-name memory))
              (mem-pp (prm--print-memory memory)))
 
-        (push tab-name tab-names)
+        (unless (eq memory (partial-recall--reality))
+          (push tab-name tab-names))
 
         (dolist (moment (ring-elements (mem-ring memory)))
 

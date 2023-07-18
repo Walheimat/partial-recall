@@ -22,14 +22,19 @@
   (bydi (tabulated-list-init-header
          (:mock partial-recall-menu--print-timestamp :return "today")
          (:mock partial-recall-menu--print-memory :return "rem")
-         (:mock partial-recall-menu--print-presence :return "*"))
+         (:mock partial-recall-menu--print-presence :return "*")
+         (:mock partial-recall--tab-name :return "test-tab"))
 
-    (with-tab-history :pre t
+    (with-tab-history :pre t :second t
+
+      (ring-insert
+       (partial-recall--memory-ring second-memory)
+       (partial-recall--moment-from-buffer (current-buffer)))
 
       (partial-recall-menu--revert)
 
-      (should (equal `((("test-tab" ,(current-buffer) t nil) [" " "*" ,(buffer-name) "rem" "today"]))
-                     tabulated-list-entries))
+      (should (equal `(("test-tab" ,(current-buffer) t nil) [" " "*" ,(buffer-name) "rem" "today"])
+                     (nth 1 tabulated-list-entries)))
       (should (equal (vector
                       '("A" 1 t :pad-right 0)
                       '("P" 1 t :pad-right 1)
