@@ -103,6 +103,20 @@
         (bydi-was-called partial-recall--remember)
         (bydi-was-called window-list)))))
 
+(ert-deftest pr--handle-buffer--missing ()
+  (with-tab-history
+    (let ((buffers nil))
+
+      (bydi (partial-recall--remember
+             (:always buffer-live-p)
+             (:mock window-list :return buffers)
+             (:mock window-buffer :with bydi-rf)
+             (:ignore partial-recall--mapped-buffer-p))
+
+        (partial-recall--handle-buffer (current-buffer))
+        (bydi-was-not-called partial-recall--remember)
+        (bydi-was-called window-list)))))
+
 (ert-deftest pr--handle-buffer--reclaims ()
   (with-tab-history
     (bydi (partial-recall--remember

@@ -356,15 +356,16 @@ RESET is t, reset the update count instead and remove permanence."
 This will remember new buffers and maybe reclaim mapped buffers.
 If in between scheduling and handling the buffer it can no longer
 be found, it will be ignored."
-  (when (partial-recall--find-buffer buffer)
+  (if (partial-recall--find-buffer buffer)
+      (progn
+        (partial-recall--debug "Found buffer %s" buffer)
 
-    (partial-recall--debug "Found %s" buffer)
+        (if (partial-recall--mapped-buffer-p buffer)
+            (partial-recall--recollect buffer)
+          (partial-recall--remember buffer))
 
-    (if (partial-recall--mapped-buffer-p buffer)
-        (partial-recall--recollect buffer)
-      (partial-recall--remember buffer))
-
-    (setq partial-recall--last-checked buffer)))
+        (setq partial-recall--last-checked buffer))
+    (partial-recall--debug "Couldn't find buffer %s" buffer)))
 
 (defun partial-recall--after-switch-to-buffer (buffer &optional norecord &rest _)
   "Schedule the BUFFER that was switched to.
@@ -513,10 +514,10 @@ If EXCISE is t, remove permanence instead."
              (buffer (partial-recall--moment-buffer removed)))
 
         (when partial-recall-repress
-          (partial-recall--log "Repressing moment %s" removed)
+          (partial-recall--log "Repressing %s" removed)
           (kill-buffer buffer))))
 
-    (partial-recall--debug "Suppressing moment %s" moment)
+    (partial-recall--debug "Suppressing %s" moment)
 
     (partial-recall--moment-refresh moment t)
 
@@ -571,7 +572,7 @@ This removes, inserts and extends. The moment is refreshed."
              ((ring-member ring moment))
              (buffer (partial-recall--moment-buffer moment)))
 
-    (partial-recall--debug "Re-inserting buffer '%s' in '%s'" moment memory)
+    (partial-recall--debug "Re-inserting '%s' in '%s'" moment memory)
 
     (partial-recall--moment-refresh moment)
 
