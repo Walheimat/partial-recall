@@ -18,6 +18,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   print moments and memories.
 - `partial-recall-reclaim` now switches to the reclaimed buffer.
 
+### Fixed
+
+- `partial-recall-menu` now has a minimum length for tab and buffer
+  columns.
+
 ## [v0.6.1]
 
 ### Fixed

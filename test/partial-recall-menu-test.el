@@ -34,7 +34,7 @@
                       '("A" 1 t :pad-right 0)
                       '("P" 1 t :pad-right 1)
                       `("Buffer" ,(length (buffer-name)) t)
-                      '("Tab" 8 t)
+                      `("Tab" ,(length "test-tab") t)
                       '("Timestamp" 9 t))
                      tabulated-list-format))
       (bydi-was-called tabulated-list-init-header)

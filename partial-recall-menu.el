@@ -28,15 +28,15 @@
 (defun prm--format (buffers tabs)
   "Get format using BUFFERS and TABS."
   (let* ((buffers-sorted (sort (mapcar #'length buffers) #'>))
-         (longest-buffer (car-safe buffers-sorted))
+         (longest-buffer (max (or (car-safe buffers-sorted) 6)))
          (tabs-sorted (sort (mapcar #'length tabs) #'>))
-         (longest-tab (car-safe tabs-sorted)))
+         (longest-tab (max (or (car-safe tabs-sorted) 0) 3)))
 
     (vector
      '("A" 1 t :pad-right 0)
      '("P" 1 t :pad-right 1)
-     `("Buffer" ,(or longest-buffer 6) t)
-     `("Tab" ,(or longest-tab 6) t)
+     `("Buffer" ,longest-buffer t)
+     `("Tab" ,longest-tab t)
      '("Timestamp" 9 t))))
 
 (defun prm--revert (&optional include-subconscious)
