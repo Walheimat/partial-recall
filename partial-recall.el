@@ -129,6 +129,7 @@ This is will implant buffers that have met
 (defvar partial-recall--timer nil)
 (defvar partial-recall--last-checked nil)
 (defvar partial-recall--switch-to-buffer-function #'switch-to-buffer)
+(defvar partial-recall--pop-to-buffer-function #'pop-to-buffer)
 (defvar partial-recall--before-minibuffer nil)
 
 ;;; -- Structures
@@ -367,12 +368,23 @@ be found, it will be ignored."
         (setq partial-recall--last-checked buffer))
     (partial-recall--debug "Couldn't find buffer %s" buffer)))
 
+(defun partial-recall--void-timer ()
+  "Void the current timer."
+  (when partial-recall--timer
+    (partial-recall--debug "Canceled previous timer %s" partial-recall--timer)
+    (cancel-timer partial-recall--timer)
+    (setq partial-recall--timer nil)))
+
 (defun partial-recall--after-switch-to-buffer (buffer &optional norecord &rest _)
   "Schedule the BUFFER that was switched to.
 
 Don't do anything if NORECORD is t."
   (unless norecord
     (partial-recall--schedule-buffer buffer)))
+
+(defun partial-recall--after-pop-to-buffer (buffer &rest _)
+  "Schedule the BUFFER that was popped to."
+  (partial-recall--schedule-buffer buffer))
 
 (defun partial-recall--on-create (tab)
   "Equip TAB with a unique hash key."
@@ -877,6 +889,9 @@ are not considered."
   (advice-add
    partial-recall--switch-to-buffer-function :after
    #'partial-recall--after-switch-to-buffer)
+  (advice-add
+   partial-recall--pop-to-buffer-function :after
+   #'partial-recall--after-pop-to-buffer)
   (add-hook 'minibuffer-setup-hook #'partial-recall--on-minibuffer-setup)
   (add-hook 'minibuffer-exit-hook #'partial-recall--on-minibuffer-exit)
   (add-hook 'find-file-hook #'partial-recall--on-find-file)
@@ -891,6 +906,9 @@ are not considered."
   (advice-remove
    partial-recall--switch-to-buffer-function
    #'partial-recall--after-switch-to-buffer)
+  (advice-remove
+   partial-recall--pop-to-buffer-function
+   #'partial-recall--after-pop-to-buffer)
   (remove-hook 'minibuffer-setup-hook #'partial-recall--on-minibuffer-setup)
   (remove-hook 'minibuffer-exit-hook #'partial-recall--on-minibuffer-exit)
   (remove-hook 'find-file-hook #'partial-recall--on-find-file)

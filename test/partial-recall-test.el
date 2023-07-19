@@ -89,6 +89,15 @@
 
       (bydi-was-called-with run-at-time `(1 nil partial-recall--handle-buffer ,buffer)))))
 
+(ert-deftest pr--after-pop-to-buffer--schedules ()
+  (let ((buffer (current-buffer)))
+
+    (bydi (partial-recall--schedule-buffer)
+
+      (partial-recall--after-pop-to-buffer buffer)
+
+      (bydi-was-called-with partial-recall--schedule-buffer (list (current-buffer))))))
+
 (ert-deftest pr--handle-buffer ()
   (with-tab-history
     (let ((buffers (list (current-buffer))))
@@ -731,20 +740,24 @@
         (tab-bar-mode nil))
 
     (bydi (add-hook
+           (:spy advice-add)
            partial-recall--queue-fix-up
            (:mock tab-bar-mode :with (lambda (_) (setq tab-bar-mode t))))
 
       (partial-recall-mode--setup)
 
       (bydi-was-called partial-recall--queue-fix-up)
+      (bydi-was-called-n-times advice-add 2)
       (bydi-was-called-n-times add-hook 8)
       (bydi-was-called tab-bar-mode))))
 
 (ert-deftest pr--teardown ()
-  (bydi (remove-hook)
+  (bydi (remove-hook
+         (:spy advice-remove))
 
     (partial-recall-mode--teardown)
 
+    (bydi-was-called-n-times advice-remove 2)
     (bydi-was-called-n-times remove-hook 8)))
 
 (ert-deftest pr-mode ()
