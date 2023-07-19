@@ -342,8 +342,9 @@ RESET is t, reset the update count instead and remove permanence."
                (new (not (eq partial-recall--last-checked buffer)))
                ((partial-recall--meaningful-buffer-p buffer)))
 
-      (when partial-recall--timer
-        (cancel-timer partial-recall--timer))
+      (partial-recall--void-timer)
+
+      (partial-recall--debug "Scheduling buffer %s" buffer)
 
       (setq partial-recall--timer
             (run-at-time
@@ -357,6 +358,8 @@ RESET is t, reset the update count instead and remove permanence."
 This will remember new buffers and maybe reclaim mapped buffers.
 If in between scheduling and handling the buffer it can no longer
 be found, it will be ignored."
+  (partial-recall--void-timer)
+
   (if (partial-recall--find-buffer buffer)
       (progn
         (partial-recall--debug "Found buffer %s" buffer)
