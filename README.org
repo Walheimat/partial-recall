@@ -67,7 +67,6 @@ taken into account.
              (partial-recall-implant . buffer)
              (partial-recall-lift . buffer)
              (partial-recall-reclaim . buffer)
-             (partial-recall-reinforce . buffer)
              (partial-recall-remember . buffer)
              (partial-recall-switch-to-buffer . buffer)))
 
@@ -83,6 +82,5 @@ probably want to bind the following commands:
 - =partial-recall-lift=
 - =partial-recall-menu=
 - =partial-recall-reclaim=
-- =partial-recall-reinforce=
 - =partial-recall-remember=
 - =partial-recall-switch-to-buffer=

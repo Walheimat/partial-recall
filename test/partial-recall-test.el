@@ -813,7 +813,6 @@
            partial-recall--remember
            switch-to-buffer)
 
-      (call-interactively 'partial-recall-reinforce)
       (call-interactively 'partial-recall-reclaim)
       (call-interactively 'partial-recall-forget)
       (call-interactively 'partial-recall-switch-to-buffer)
@@ -821,7 +820,6 @@
       (call-interactively 'partial-recall-lift)
       (call-interactively 'partial-recall-remember)
 
-      (bydi-was-called partial-recall--reinforce)
       (bydi-was-called partial-recall--reclaim)
       (bydi-was-called partial-recall--forget)
       (bydi-was-called partial-recall--complete-dream)

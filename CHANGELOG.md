@@ -12,6 +12,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Custom variable `partial-recall-log-prefix` to do just that. The
   default is "PR".
 
+### Removed
+
+- `partial-recall-reinforce` was removed from the public API as
+  there's no scenario where this would be useful. In the command map,
+  `partial-recall-remember` now uses the letter `r`.
+
 ### Changed
 
 - `partial-recall--{log,debug}` now use `partial-recall--repr` to
