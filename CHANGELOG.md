@@ -10,12 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Addeed
 
 - Custom variable `partial-recall-log-prefix` to do just that. The
-  default is "PR: ".
+  default is "PR".
 
 ### Changed
 
 - `partial-recall--{log,debug}` now use `partial-recall--repr` to
-  print moments and memories.
+  print moments and memories and prepends `partial-recall-log-prefix`.
 - `partial-recall-reclaim` now switches to the reclaimed buffer.
 
 ### Fixed

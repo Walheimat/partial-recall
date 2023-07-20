@@ -636,7 +636,7 @@
              (moment (partial-recall--moment-create buffer))
              (partial-recall-log t)
              (partial-recall-log-level 0)
-             (partial-recall-log-prefix "Test: "))
+             (partial-recall-log-prefix "Test"))
 
         (shut-up
           (ert-with-message-capture messages

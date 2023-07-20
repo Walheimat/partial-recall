@@ -116,9 +116,9 @@ This is will implant buffers that have met
                  (const :tag "Debug" 0))
   :group 'partial-recall)
 
-(defcustom partial-recall-log-prefix "PR: "
+(defcustom partial-recall-log-prefix "PR"
   "The prefix used for log messages."
-  :type '(choice (const :tag "Text" "PR: ")
+  :type '(choice (const :tag "Text" "PR")
                  (const :tag "None" nil))
   :group 'partial-recall)
 
@@ -775,10 +775,16 @@ the max age."
 (defun partial-recall--log (fmt &rest args)
   "Use ARGS to format FMT if not silenced."
   (when partial-recall-log
-    (let ((fmt (concat partial-recall-log-prefix fmt))
-          (args (mapcar #'partial-recall--repr args)))
+    (let* ((fmt (partial-recall--prefix-fmt-string fmt))
+           (args (mapcar #'partial-recall--repr args)))
 
       (apply 'message fmt args))))
+
+(defun partial-recall--prefix-fmt-string (format-string)
+  "Prefix FORMAT-STRING."
+  (if partial-recall-log-prefix
+      (concat (propertize partial-recall-log-prefix 'face 'shadow) ": " format-string)
+    format-string))
 
 (defun partial-recall--debug (fmt &rest args)
   "Use ARGS to format FMT if debug is enabled."
