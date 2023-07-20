@@ -24,6 +24,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   columns.
 - `pop-to-buffer` is now also advised so that `find-file` is covered
   when file already has a buffer. The `find-file` hook was removed.
+- `partial-recall-switch-buffer` no longer prompts with the current
+  buffer as initial input.
 
 ## [v0.6.1]
 

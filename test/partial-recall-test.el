@@ -676,7 +676,7 @@
                    (:mock buffer-name :with bydi-rf))
     (should (string= "second" (partial-recall--complete-reality "Some prompt: ")))))
 
-(ert-deftest pr--complete-reality--inital-input ()
+(ert-deftest pr--complete-reality--initial-input ()
   (bydi (completing-read
          (:always partial-recall--reality-owns-buffer-p)
          (:mock partial-recall--mapped-buffers :return '(first second third))

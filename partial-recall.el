@@ -835,13 +835,16 @@ This also checks for buffers that might have been obscured."
 
     (cdr-safe (assoc selection a ))))
 
-(defun partial-recall--complete-reality (prompt)
-  "Complete reality buffer using PROMPT."
+(defun partial-recall--complete-reality (prompt &optional no-preselect)
+  "Complete reality buffer using PROMPT.
+
+If NO-PRESELECT is t, no initial input is set."
   (let* ((buffers (partial-recall--mapped-buffers))
          (other-buffers (seq-filter #'partial-recall--reality-owns-buffer-p buffers))
          (a (mapcar (lambda (it) (cons (buffer-name it) it)) other-buffers))
          (current (current-buffer))
-         (initial (when (memq current other-buffers) (buffer-name current)))
+         (initial (when (and (not no-preselect) (memq current other-buffers))
+                    (buffer-name current)))
          (selection (completing-read prompt a nil t initial)))
 
     (cdr-safe (assoc selection a))))
@@ -969,7 +972,7 @@ all buffers."
 ;;;###autoload
 (defun partial-recall-switch-to-buffer (buffer)
   "Switch to BUFFER."
-  (interactive (list (partial-recall--complete-reality "Switch to moment: ")))
+  (interactive (list (partial-recall--complete-reality "Switch to moment: " t)))
 
   (switch-to-buffer buffer))
 
