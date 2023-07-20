@@ -772,7 +772,7 @@
 
       (bydi-was-called partial-recall--queue-fix-up)
       (bydi-was-called-n-times advice-add 2)
-      (bydi-was-called-n-times add-hook 8)
+      (bydi-was-called-n-times add-hook 7)
       (bydi-was-called tab-bar-mode))))
 
 (ert-deftest pr--teardown ()
@@ -782,7 +782,7 @@
     (partial-recall-mode--teardown)
 
     (bydi-was-called-n-times advice-remove 2)
-    (bydi-was-called-n-times remove-hook 8)))
+    (bydi-was-called-n-times remove-hook 7)))
 
 (ert-deftest pr-mode ()
   (bydi (partial-recall-mode--setup

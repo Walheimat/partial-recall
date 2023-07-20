@@ -23,7 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `partial-recall-menu` now has a minimum length for tab and buffer
   columns.
 - `pop-to-buffer` is now also advised so that `find-file` is covered
-  when file already has a buffer.
+  when file already has a buffer. The `find-file` hook was removed.
 
 ## [v0.6.1]
 
