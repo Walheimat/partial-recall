@@ -186,13 +186,6 @@
 
       (bydi-was-called partial-recall--suppress))))
 
-(ert-deftest pr--on-find-file ()
-  (bydi (partial-recall--schedule-buffer)
-
-    (partial-recall--on-find-file)
-
-    (bydi-was-called partial-recall--schedule-buffer)))
-
 (ert-deftest pr--on-frame-delete ()
   (defvar tab-bar-tabs-function nil)
 

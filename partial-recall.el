@@ -411,10 +411,6 @@ Don't do anything if NORECORD is t."
 
     (remhash tab-key table)))
 
-(defun partial-recall--on-find-file ()
-  "Handle finding a file."
-  (partial-recall--schedule-buffer (current-buffer)))
-
 (defun partial-recall--on-frame-delete (frame)
   "Clear hashes associated with FRAME."
   (let ((tabs (funcall tab-bar-tabs-function frame)))
