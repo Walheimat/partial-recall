@@ -374,8 +374,10 @@ be found, it will be ignored."
 (defun partial-recall--void-timer ()
   "Void the current timer."
   (when partial-recall--timer
-    (partial-recall--debug "Canceled previous timer %s" partial-recall--timer)
-    (cancel-timer partial-recall--timer)
+    (unless (timer--triggered partial-recall--timer)
+      (partial-recall--debug "Canceling previous timer %s" partial-recall--timer)
+      (cancel-timer partial-recall--timer))
+
     (setq partial-recall--timer nil)))
 
 (defun partial-recall--after-switch-to-buffer (buffer &optional norecord &rest _)

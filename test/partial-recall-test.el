@@ -72,31 +72,21 @@
 
 ;;; -- Handlers
 
-(ert-deftest pr--after-switch-to-buffer--cancels-running-timer ()
+(ert-deftest pr--schedule-buffer--cancels-running-timer ()
   (let ((partial-recall--timer nil)
         (partial-recall-handle-delay 1)
-        (buffer (current-buffer)))
+        (buffer (current-buffer))
+        (timer (timer--create)))
 
     (bydi ((:always buffer-file-name)
            (:ignore partial-recall--mapped-buffer-p)
-           cancel-timer
+           partial-recall--void-timer
            run-at-time)
 
-      (setq partial-recall--timer 'timer)
-      (partial-recall--after-switch-to-buffer buffer)
+      (partial-recall--schedule-buffer buffer)
 
-      (bydi-was-called cancel-timer)
-
+      (bydi-was-called partial-recall--void-timer)
       (bydi-was-called-with run-at-time `(1 nil partial-recall--handle-buffer ,buffer)))))
-
-(ert-deftest pr--after-pop-to-buffer--schedules ()
-  (let ((buffer (current-buffer)))
-
-    (bydi (partial-recall--schedule-buffer)
-
-      (partial-recall--after-pop-to-buffer buffer)
-
-      (bydi-was-called-with partial-recall--schedule-buffer (list (current-buffer))))))
 
 (ert-deftest pr--handle-buffer ()
   (with-tab-history
@@ -136,6 +126,40 @@
 
       (partial-recall--handle-buffer (current-buffer))
       (bydi-was-called partial-recall--recollect))))
+
+(ert-deftest pr--void-timer--voids ()
+  (let* ((timer (timer--create))
+         (partial-recall--timer timer))
+
+    (setf (timer--triggered timer) nil)
+
+    (bydi (cancel-timer)
+
+      (partial-recall--void-timer)
+
+      (bydi-was-called cancel-timer)
+
+      (should-not partial-recall--timer))))
+
+(ert-deftest pr--after-switch-to-buffer--schedules ()
+  (bydi (partial-recall--schedule-buffer)
+
+    (partial-recall--after-switch-to-buffer (current-buffer) t)
+
+    (bydi-was-not-called partial-recall--schedule-buffer)
+
+    (partial-recall--after-switch-to-buffer (current-buffer))
+
+    (bydi-was-called partial-recall--schedule-buffer)))
+
+(ert-deftest pr--after-pop-to-buffer--schedules ()
+  (let ((buffer (current-buffer)))
+
+    (bydi (partial-recall--schedule-buffer)
+
+      (partial-recall--after-pop-to-buffer buffer)
+
+      (bydi-was-called-with partial-recall--schedule-buffer (list (current-buffer))))))
 
 (ert-deftest pr--on-create--sets-cdr ()
   (bydi ((:mock partial-recall--create-key :return "test"))
