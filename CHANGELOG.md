@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Custom variable `partial-recall-log-prefix` to do just that. The
   default is "PR".
+- `partial-recall-filter` to filter out certain buffers/files. This
+  currently only includes the file `COMMIT_EDITMSG`.
 
 ### Removed
 

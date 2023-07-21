@@ -592,6 +592,16 @@
 
     (should (partial-recall--has-buffers-p))))
 
+(ert-deftest pr--meaningful-buffer-p ()
+  (ert-with-temp-file file
+    :buffer buffer
+    (with-current-buffer buffer
+      (should (partial-recall--meaningful-buffer-p (current-buffer)))
+
+      (let ((partial-recall-filter (list (buffer-name))))
+
+        (should-not (partial-recall--meaningful-buffer-p (current-buffer)))))))
+
 ;; -- Utility
 
 (ert-deftest pr--warn ()
@@ -698,7 +708,7 @@
   (bydi (completing-read
          (:mock buffer-list :return '(a b c d))
          (:mock buffer-name :with bydi-rf)
-         (:mock buffer-file-name :with (lambda (it) (memq it '(b))))
+         (:mock partial-recall--meaningful-buffer-p :with (lambda (it) (memq it '(b))))
          (:mock partial-recall--mapped-buffers :return '(a c))
          (:mock partial-recall--mapped-buffer-p :with (lambda (it &rest _) (memq it '(a c))))
          (:mock current-buffer :return 'current))

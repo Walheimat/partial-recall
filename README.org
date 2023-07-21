@@ -48,6 +48,7 @@ taken into account.
   (partial-recall-log nil) ;; Whether to log actions.
   (partial-recall-log-level 1) ;; Info log level (0 is debug).
   (partial-recall-log-prefix "PR: ") ;; Message prefix for log messages.
+  (partial-recall-filter '("COMMIT_EDITMSG")) ;; Regexes of names that should be ignored.
 
   :config
   (partial-recall-mode)
