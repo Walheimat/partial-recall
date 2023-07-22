@@ -976,7 +976,7 @@ all buffers."
   "Switch to BUFFER."
   (interactive (list (partial-recall--complete-reality "Switch to moment: " t)))
 
-  (switch-to-buffer buffer))
+  (funcall partial-recall--switch-to-buffer-function buffer))
 
 ;;;###autoload
 (defun partial-recall-reclaim (buffer)
