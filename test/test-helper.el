@@ -7,6 +7,7 @@
 ;;; Code:
 
 (require 'bydi)
+(require 'bydi-ci)
 (require 'bydi-report)
 
 (declare-function bydi-path-setup "ext:bydi.el")
@@ -42,9 +43,9 @@ second memory is created."
 
 ;; Setup
 
-(bydi-path-setup)
-(bydi-undercover-setup (list "*.el"))
-(bydi-ert-runner-setup)
+(bydi-ci-setup-paths)
+(bydi-report-setup-undercover (list "*.el"))
+(bydi-report-setup-ert-runner)
 
 ;;; test-helper.el ends here
 
