@@ -962,9 +962,12 @@ are not considered."
 (defun partial-recall-remember (buffer)
   "Remember BUFFER.
 
-The buffer is selected from a list of unmapped file buffers. If
-called with a prefix argument, the selection will be widened to
-all buffers."
+This will add the buffer to the current memory and subsequently
+switch to it.
+
+The selection is limited to buffers that do not yet belong to a
+memory. If called with a prefix argument, the selection will be
+widened to all buffers."
   (interactive (list (partial-recall--complete-any "Remember buffer: " current-prefix-arg)))
 
   (partial-recall--remember buffer)
@@ -973,7 +976,10 @@ all buffers."
 
 ;;;###autoload
 (defun partial-recall-switch-to-buffer (buffer)
-  "Switch to BUFFER."
+  "Switch to BUFFER.
+
+The selection is limited to buffers belonging to the current
+memory."
   (interactive (list (partial-recall--complete-reality "Switch to moment: " t)))
 
   (funcall partial-recall--switch-to-buffer-function buffer))
@@ -982,7 +988,9 @@ all buffers."
 (defun partial-recall-reclaim (buffer)
   "Reclaim BUFFER.
 
-This will always force-reclaim."
+The selection is limited to buffers belonging to other memories.
+The selected buffer is removed from that memory and subsequently
+switched to."
   (interactive (list (partial-recall--complete-dream "Reclaim moment: ")))
 
   (when-let* ((reclaimed (partial-recall--reclaim buffer t))
@@ -992,7 +1000,10 @@ This will always force-reclaim."
 
 ;;;###autoload
 (defun partial-recall-forget (buffer)
-  "Forget BUFFER."
+  "Forget BUFFER.
+
+Removes the buffer from the current reality. The buffer can be
+reclaimed afterwards."
   (interactive (list (partial-recall--complete-reality "Forget moment: ")))
 
   (partial-recall--forget buffer t))
@@ -1001,7 +1012,10 @@ This will always force-reclaim."
 (defun partial-recall-implant (buffer &optional excise)
   "Implant the BUFFER.
 
-If EXCISE is T, do that instead."
+This will ensure the buffer is never removed from the memory.
+
+If EXCISE is T, do that instead. The excised buffer can be
+removed from the memory again."
   (interactive (list (partial-recall--complete-reality (if current-prefix-arg
                                                            "Excise moment: "
                                                          "Implant moment: "))
@@ -1011,7 +1025,12 @@ If EXCISE is T, do that instead."
 
 ;;;###autoload
 (defun partial-recall-lift (buffer)
-  "Lift BUFFER out of the subconscious."
+  "Lift BUFFER out of the subconscious.
+
+Buffers that are forgotten move to the subconscious first before
+being removed completely. As long as the subconscious itself
+isn't at capacity and needs to drop the oldest buffer, it can be
+lifted."
   (interactive (list (partial-recall--complete-subconscious "Lift moment: ")))
 
   (partial-recall--lift buffer))
