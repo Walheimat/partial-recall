@@ -943,9 +943,9 @@ are not considered."
     (define-key map (kbd "c") 'partial-recall-reclaim)
     (define-key map (kbd "f") 'partial-recall-forget)
     (define-key map (kbd "i") 'partial-recall-implant)
-    (define-key map (kbd "l") 'partial-recall-menu)
+    (define-key map (kbd "m") 'partial-recall-menu)
     (define-key map (kbd "r") 'partial-recall-remember)
-    (define-key map (kbd "s") 'partial-recall-lift)
+    (define-key map (kbd "l") 'partial-recall-lift)
     map)
   "Map for `partial-recall-mode' commands.")
 
