@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `partial-reall-{menu,lift}` are now bound to `m` and `l`.
 
+### Fixed
+
+- `partial-recall-remember` no longer provides the current buffer as
+  initial input unless it is meaningful or it was called with prefix
+  argument.
+
 ## [v0.6.2]
 
 ### Addeed

@@ -874,7 +874,9 @@ are not considered."
          (candidates (seq-filter (lambda (it) (not (partial-recall--mapped-buffer-p it t))) buffers))
          (a (mapcar (lambda (it) (cons (buffer-name it) it)) candidates))
          (current (current-buffer))
-         (initial (unless (partial-recall--mapped-buffer-p current t)
+         (initial (unless (or (partial-recall--mapped-buffer-p current t)
+                              (and (not (partial-recall--meaningful-buffer-p current))
+                                   (not allow-non-file)))
                     (buffer-name (current-buffer))))
          (selection (completing-read prompt a nil t initial)))
 

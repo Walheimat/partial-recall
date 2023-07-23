@@ -716,7 +716,7 @@
     (partial-recall--complete-any "Some prompt: ")
 
     (bydi-was-called-with completing-read
-      '("Some prompt: " ((b . b)) nil t current))
+      '("Some prompt: " ((b . b)) nil t nil))
 
     (partial-recall--complete-any "Some prompt: " t)
 
