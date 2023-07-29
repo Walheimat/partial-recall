@@ -95,6 +95,11 @@ This is will implant buffers that have met
   :type 'integer
   :group 'partial-recall)
 
+(defcustom partial-recall-auto-switch t
+  "Whether to automatically switch to a buffer's memory."
+  :type 'boolean
+  :group 'partial-recall)
+
 (defcustom partial-recall-mode-lighter " pr"
   "The mode line lighter."
   :type 'string
@@ -375,6 +380,13 @@ be found, it will be ignored."
       (cancel-timer partial-recall--timer))
 
     (setq partial-recall--timer nil)))
+
+(defun partial-recall--before-switch-to-buffer (buffer &optional norecord &rest _)
+  "Maybe switch memories before scheduling BUFFER.
+
+Don't do anything if NORECORD is t."
+  (unless norecord
+    (partial-recall--maybe-switch-memory buffer)))
 
 (defun partial-recall--after-switch-to-buffer (buffer &optional norecord &rest _)
   "Schedule the BUFFER that was switched to.
@@ -672,6 +684,23 @@ This is true if COUNT exceeds `partial-recall-auto-implant-threshold'."
 
     (partial-recall--implant (partial-recall--moment-buffer moment))))
 
+(defun partial-recall--maybe-switch-memory (buffer)
+  "Maybe switch to BUFFER's memory.
+
+Memories in the subconscious are not considered."
+  (with-current-buffer buffer
+    (and-let* (partial-recall-auto-switch
+               (buffer (current-buffer))
+               ((partial-recall--mapped-buffer-p buffer))
+               ((not (partial-recall--reality-buffer-p buffer)))
+               (moment (partial-recall--moment-from-buffer buffer))
+               ((not (partial-recall--exceeds-p moment (- partial-recall-reclaim-min-age
+                                                          partial-recall-handle-delay))))
+               (owner (partial-recall--buffer-owner buffer))
+               (tab (partial-recall--tab-name owner)))
+
+      (tab-bar-switch-to-tab tab))))
+
 ;;; -- Conditionals
 
 (defun partial-recall--memory-at-capacity-p (memory)
@@ -905,6 +934,9 @@ are not considered."
   (partial-recall--queue-fix-up)
 
   (advice-add
+   partial-recall--switch-to-buffer-function :before
+   #'partial-recall--before-switch-to-buffer)
+  (advice-add
    partial-recall--switch-to-buffer-function :after
    #'partial-recall--after-switch-to-buffer)
   (advice-add
@@ -920,6 +952,9 @@ are not considered."
 
 (defun partial-recall-mode--teardown ()
   "Tear down `partial-recall-mode'."
+  (advice-remove
+   partial-recall--switch-to-buffer-function
+   #'partial-recall--before-switch-to-buffer)
   (advice-remove
    partial-recall--switch-to-buffer-function
    #'partial-recall--after-switch-to-buffer)

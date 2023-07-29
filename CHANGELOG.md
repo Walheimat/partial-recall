@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Custom variable `partial-recall-auto-switch`. When switching to a
+  buffer that is mapped in another memory and wouldn't be reclaimed, a
+  switch to its memory's tab is performed.
+
 ### Changed
 
 - `partial-reall-{menu,lift}` are now bound to `m` and `l`.

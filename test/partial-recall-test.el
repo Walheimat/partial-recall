@@ -146,6 +146,17 @@
 
     (bydi-was-called partial-recall--schedule-buffer)))
 
+(ert-deftest pr--before-switch-to-buffer--maybe-switches ()
+  (bydi (partial-recall--maybe-switch-memory)
+
+    (partial-recall--before-switch-to-buffer (current-buffer) t)
+
+    (bydi-was-not-called partial-recall--maybe-switch-memory)
+
+    (partial-recall--before-switch-to-buffer (current-buffer))
+
+    (bydi-was-called partial-recall--maybe-switch-memory)))
+
 (ert-deftest pr--after-pop-to-buffer--schedules ()
   (let ((buffer (current-buffer)))
 
@@ -518,6 +529,22 @@
       (let ((moment (partial-recall--moment-from-buffer (current-buffer))))
         (should (partial-recall--moment-permanence moment))))))
 
+(ert-deftest pr--maybe-switch-memory ()
+  (let ((partial-recall-auto-switch t))
+
+    (with-tab-history :pre t :second t
+      (let* ((another (generate-new-buffer " *temp*" t))
+             (moment (partial-recall--moment-create another)))
+
+        (ring-insert (partial-recall--memory-ring second-memory) moment)
+
+        (should-not (partial-recall--maybe-switch-memory (current-buffer)))
+
+        (bydi (tab-bar-switch-to-tab
+               (:mock partial-recall--tab-name :return "test"))
+          (partial-recall--maybe-switch-memory another)
+          (bydi-was-called-with tab-bar-switch-to-tab "test"))))))
+
 (ert-deftest pr--clean-up-buffer ()
   (let ((partial-recall--last-checked (current-buffer)))
 
@@ -792,7 +819,7 @@
       (partial-recall-mode--setup)
 
       (bydi-was-called partial-recall--queue-fix-up)
-      (bydi-was-called-n-times advice-add 2)
+      (bydi-was-called-n-times advice-add 3)
       (bydi-was-called-n-times add-hook 7)
       (bydi-was-called tab-bar-mode))))
 
@@ -802,7 +829,7 @@
 
     (partial-recall-mode--teardown)
 
-    (bydi-was-called-n-times advice-remove 2)
+    (bydi-was-called-n-times advice-remove 3)
     (bydi-was-called-n-times remove-hook 7)))
 
 (ert-deftest pr-mode ()
