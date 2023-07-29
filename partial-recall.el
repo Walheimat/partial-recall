@@ -827,7 +827,10 @@ This also checks for buffers that might have been obscured."
   (let* ((buffers (partial-recall--mapped-buffers))
          (other-buffers (seq-filter (lambda (it) (not (partial-recall--reality-owns-buffer-p it))) buffers))
          (a (mapcar (lambda (it) (cons (buffer-name it) it)) other-buffers))
-         (selection (completing-read prompt a nil t)))
+         (current (current-buffer))
+         (initial (when (memq current other-buffers)
+                    (buffer-name current)))
+         (selection (completing-read prompt a nil t initial)))
 
     (cdr-safe (assoc selection a ))))
 

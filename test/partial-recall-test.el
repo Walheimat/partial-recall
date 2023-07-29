@@ -666,6 +666,15 @@
                    (:mock buffer-name :with bydi-rf))
     (should (string= "second" (partial-recall--complete-dream "Some prompt: ")))))
 
+(ert-deftest pr--complete-dream--initial-input ()
+  (bydi-with-mock (completing-read
+                   (:ignore partial-recall--reality-owns-buffer-p)
+                   (:mock partial-recall--mapped-buffers :return '(third))
+                   (:mock current-buffer :return 'third)
+                   (:mock buffer-name :with bydi-rf))
+    (partial-recall--complete-dream "Some prompt: ")
+    (bydi-was-called-with completing-read (list "Some prompt: " '((third . third)) nil t 'third))))
+
 (ert-deftest pr--complete-reality ()
   (bydi-with-mock ((:mock completing-read :return "second")
                    (:always partial-recall--reality-owns-buffer-p)
