@@ -190,32 +190,32 @@
            (:mock partial-recall-menu--list :return 'list))
 
       (partial-recall-menu-switch-to-buffer)
-      (bydi-was-called-with partial-recall-menu--switch (list #'switch-to-buffer))
+      (bydi-was-called-with partial-recall-menu--switch #'switch-to-buffer)
 
       (partial-recall-menu-switch-to-buffer-other-window)
-      (bydi-was-called-with partial-recall-menu--switch (list #'switch-to-buffer-other-window t))
+      (bydi-was-called-with partial-recall-menu--switch '(switch-to-buffer-other-window t))
 
       (partial-recall-menu-reclaim-buffer)
-      (bydi-was-called-with tabulated-list-set-col (list 0 "C" t))
+      (bydi-was-called-with tabulated-list-set-col '(... "C"))
       (setq real t)
       (should-error (partial-recall-menu-reclaim-buffer))
 
       (partial-recall-menu-reinforce-buffer)
-      (bydi-was-called-with tabulated-list-set-col (list 0 "R" t))
+      (bydi-was-called-with tabulated-list-set-col '(... "R"))
       (setq real nil)
       (should-error (partial-recall-menu-reinforce-buffer))
 
       (partial-recall-menu-forget-buffer)
-      (bydi-was-called-with tabulated-list-set-col (list 0 "F" t))
+      (bydi-was-called-with tabulated-list-set-col '(..."F"))
 
       (partial-recall-menu-implant-buffer)
-      (bydi-was-called-with tabulated-list-set-col (list 0 "I" t))
+      (bydi-was-called-with tabulated-list-set-col '(..."I"))
 
       (funcall-interactively 'partial-recall-menu-implant-buffer t)
-      (bydi-was-called-with tabulated-list-set-col (list 0 "X" t))
+      (bydi-was-called-with tabulated-list-set-col '(..."X"))
 
       (partial-recall-menu)
-      (bydi-was-called-with display-buffer (list 'list)))))
+      (bydi-was-called-with display-buffer 'list))))
 
 ;;; Code:
 

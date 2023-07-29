@@ -10,10 +10,6 @@
 (require 'bydi-ci)
 (require 'bydi-report)
 
-(declare-function bydi-path-setup "ext:bydi.el")
-(declare-function bydi-ert-runner-setup "ext:bydi.el")
-(declare-function bydi-undercover-setup "ext:bydi.el")
-
 ;; Helpers
 
 (defvar test-tab '(current-tab (name . "test-tab") (explicit-name . t) (pr . "test-hash")))

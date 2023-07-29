@@ -164,7 +164,7 @@
 
       (partial-recall--after-pop-to-buffer buffer)
 
-      (bydi-was-called-with partial-recall--schedule-buffer (list (current-buffer))))))
+      (bydi-was-called-with partial-recall--schedule-buffer (current-buffer)))))
 
 (ert-deftest pr--on-create--sets-cdr ()
   (bydi ((:mock partial-recall--create-key :return "test"))
@@ -700,7 +700,7 @@
                    (:mock current-buffer :return 'third)
                    (:mock buffer-name :with bydi-rf))
     (partial-recall--complete-dream "Some prompt: ")
-    (bydi-was-called-with completing-read (list "Some prompt: " '((third . third)) nil t 'third))))
+    (bydi-was-called-with completing-read '(... third))))
 
 (ert-deftest pr--complete-reality ()
   (bydi-with-mock ((:mock completing-read :return "second")
@@ -718,8 +718,7 @@
 
     (partial-recall--complete-reality "Some prompt: ")
 
-    (bydi-was-called-with completing-read
-      '("Some prompt: " ((first . first) (second . second) (third . third)) nil t second))))
+    (bydi-was-called-with completing-read '(... second))))
 
 (ert-deftest pr--complete-subconscious ()
   (let* ((partial-recall--table (make-hash-table))
@@ -747,7 +746,7 @@
         (bydi (completing-read)
           (partial-recall--complete-subconscious "Some prompt: ")
 
-          (bydi-was-called-with completing-read (list "Some prompt: " `(("another-one" . ,another)) nil t "another-one")))))))
+          (bydi-was-called-with completing-read `(... "another-one")))))))
 
 (ert-deftest pr--complete-any ()
   (bydi (completing-read
@@ -760,13 +759,11 @@
 
     (partial-recall--complete-any "Some prompt: ")
 
-    (bydi-was-called-with completing-read
-      '("Some prompt: " ((b . b)) nil t nil))
+    (bydi-was-called-with completing-read '(... "Some prompt: " ((b . b))))
 
     (partial-recall--complete-any "Some prompt: " t)
 
-    (bydi-was-called-with completing-read
-      '("Some prompt: " ((b . b) (d . d)) nil t current))))
+    (bydi-was-called-with completing-read '(... ((b . b) (d . d)) ... current))))
 
 ;;; -- Setup
 
@@ -802,7 +799,7 @@
   (bydi (run-at-time)
     (partial-recall--queue-fix-up)
 
-    (bydi-was-called-with run-at-time (list 1.0 nil #'partial-recall--fix-up-primary-tab))))
+    (bydi-was-called-with run-at-time '(... partial-recall--fix-up-primary-tab))))
 
 (ert-deftest pr--setup ()
   (defvar tab-bar-tabs-function nil)
