@@ -361,16 +361,13 @@ If in between scheduling and handling the buffer it can no longer
 be found, it will be ignored."
   (partial-recall--void-timer)
 
-  (if (partial-recall--find-buffer buffer)
-      (progn
-        (partial-recall--debug "Found buffer %s" buffer)
+  (when (partial-recall--buffer-visible-p buffer)
 
-        (if (partial-recall--mapped-buffer-p buffer)
-            (partial-recall--recollect buffer)
-          (partial-recall--remember buffer))
+    (if (partial-recall--mapped-buffer-p buffer)
+        (partial-recall--recollect buffer)
+      (partial-recall--remember buffer))
 
-        (setq partial-recall--last-checked buffer))
-    (partial-recall--debug "Couldn't find buffer %s" buffer)))
+    (setq partial-recall--last-checked buffer)))
 
 (defun partial-recall--void-timer ()
   "Void the current timer."
@@ -703,6 +700,20 @@ Memories in the subconscious are not considered."
 
 ;;; -- Conditionals
 
+(defun partial-recall--buffer-visible-p (buffer)
+  "Check that BUFFER remains visible.
+
+This also checks for buffers that might have been obscured."
+  (let* ((visible (and buffer
+                       (buffer-live-p buffer)
+                       (or (eq buffer partial-recall--before-minibuffer)
+                           (memq buffer (mapcar #'window-buffer (window-list))))))
+         (verb (if visible "remains" "is no longer")))
+
+    (partial-recall--debug (concat "Buffer %s " verb " visible") buffer)
+
+    visible))
+
 (defun partial-recall--memory-at-capacity-p (memory)
   "Check if MEMORY is at capacity."
   (when-let ((ring (partial-recall--memory-ring memory)))
@@ -839,15 +850,6 @@ the max age."
         (ring-length ring)
         (ring-size ring))))
     (_ thing)))
-
-(defun partial-recall--find-buffer (buffer)
-  "Find BUFFER in the current frame.
-
-This also checks for buffers that might have been obscured."
-  (and buffer
-       (buffer-live-p buffer)
-       (or (eq buffer partial-recall--before-minibuffer)
-           (memq buffer (mapcar #'window-buffer (window-list))))))
 
 ;;; -- Completion
 
