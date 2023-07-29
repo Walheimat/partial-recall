@@ -857,27 +857,23 @@ the max age."
   "Complete dream buffer using PROMPT."
   (let* ((buffers (partial-recall--mapped-buffers))
          (other-buffers (seq-filter (lambda (it) (not (partial-recall--reality-owns-buffer-p it))) buffers))
-         (a (mapcar (lambda (it) (cons (buffer-name it) it)) other-buffers))
          (current (current-buffer))
          (initial (when (memq current other-buffers)
-                    (buffer-name current)))
-         (selection (completing-read prompt a nil t initial)))
+                    (buffer-name current))))
 
-    (cdr-safe (assoc selection a ))))
+    (partial-recall--complete prompt other-buffers initial)))
 
 (defun partial-recall--complete-reality (prompt &optional no-preselect)
   "Complete reality buffer using PROMPT.
 
 If NO-PRESELECT is t, no initial input is set."
-  (let* ((buffers (partial-recall--mapped-buffers))
-         (other-buffers (seq-filter #'partial-recall--reality-owns-buffer-p buffers))
-         (a (mapcar (lambda (it) (cons (buffer-name it) it)) other-buffers))
+  (let* ((mapped (partial-recall--mapped-buffers))
+         (buffers (seq-filter #'partial-recall--reality-owns-buffer-p mapped))
          (current (current-buffer))
-         (initial (when (and (not no-preselect) (memq current other-buffers))
-                    (buffer-name current)))
-         (selection (completing-read prompt a nil t initial)))
+         (initial (when (and (not no-preselect) (memq current buffers))
+                    (buffer-name current))))
 
-    (cdr-safe (assoc selection a))))
+    (partial-recall--complete prompt buffers initial)))
 
 (defun partial-recall--complete-subconscious (prompt)
   "Complete subconscious buffer using PROMPT."
@@ -885,13 +881,11 @@ If NO-PRESELECT is t, no initial input is set."
          (ring (partial-recall--memory-ring memory))
          (moments (ring-elements ring))
          (buffers (mapcar #'partial-recall--moment-buffer moments))
-         (a (mapcar (lambda (it) (cons (buffer-name it) it)) buffers))
          (current (current-buffer))
          (initial (when (memq current buffers)
-                    (buffer-name current)))
-         (selection (completing-read prompt a nil t initial)))
+                    (buffer-name current))))
 
-    (cdr-safe (assoc selection a))))
+    (partial-recall--complete prompt buffers initial)))
 
 (defun partial-recall--complete-any (prompt &optional allow-non-file)
   "Complete any buffer using PROMPT.
@@ -902,15 +896,22 @@ are not considered."
                       (buffer-list)
                     (seq-filter #'partial-recall--meaningful-buffer-p (buffer-list))))
          (candidates (seq-filter (lambda (it) (not (partial-recall--mapped-buffer-p it t))) buffers))
-         (a (mapcar (lambda (it) (cons (buffer-name it) it)) candidates))
          (current (current-buffer))
          (initial (unless (or (partial-recall--mapped-buffer-p current t)
                               (and (not (partial-recall--meaningful-buffer-p current))
                                    (not allow-non-file)))
-                    (buffer-name (current-buffer))))
-         (selection (completing-read prompt a nil t initial)))
+                    (buffer-name (current-buffer)))))
 
-    (cdr-safe (assoc selection a))))
+    (partial-recall--complete prompt candidates initial)))
+
+(defun partial-recall--complete (prompt buffers initial)
+  "Complete BUFFERS with INITIAL input.
+
+Completion is done using `completing-read' with PROMPT."
+  (let* ((collection (mapcar (lambda (it) (cons (buffer-name it) it)) buffers))
+         (selection (completing-read prompt collection nil t initial)))
+
+    (cdr-safe (assoc selection collection))))
 
 ;;; -- Setup
 
