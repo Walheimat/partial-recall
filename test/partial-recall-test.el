@@ -64,12 +64,6 @@
 
     (should (gethash partial-recall--subconscious-key partial-recall--table))))
 
-(ert-deftest partial-recall--lifted ()
-  (with-tab-history :pre t :lifts t
-    (partial-recall--forget (current-buffer) t)
-
-    (should (partial-recall--lifted (current-buffer)))))
-
 ;;; -- Handlers
 
 (ert-deftest pr--schedule-buffer--cancels-running-timer ()

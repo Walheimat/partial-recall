@@ -280,15 +280,6 @@ Searches all memories unless MEMORY is provided."
       (puthash key memory partial-recall--table)
       memory)))
 
-(defun partial-recall--lifted (buffer)
-  "Lift BUFFER out of the subconscious if present."
-  (when-let* ((memory (partial-recall--subconscious))
-              (found (partial-recall--remove-buffer buffer memory)))
-
-    (partial-recall--log "Lifting '%s' out of the subconscious" found)
-
-    (partial-recall--moment-update-timestamp found)))
-
 (defun partial-recall--moment-set-permanence (moment permanence)
   "Set MOMENT PERMANENCE."
   (setf (partial-recall--moment-permanence moment) permanence)
@@ -448,7 +439,7 @@ part of the current reality."
 
     (partial-recall--probe-memory memory)
 
-    (let ((moment (or (partial-recall--lifted buffer)
+    (let ((moment (or (partial-recall--lift buffer)
                       (partial-recall--moment-create buffer))))
 
       (ring-insert ring moment))))
@@ -543,13 +534,15 @@ If EXCISE is t, remove permanence instead."
 
 (defun partial-recall--lift (buffer)
   "Lift BUFFER into reality."
-  (when-let* ((moment (partial-recall--lifted buffer))
+  (when-let* ((sub (partial-recall--subconscious))
               (reality (partial-recall--reality))
-              (ring (partial-recall--memory-ring reality)))
+              (moment (partial-recall--moment-from-buffer buffer)))
 
-    (partial-recall--probe-memory reality)
+    (partial-recall--log "Lifting '%s' out of the subconscious" moment)
 
-    (ring-insert ring moment)))
+    (partial-recall--swap sub reality moment)
+
+    moment))
 
 (defun partial-recall--recollect (buffer)
   "Recollect the BUFFER.

@@ -28,7 +28,7 @@ second memory is created."
   `(bydi ((:mock tab-bar--current-tab :return test-tab)
           (:mock tab-bar-tabs :return (list test-tab))
           (:always partial-recall--meaningful-buffer-p)
-          ,(unless lifts '(:ignore partial-recall--lifted)))
+          ,(unless lifts '(:ignore partial-recall--lift)))
      (let* ((partial-recall--table (make-hash-table))
             (second-memory-key "second")
             (second-memory nil))
