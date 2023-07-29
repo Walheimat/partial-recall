@@ -855,7 +855,10 @@ If NO-PRESELECT is t, no initial input is set."
          (moments (ring-elements ring))
          (buffers (mapcar #'partial-recall--moment-buffer moments))
          (a (mapcar (lambda (it) (cons (buffer-name it) it)) buffers))
-         (selection (completing-read prompt a nil t)))
+         (current (current-buffer))
+         (initial (when (memq current buffers)
+                    (buffer-name current)))
+         (selection (completing-read prompt a nil t initial)))
 
     (cdr-safe (assoc selection a))))
 

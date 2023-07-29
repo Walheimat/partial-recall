@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `partial-recall-remember` no longer provides the current buffer as
   initial input unless it is meaningful or it was called with prefix
   argument.
+- Completions now provide initial input whenever it makes sense.
 
 ## [v0.6.2]
 

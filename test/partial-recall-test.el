@@ -707,6 +707,21 @@
 
       (should (equal buf (partial-recall--complete-subconscious "Some prompt: "))))))
 
+(ert-deftest pr--complete-subconscious--initial-input ()
+  (with-tab-history :pre t
+    (let ((another (generate-new-buffer " *temp*" t)))
+
+      (partial-recall--remember another)
+      (partial-recall--forget another t)
+
+      (with-current-buffer another
+        (rename-buffer "another-one")
+
+        (bydi (completing-read)
+          (partial-recall--complete-subconscious "Some prompt: ")
+
+          (bydi-was-called-with completing-read (list "Some prompt: " `(("another-one" . ,another)) nil t "another-one")))))))
+
 (ert-deftest pr--complete-any ()
   (bydi (completing-read
          (:mock buffer-list :return '(a b c d))
