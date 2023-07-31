@@ -362,6 +362,8 @@ be found, it will be ignored."
 
   (when (partial-recall--buffer-visible-p buffer)
 
+    (partial-recall--log "Handling buffer %s" buffer)
+
     (if (partial-recall--mapped-buffer-p buffer)
         (partial-recall--recollect buffer)
       (partial-recall--remember buffer))
