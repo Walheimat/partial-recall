@@ -1065,7 +1065,7 @@ removed from the memory again."
 
 ;;;###autoload
 (defun partial-recall-lift (buffer)
-  "Lift BUFFER out of the subconscious.
+  "Lift BUFFER out of the subconscious and switch to it.
 
 Buffers that are forgotten move to the subconscious first before
 being removed completely. As long as the subconscious itself
@@ -1073,7 +1073,9 @@ isn't at capacity and needs to drop the oldest buffer, it can be
 lifted."
   (interactive (list (partial-recall--complete-subconscious "Lift moment: ")))
 
-  (partial-recall--lift buffer))
+  (partial-recall--lift buffer)
+
+  (funcall partial-recall--switch-to-buffer-function buffer))
 
 (provide 'partial-recall)
 

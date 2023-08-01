@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   initial input unless it is meaningful or it was called with prefix
   argument.
 - Completions now provide initial input whenever it makes sense.
+- `partial-recall-lift` now switches to the lifted buffer.
 
 ## [v0.6.2]
 
