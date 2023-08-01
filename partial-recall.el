@@ -317,8 +317,9 @@ RESET is t, reset the update count instead and remove permanence."
       (progn
         (partial-recall--reset-count moment)
         (partial-recall--moment-set-permanence moment nil))
-    (partial-recall--moment-update-timestamp moment)
-    (partial-recall--moment-increment-count moment)))
+    (partial-recall--moment-increment-count moment))
+
+  (partial-recall--moment-update-timestamp moment))
 
 (defun partial-recall--reset-count (moment)
   "Reset the update count for MOMENT."
@@ -551,7 +552,7 @@ If EXCISE is t, remove permanence instead."
 
     (partial-recall--log "Lifting '%s' out of the subconscious" moment)
 
-    (partial-recall--swap sub reality moment)
+    (partial-recall--swap sub reality moment t)
 
     moment))
 
@@ -566,11 +567,13 @@ are (potentially) reclaimed."
     (when partial-recall-reclaim
       (partial-recall--reclaim buffer))))
 
-(defun partial-recall--swap (a b moment)
+(defun partial-recall--swap (a b moment &optional reset)
   "Swap MOMENT from memory A to B.
 
 Both memories will be probed. Memory A after the moment was
-removed, memory B before it is inserted."
+removed, memory B before it is inserted.
+
+If RESET is t, reset the swapped moment."
   (and-let* ((a-ring (partial-recall--memory-ring a))
              (b-ring (partial-recall--memory-ring b))
              (index (ring-member a-ring moment)))
@@ -582,7 +585,7 @@ removed, memory B before it is inserted."
       (partial-recall--probe-memory a)
       (partial-recall--probe-memory b)
 
-      (partial-recall--moment-refresh moment)
+      (partial-recall--moment-refresh moment reset)
 
       (ring-insert b-ring removed))))
 
