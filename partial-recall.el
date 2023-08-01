@@ -138,6 +138,7 @@ This is will implant buffers that have met
 (defvar partial-recall--subconscious-key "subconscious")
 (defvar partial-recall--timer nil)
 (defvar partial-recall--last-checked nil)
+(defvar partial-recall--neglect nil)
 (defvar partial-recall--switch-to-buffer-function #'switch-to-buffer)
 (defvar partial-recall--pop-to-buffer-function #'pop-to-buffer)
 (defvar partial-recall--before-minibuffer nil)
@@ -339,7 +340,7 @@ RESET is t, reset the update count instead and remove permanence."
   "Schedule handling BUFFER."
   (with-current-buffer buffer
     (and-let* ((buffer (current-buffer))
-               (new (not (eq partial-recall--last-checked buffer)))
+               ((partial-recall--new-buffer-p buffer))
                ((partial-recall--meaningful-buffer-p buffer)))
 
       (partial-recall--void-timer)
@@ -699,6 +700,13 @@ Memories in the subconscious are not considered."
 
       (tab-bar-switch-to-tab tab))))
 
+(defun partial-recall--switch-to-and-neglect (buffer)
+  "Switch to BUFFER and make sure it is neglected.
+
+This means the buffer won't be scheduled for handling."
+  (setq partial-recall--neglect buffer)
+  (funcall partial-recall--switch-to-buffer-function buffer))
+
 ;;; -- Conditionals
 
 (defun partial-recall--buffer-visible-p (buffer)
@@ -796,6 +804,15 @@ the max age."
   (> threshold
      (- (floor (time-to-seconds))
         (partial-recall--moment-timestamp moment))))
+
+(defun partial-recall--new-buffer-p (buffer)
+  "Check if BUFFER is actually new."
+  (cond
+   ((eq partial-recall--last-checked buffer)
+    nil)
+   ((eq partial-recall--neglect buffer)
+    (setq partial-recall--neglect nil))
+   (t t)))
 
 (defun partial-recall--meaningful-buffer-p (buffer)
   "Check if BUFFER should be remembered."
@@ -1012,7 +1029,7 @@ widened to all buffers."
 
   (partial-recall--remember buffer)
 
-  (funcall partial-recall--switch-to-buffer-function buffer))
+  (partial-recall--switch-to-and-neglect buffer))
 
 ;;;###autoload
 (defun partial-recall-switch-to-buffer (buffer)
@@ -1022,7 +1039,7 @@ The selection is limited to buffers belonging to the current
 memory."
   (interactive (list (partial-recall--complete-reality "Switch to moment: " t)))
 
-  (funcall partial-recall--switch-to-buffer-function buffer))
+  (partial-recall--switch-to-and-neglect buffer))
 
 ;;;###autoload
 (defun partial-recall-reclaim (buffer)
@@ -1036,7 +1053,7 @@ switched to."
   (when-let* ((reclaimed (partial-recall--reclaim buffer t))
               (buffer (partial-recall--moment-buffer reclaimed)))
 
-    (funcall partial-recall--switch-to-buffer-function buffer)))
+    (partial-recall--switch-to-and-neglect buffer)))
 
 ;;;###autoload
 (defun partial-recall-forget (buffer)
@@ -1075,7 +1092,7 @@ lifted."
 
   (partial-recall--lift buffer)
 
-  (funcall partial-recall--switch-to-buffer-function buffer))
+  (partial-recall--switch-to-and-neglect buffer))
 
 (provide 'partial-recall)
 

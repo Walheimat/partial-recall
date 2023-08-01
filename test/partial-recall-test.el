@@ -82,6 +82,12 @@
       (bydi-was-called partial-recall--void-timer)
       (bydi-was-called-with run-at-time `(1 nil partial-recall--handle-buffer ,buffer)))))
 
+(ert-deftest pr--schedule-buffer--ignores-neglected ()
+  (with-temp-buffer
+    (setq partial-recall--neglect (current-buffer))
+    (should-not (partial-recall--schedule-buffer (current-buffer)))
+    (should-not partial-recall--neglect)))
+
 (ert-deftest pr--handle-buffer ()
   (with-tab-history
     (let ((buffers (list (current-buffer))))
@@ -559,6 +565,18 @@
 
     (bydi-was-called quit-window)))
 
+(ert-deftest pr--switch-to-and-neglect ()
+  (let ((partial-recall--switch-to-buffer-function 'switch-to-buffer))
+
+    (bydi (switch-to-buffer)
+
+      (with-temp-buffer
+        (partial-recall--switch-to-and-neglect (current-buffer))
+
+        (should (eq (current-buffer) partial-recall--neglect))
+
+        (bydi-was-called-with switch-to-buffer (current-buffer))))))
+
 ;;; -- Conditionals
 
 (ert-deftest pr--memory-buffer-p ()
@@ -856,7 +874,7 @@
            partial-recall--implant
            partial-recall--lift
            partial-recall--remember
-           switch-to-buffer)
+           partial-recall--switch-to-and-neglect)
 
       (call-interactively 'partial-recall-reclaim)
       (call-interactively 'partial-recall-forget)
@@ -872,7 +890,7 @@
       (bydi-was-called partial-recall--implant)
       (bydi-was-called partial-recall--lift)
       (bydi-was-called partial-recall--remember)
-      (bydi-was-called-n-times switch-to-buffer 4))
+      (bydi-was-called-n-times partial-recall--switch-to-and-neglect 4))
 
     (kill-buffer buffer)))
 

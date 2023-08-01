@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   argument.
 - Completions now provide initial input whenever it makes sense.
 - `partial-recall-lift` now switches to the lifted buffer.
+- When API commands switch to a buffer, they are no longer scheduled.
 
 ## [v0.6.2]
 
