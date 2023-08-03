@@ -47,11 +47,7 @@ INCLUDE-SUBCONSCIOUS is t."
   (let* ((entries nil)
          (buffer-names nil)
          (tab-names nil)
-         (filter (if (or include-subconscious
-                         prm--subconscious)
-                     #'identity
-                   (lambda (it) (not (pr--subconscious-p it)))))
-         (memories (seq-filter filter (pr--memories))))
+         (memories (pr--memories (not include-subconscious))))
 
     (dolist (memory memories)
 

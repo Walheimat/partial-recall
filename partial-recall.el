@@ -258,9 +258,15 @@ Searches all memories unless MEMORY is provided."
              (tab (partial-recall--tab memory)))
     (alist-get 'name tab)))
 
-(defun partial-recall--memories ()
-  "Get all memories."
-  (hash-table-values partial-recall--table))
+(defun partial-recall--memories (&optional exclude-subconscious)
+  "Get all memories.
+
+If EXCLUDE-SUBCONSCIOUS is t, it is exclded."
+  (let ((memories (hash-table-values partial-recall--table)))
+
+    (if exclude-subconscious
+        (seq-filter (lambda (it) (not (partial-recall--subconscious-p it))) memories)
+      memories)))
 
 (defun partial-recall--reality ()
   "Get the current memory."
