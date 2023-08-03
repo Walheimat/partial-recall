@@ -882,7 +882,7 @@ the max age."
          (initial (when (memq current other-buffers)
                     (buffer-name current))))
 
-    (partial-recall--complete prompt other-buffers initial)))
+    (partial-recall--complete-buffer prompt other-buffers initial)))
 
 (defun partial-recall--complete-reality (prompt &optional no-preselect)
   "Complete reality buffer using PROMPT.
@@ -894,7 +894,7 @@ If NO-PRESELECT is t, no initial input is set."
          (initial (when (and (not no-preselect) (memq current buffers))
                     (buffer-name current))))
 
-    (partial-recall--complete prompt buffers initial)))
+    (partial-recall--complete-buffer prompt buffers initial)))
 
 (defun partial-recall--complete-subconscious (prompt)
   "Complete subconscious buffer using PROMPT."
@@ -906,7 +906,7 @@ If NO-PRESELECT is t, no initial input is set."
          (initial (when (memq current buffers)
                     (buffer-name current))))
 
-    (partial-recall--complete prompt buffers initial)))
+    (partial-recall--complete-buffer prompt buffers initial)))
 
 (defun partial-recall--complete-any (prompt &optional allow-non-file)
   "Complete any buffer using PROMPT.
@@ -923,9 +923,9 @@ are not considered."
                                    (not allow-non-file)))
                     (buffer-name (current-buffer)))))
 
-    (partial-recall--complete prompt candidates initial)))
+    (partial-recall--complete-buffer prompt candidates initial)))
 
-(defun partial-recall--complete (prompt buffers initial)
+(defun partial-recall--complete-buffer (prompt buffers initial)
   "Complete BUFFERS with INITIAL input.
 
 Completion is done using `completing-read' with PROMPT."
