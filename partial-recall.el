@@ -609,6 +609,25 @@ This removes, inserts and extends. The moment is refreshed."
 
     (ring-remove+insert+extend ring moment t)))
 
+(defun partial-recall--meld (a b &optional close)
+  "Meld memories A and B.
+
+This moves all of the moments in A to B.
+
+If CLOSE is t, the tab of B is closed."
+  (when (eq a b)
+    (user-error "Can't shift moments from identical memories"))
+
+  (let ((moments-a (partial-recall--memory-ring a))
+        (moments-b (partial-recall--memory-ring b)))
+
+    (while (not (ring-empty-p moments-a))
+      (let ((moment (ring-remove moments-a)))
+        (ring-insert+extend moments-b moment)))
+
+    (when close
+      (tab-bar-close-tab-by-name (partial-recall--tab-name a)))))
+
 (defun partial-recall--clean-up-buffer (buffer)
   "Clean up BUFFER if necessary.
 
@@ -940,6 +959,17 @@ Completion is done using `completing-read' with PROMPT."
 
     (cdr-safe (assoc selection collection))))
 
+(defun partial-recall--complete-memory (prompt &optional include-subconscious)
+  "Complete memory using PROMPT.
+
+The subconscious is not included unless INCLUDE-SUBCONSCIOUS is
+t."
+  (let* ((memories (partial-recall--memories (not include-subconscious)))
+         (collection (mapcar (lambda (it) (cons (partial-recall--name it) it)) memories))
+         (selection (completing-read prompt collection nil t)))
+
+    (cdr-safe (assoc selection collection))))
+
 ;;; -- Setup
 
 (defun partial-recall--fix-up-primary-tab ()
@@ -1010,6 +1040,7 @@ Completion is done using `completing-read' with PROMPT."
     (define-key map (kbd "f") 'partial-recall-forget)
     (define-key map (kbd "i") 'partial-recall-implant)
     (define-key map (kbd "m") 'partial-recall-menu)
+    (define-key map (kbd "u") 'partial-recall-meld)
     (define-key map (kbd "r") 'partial-recall-remember)
     (define-key map (kbd "l") 'partial-recall-lift)
     map)
@@ -1102,6 +1133,18 @@ lifted."
   (partial-recall--lift buffer)
 
   (partial-recall--switch-to-and-neglect buffer))
+
+;;;###autoload
+(defun partial-recall-meld (a b &optional close)
+  "Meld memories A and B.
+
+This moves all moments from A to B. If CLOSE is t, the tab of
+memory B is closed afterwards."
+  (interactive (list (partial-recall--complete-memory "Meld source: ")
+                     (partial-recall--complete-memory "Meld target: ")
+                     current-prefix-arg))
+
+  (partial-recall--meld a b close))
 
 (provide 'partial-recall)
 

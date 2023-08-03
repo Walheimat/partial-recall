@@ -565,6 +565,19 @@
 
     (bydi-was-called quit-window)))
 
+(ert-deftest pr--meld ()
+  (with-tab-history :pre t :second t
+    (should-error (partial-recall--meld (partial-recall--reality) (partial-recall--reality)))
+
+    (bydi (tab-bar-close-tab-by-name)
+      (partial-recall--meld (partial-recall--reality) second-memory t)
+
+      (should (ring-empty-p (partial-recall--memory-ring (partial-recall--reality))))
+
+      (should (partial-recall--memory-buffer-p (current-buffer) second-memory))
+
+      (bydi-was-called-with tab-bar-close-tab-by-name "test-tab"))))
+
 (ert-deftest pr--switch-to-and-neglect ()
   (let ((partial-recall--switch-to-buffer-function 'switch-to-buffer))
 
@@ -783,6 +796,15 @@
 
     (bydi-was-called-with completing-read '(... ((b . b) (d . d)) ... current))))
 
+(ert-deftest pr--complete-memory ()
+  (bydi (completing-read
+         (:mock partial-recall--memories :return '(a b c))
+         (:mock partial-recall--name :with bydi-rf))
+
+    (partial-recall--complete-memory "Some prompt: ")
+
+    (bydi-was-called-with completing-read '(... ((a . a) (b . b) (c . c))))))
+
 ;;; -- Setup
 
 (ert-deftest pr--fix-up-primary-tab ()
@@ -871,10 +893,12 @@
            partial-recall--complete-reality
            partial-recall--complete-subconscious
            partial-recall--complete-any
+           partial-recall--complete-memory
            partial-recall--implant
            partial-recall--lift
            partial-recall--remember
-           partial-recall--switch-to-and-neglect)
+           partial-recall--switch-to-and-neglect
+           partial-recall--meld)
 
       (call-interactively 'partial-recall-reclaim)
       (call-interactively 'partial-recall-forget)
@@ -882,6 +906,7 @@
       (call-interactively 'partial-recall-implant)
       (call-interactively 'partial-recall-lift)
       (call-interactively 'partial-recall-remember)
+      (call-interactively 'partial-recall-meld)
 
       (bydi-was-called partial-recall--reclaim)
       (bydi-was-called partial-recall--forget)
@@ -890,7 +915,9 @@
       (bydi-was-called partial-recall--implant)
       (bydi-was-called partial-recall--lift)
       (bydi-was-called partial-recall--remember)
-      (bydi-was-called-n-times partial-recall--switch-to-and-neglect 4))
+      (bydi-was-called partial-recall--meld)
+      (bydi-was-called-n-times partial-recall--switch-to-and-neglect 4)
+      (bydi-was-called-n-times partial-recall--complete-memory 2))
 
     (kill-buffer buffer)))
 
