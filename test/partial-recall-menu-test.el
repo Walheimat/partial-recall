@@ -74,7 +74,7 @@
 
 (ert-deftest prm--switch ()
   (let ((real nil))
-    (bydi ((:mock partial-recall-menu--id :return (list "tab" 'buffer real))
+    (bydi ((:mock partial-recall-menu--id :return (list "tab" 'buffer real 'sub))
            tab-bar-switch-to-tab
            switch-to-buffer)
 

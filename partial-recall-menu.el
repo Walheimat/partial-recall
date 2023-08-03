@@ -115,7 +115,7 @@ Includes subconscious buffers if INCLUDE-SUBCONSCIOUS is t."
   "Switch using FUN.
 
 If NO-OTHER-TAB is t, raise an error if that would be necessary."
-  (prm--with-props (tab buffer real)
+  (prm--with-props (tab buffer real _sub)
     (unless real
       (if no-other-tab
           (user-error "Can't switch tabs")
