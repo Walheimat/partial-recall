@@ -142,6 +142,7 @@ This is will implant buffers that have met
 (defvar partial-recall--switch-to-buffer-function #'switch-to-buffer)
 (defvar partial-recall--pop-to-buffer-function #'pop-to-buffer)
 (defvar partial-recall--before-minibuffer nil)
+(defvar-local partial-recall--implanted nil)
 
 ;;; -- Structures
 
@@ -294,6 +295,9 @@ If EXCLUDE-SUBCONSCIOUS is t, it is exclded."
 (defun partial-recall--moment-set-permanence (moment permanence)
   "Set MOMENT PERMANENCE."
   (setf (partial-recall--moment-permanence moment) permanence)
+
+  (with-current-buffer (partial-recall--moment-buffer moment)
+    (setq-local partial-recall--implanted permanence))
 
   moment)
 
@@ -1030,6 +1034,14 @@ t."
   (remove-hook 'delete-frame-functions #'partial-recall--on-frame-delete))
 
 ;;; -- API
+
+(defun partial-recall-implanted-p (&optional buffer)
+  "Check if BUFFER is implanted.
+
+If BUFFER is nil, use the current buffer."
+  (interactive)
+
+  (buffer-local-value partial-recall--implanted (or buffer (current-buffer))))
 
 ;;;###autoload
 (defvar partial-recall-command-map

@@ -869,6 +869,20 @@
     (bydi-was-called-n-times advice-remove 3)
     (bydi-was-called-n-times remove-hook 7)))
 
+;;; -- API
+
+(ert-deftest pr-implanted-p ()
+  (with-tab-history :pre t
+    (should-not (partial-recall-implanted-p (current-buffer)))
+
+    (partial-recall--implant)
+
+    (should (partial-recall-implanted-p))
+
+    (partial-recall--implant (current-buffer) t)
+
+    (should-not (partial-recall-implanted-p (current-buffer)))))
+
 (ert-deftest pr-mode ()
   (bydi (partial-recall-mode--setup
          partial-recall-mode--teardown)

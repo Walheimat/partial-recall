@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New command `partial-recall-meld` to combine two memories into one
   and optionally closing the source memory. Bound to `u` in the
   command map.
+- New command `partial-recall-implanted-p` to check whether the
+  (current) buffer is implanted.
 
 ## [v0.6.3]
 
