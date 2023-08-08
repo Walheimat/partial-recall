@@ -276,7 +276,7 @@
 
         (partial-recall--remember another-temp)
 
-        (should (eq 2 (partial-recall--update-count)))
+        (should (eq 1 (partial-recall--update-count)))
 
         (kill-buffer another-temp)))))
 
@@ -523,17 +523,22 @@
     (with-tab-history :pre t
 
       (bydi ((:spy partial-recall--maybe-implant-moment)
-             (:spy partial-recall--implant))
+             (:spy partial-recall--implant)
+             partial-recall--reset-count)
 
         (partial-recall--reinforce (current-buffer))
         (partial-recall--reinforce (current-buffer))
         (partial-recall--reinforce (current-buffer))
 
-        (bydi-was-called-n-times partial-recall--maybe-implant-moment 4)
-        (bydi-was-called-n-times partial-recall--implant 1))
+        (bydi-was-called-n-times partial-recall--maybe-implant-moment 3)
+        (bydi-was-called-n-times partial-recall--implant 1)
 
-      (let ((moment (partial-recall--moment-from-buffer (current-buffer))))
-        (should (partial-recall--moment-permanence moment))))))
+        (let ((moment (partial-recall--moment-from-buffer (current-buffer))))
+          (should (partial-recall--moment-permanence moment)))
+
+        (partial-recall--implant (current-buffer) t)
+
+        (bydi-was-called partial-recall--reset-count)))))
 
 (ert-deftest pr--maybe-switch-memory ()
   (let ((partial-recall-auto-switch t))

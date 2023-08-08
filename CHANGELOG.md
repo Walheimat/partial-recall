@@ -15,6 +15,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New command `partial-recall-implanted-p` to check whether the
   (current) buffer is implanted.
 
+### Changed
+
+- Implanting moments no longer increases their update count. In fact,
+  excising will reset it.
+
 ## [v0.6.3]
 
 ### Added

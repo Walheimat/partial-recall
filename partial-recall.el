@@ -524,14 +524,17 @@ automatically forgotten.
 
 If EXCISE is t, remove permanence instead."
   (when-let* ((buffer (or buffer (current-buffer)))
-              (moment (partial-recall--moment-from-buffer buffer)))
+              (moment (partial-recall--moment-from-buffer buffer))
+              (verb (if excise "Excising" "Implanting")))
 
     (unless (eq (partial-recall--moment-permanence moment) (not excise))
 
-      (partial-recall--log "Implanting %s" moment)
+      (partial-recall--log "%s %s" verb moment)
 
       (partial-recall--moment-set-permanence moment (not excise))
-      (partial-recall--moment-increment-count moment))))
+
+      (when excise
+        (partial-recall--reset-count moment)))))
 
 (defun partial-recall--suppress (moment)
   "Suppress MOMENT in the subconscious."
