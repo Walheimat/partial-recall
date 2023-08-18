@@ -30,6 +30,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Probing memories now only extends if there was no resizing.
 
+### Removed
+
+- Functions `partial-recall--reality-buffer-p` and
+  `partial-recall--reality-owns-buffer-p` in favor of using
+  `partial-recall--memory-buffer-p`.
+
 ## [v0.6.3]
 
 ### Added

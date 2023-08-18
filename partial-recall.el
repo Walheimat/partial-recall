@@ -284,28 +284,25 @@ If EXCLUDE-SUBCONSCIOUS is t, it is exclded."
         (seq-filter (lambda (it) (not (partial-recall--subconscious-p it))) memories)
       memories)))
 
-(defun partial-recall--reality ()
-  "Get the current memory."
+(defun partial-recall--memory-by-key (key)
+  "Get or create memory identified by KEY."
   (if-let* ((table partial-recall--table)
-            (key (partial-recall--key))
             (memory (gethash key table)))
+
       memory
+
     (let ((new-memory (partial-recall--memory-create key)))
 
-      (when key
-        (puthash key new-memory table)
-        new-memory))))
+      (puthash key new-memory table)
+      new-memory)))
+
+(defun partial-recall--reality ()
+  "Get the current memory."
+  (partial-recall--memory-by-key (partial-recall--key)))
 
 (defun partial-recall--subconscious ()
   "Return (or create) the subconscious."
-  (if-let* ((table partial-recall--table)
-            (key partial-recall--subconscious-key)
-            (subconscious (gethash key table)))
-      subconscious
-    (let ((memory (partial-recall--memory-create key)))
-
-      (puthash key memory partial-recall--table)
-      memory)))
+  (partial-recall--memory-by-key partial-recall--subconscious-key))
 
 (defun partial-recall--moment-set-permanence (moment permanence)
   "Set MOMENT PERMANENCE."
@@ -590,7 +587,7 @@ If EXCISE is t, remove permanence instead."
 Recollection happens to mapped buffers. Those belonging to the
 current reality are reinforced. Those of other memories
 are (potentially) reclaimed."
-  (if (partial-recall--reality-buffer-p buffer)
+  (if (partial-recall--memory-buffer-p buffer)
       (partial-recall--reinforce buffer)
     (when partial-recall-reclaim
       (partial-recall--reclaim buffer))))
@@ -741,7 +738,7 @@ Memories in the subconscious are not considered."
     (and-let* (partial-recall-auto-switch
                (buffer (current-buffer))
                ((partial-recall--mapped-buffer-p buffer))
-               ((not (partial-recall--reality-buffer-p buffer)))
+               ((not (partial-recall--memory-buffer-p buffer)))
                (moment (partial-recall--moment-from-buffer buffer))
                ((not (partial-recall--exceeds-p moment (- partial-recall-reclaim-min-age
                                                           partial-recall-handle-delay))))
@@ -779,10 +776,12 @@ This also checks for buffers that might have been obscured."
 
     (eq (ring-length ring) (ring-size ring))))
 
-(defun partial-recall--memory-buffer-p (buffer memory)
-  "Check if BUFFER is a member of MEMORY."
+(defun partial-recall--memory-buffer-p (buffer &optional memory)
+  "Check if BUFFER is a member of MEMORY.
+
+If MEMORY is not passed, use the current reality."
   (partial-recall--moments-member
-   (partial-recall--memory-ring memory)
+   (partial-recall--memory-ring (or memory (partial-recall--reality)))
    buffer))
 
 (defun partial-recall--moment-buffer-p (buffer moment)
@@ -808,19 +807,6 @@ INCLUDE-SUBCONSCIOUS is t."
 (defun partial-recall--reality-p (memory)
   "Check if MEMORY is the reality."
   (eq (partial-recall--reality) memory))
-
-(defun partial-recall--reality-buffer-p (buffer)
-  "Check if BUFFER belongs to the current memory."
-  (when-let* ((reality (partial-recall--reality))
-              (moments (partial-recall--memory-ring reality)))
-
-    (partial-recall--moments-member moments buffer)))
-
-(defun partial-recall--reality-owns-buffer-p (&optional buffer)
-  "Check if reality owns BUFFER."
-  (when-let ((memory (partial-recall--reality)))
-
-    (partial-recall--memory-buffer-p buffer memory)))
 
 (defun partial-recall--should-extend-memory-p (memory)
   "Check if MEMORY should extend its ring size.
@@ -935,7 +921,7 @@ the max age."
 (defun partial-recall--complete-dream (prompt)
   "Complete dream buffer using PROMPT."
   (let* ((buffers (partial-recall--mapped-buffers))
-         (other-buffers (seq-filter (lambda (it) (not (partial-recall--reality-owns-buffer-p it))) buffers))
+         (other-buffers (seq-filter (lambda (it) (not (partial-recall--memory-buffer-p it))) buffers))
          (current (current-buffer))
          (initial (when (memq current other-buffers)
                     (buffer-name current))))
@@ -947,7 +933,7 @@ the max age."
 
 If NO-PRESELECT is t, no initial input is set."
   (let* ((mapped (partial-recall--mapped-buffers))
-         (buffers (seq-filter #'partial-recall--reality-owns-buffer-p mapped))
+         (buffers (seq-filter #'partial-recall--memory-buffer-p mapped))
          (current (current-buffer))
          (initial (when (and (not no-preselect) (memq current buffers))
                     (buffer-name current))))

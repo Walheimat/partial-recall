@@ -320,7 +320,7 @@
         (should (ring-member ring moment))))))
 
 (ert-deftest pr-recollect--reinforces-reality-or-reclaims ()
-  (bydi ((:sometimes partial-recall--reality-buffer-p)
+  (bydi ((:sometimes partial-recall--memory-buffer-p)
          partial-recall--reinforce
          partial-recall--reclaim)
     (partial-recall--recollect (current-buffer))
@@ -618,14 +618,6 @@
 
     (should (partial-recall--mapped-buffer-p (current-buffer)))))
 
-(ert-deftest pr--reality-buffer-p ()
-  (with-tab-history :pre t
-    (should (partial-recall--reality-buffer-p (current-buffer)))))
-
-(ert-deftest pr--reality-owns-buffer-p ()
-  (with-tab-history :pre t
-    (should (partial-recall--reality-owns-buffer-p (current-buffer)))))
-
 (ert-deftest pr--should-extend-memory-p ()
   (let ((seconds '(10 11 12))
         (partial-recall-buffer-limit 1)
@@ -754,14 +746,14 @@
 
 (ert-deftest pr--complete-dream ()
   (bydi-with-mock ((:mock completing-read :return "second")
-                   (:ignore partial-recall--reality-owns-buffer-p)
+                   (:ignore partial-recall--memory-buffer-p)
                    (:mock partial-recall--mapped-buffers :return '("first" "second" "third"))
                    (:mock buffer-name :with bydi-rf))
     (should (string= "second" (partial-recall--complete-dream "Some prompt: ")))))
 
 (ert-deftest pr--complete-dream--initial-input ()
   (bydi-with-mock (completing-read
-                   (:ignore partial-recall--reality-owns-buffer-p)
+                   (:ignore partial-recall--memory-buffer-p)
                    (:mock partial-recall--mapped-buffers :return '(third))
                    (:mock current-buffer :return 'third)
                    (:mock buffer-name :with bydi-rf))
@@ -770,14 +762,14 @@
 
 (ert-deftest pr--complete-reality ()
   (bydi-with-mock ((:mock completing-read :return "second")
-                   (:always partial-recall--reality-owns-buffer-p)
+                   (:always partial-recall--memory-buffer-p)
                    (:mock partial-recall--mapped-buffers :return '("first" "second" "third"))
                    (:mock buffer-name :with bydi-rf))
     (should (string= "second" (partial-recall--complete-reality "Some prompt: ")))))
 
 (ert-deftest pr--complete-reality--initial-input ()
   (bydi (completing-read
-         (:always partial-recall--reality-owns-buffer-p)
+         (:always partial-recall--memory-buffer-p)
          (:mock partial-recall--mapped-buffers :return '(first second third))
          (:mock buffer-name :with bydi-rf)
          (:mock current-buffer :return 'second))

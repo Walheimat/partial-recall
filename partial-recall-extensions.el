@@ -23,7 +23,7 @@
         :require-match t
         :items
         #'(lambda () (consult--buffer-query :sort 'visibility
-                                       :predicate #'partial-recall--reality-buffer-p
+                                       :predicate #'partial-recall--memory-buffer-p
                                        :as #'buffer-name)))
   "Buffers that are recalled from the current tab.")
 
