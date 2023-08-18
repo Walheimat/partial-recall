@@ -4,6 +4,8 @@
 ;;
 ;; Tests for `partial-recall'.
 
+;;; Code:
+
 (require 'partial-recall nil t)
 
 ;;; -- Accessors
@@ -727,6 +729,14 @@
 
         (kill-buffer buffer)))))
 
+(ert-deftest pr--message--always-calls ()
+  (let ((partial-recall-log nil))
+
+    (bydi (partial-recall--log)
+      (partial-recall--message "test")
+
+      (bydi-was-called partial-recall--log))))
+
 (ert-deftest pr--repr ()
   (bydi-with-mock ((:mock format-time-string :return "now")
                    (:mock partial-recall--name :return "test"))
@@ -898,18 +908,6 @@
 
 ;;; -- API
 
-(ert-deftest pr-implanted-p ()
-  (with-tab-history :pre t
-    (should-not (partial-recall-implanted-p (current-buffer)))
-
-    (partial-recall--implant)
-
-    (should (partial-recall-implanted-p))
-
-    (partial-recall--implant (current-buffer) t)
-
-    (should-not (partial-recall-implanted-p (current-buffer)))))
-
 (ert-deftest pr-mode ()
   (bydi (partial-recall-mode--setup
          partial-recall-mode--teardown)
@@ -961,8 +959,6 @@
       (bydi-was-called-n-times partial-recall--complete-memory 2))
 
     (kill-buffer buffer)))
-
-;;; Code:
 
 ;;; partial-recall-test.el ends here
 

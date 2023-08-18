@@ -881,6 +881,12 @@ the max age."
 
       (apply 'message fmt args))))
 
+(defun partial-recall--message (fmt &rest args)
+  "Use ARGS to format FMT and always show."
+  (let ((partial-recall-log t))
+
+    (apply 'partial-recall--log fmt args)))
+
 (defun partial-recall--prefix-fmt-string (format-string)
   "Prefix FORMAT-STRING."
   (if partial-recall-log-prefix
@@ -1049,14 +1055,6 @@ t."
   (remove-hook 'delete-frame-functions #'partial-recall--on-frame-delete))
 
 ;;; -- API
-
-(defun partial-recall-implanted-p (&optional buffer)
-  "Check if BUFFER is implanted.
-
-If BUFFER is nil, use the current buffer."
-  (interactive)
-
-  (buffer-local-value partial-recall--implanted (or buffer (current-buffer))))
 
 ;;;###autoload
 (defvar partial-recall-command-map

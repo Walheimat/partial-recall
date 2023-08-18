@@ -12,13 +12,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New command `partial-recall-meld` to combine two memories into one
   and optionally closing the source memory. Bound to `u` in the
   command map.
-- New command `partial-recall-implanted-p` to check whether the
-  (current) buffer is implanted.
 - New custom variable `partial-recall-traits`. This is a list of
   functions used to determine whether a buffer is meaningful, i.e.
   whether it should be scheduled. By default it only includes
   `buffer-file-name`. The introduction of this variable means that
   functionality is no longer tied to file buffers if so desired.
+- Command `partial-recall-buffer-specs` that gives information as to a
+  buffer's characteristics.
+- Command `partial-recall-memory-specs` that does the same thing for
+  memories.
 
 ### Changed
 
