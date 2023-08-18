@@ -315,6 +315,13 @@ If EXCLUDE-SUBCONSCIOUS is t, it is exclded."
   "Return (or create) the subconscious."
   (partial-recall--memory-by-key partial-recall--subconscious-key))
 
+(defun partial-recall--moments-member (moments buffer)
+  "Check if BUFFER is a member of MOMENTS."
+  (catch 'found
+    (dotimes (ind (ring-length moments))
+      (when (equal buffer (partial-recall--moment-buffer (ring-ref moments ind)))
+        (throw 'found ind)))))
+
 (defun partial-recall--moment-set-permanence (moment permanence)
   "Set MOMENT PERMANENCE."
   (setf (partial-recall--moment-permanence moment) permanence)
@@ -369,6 +376,14 @@ RESET is t, reset the update count instead and remove permanence."
               (removed (ring-remove moments index)))
 
     removed))
+
+(defun partial-recall--insert (ring item &optional extend)
+  "Insert ITEM in RING.
+
+If EXTEND is t, also extend."
+  (ring-insert+extend ring item extend)
+
+  (run-hooks 'partial-recall-after-insert-hook))
 
 ;;; -- Handlers
 
@@ -836,13 +851,6 @@ If MEMORY is not passed, use the current reality."
   "Check if BUFFER is encapsulated by MOMENT."
   (eq (partial-recall--moment-buffer moment) buffer))
 
-(defun partial-recall--moments-member (moments buffer)
-  "Check if BUFFER is a member of MOMENTS."
-  (catch 'found
-    (dotimes (ind (ring-length moments))
-      (when (equal buffer (partial-recall--moment-buffer (ring-ref moments ind)))
-        (throw 'found ind)))))
-
 (defun partial-recall--mapped-buffer-p (buffer &optional include-subconscious)
   "Check if BUFFER is mapped.
 
@@ -915,15 +923,7 @@ the max age."
              (filter (mapconcat (lambda (it) (concat "\\(?:" it "\\)")) partial-recall-filter "\\|"))
              ((not (string-match-p filter (buffer-name buffer)))))))
 
-;;; -- Utility
-
-(defun partial-recall--insert (ring item &optional extend)
-  "Insert ITEM in RING.
-
-If EXTEND is t, also extend."
-  (ring-insert+extend ring item extend)
-
-  (run-hooks 'partial-recall-after-insert-hook))
+;;; -- Printing
 
 (defun partial-recall--warn (message)
   "Warn about MESSAGE."
@@ -937,6 +937,11 @@ If EXTEND is t, also extend."
 
       (apply 'message fmt args))))
 
+(defun partial-recall--debug (fmt &rest args)
+  "Use ARGS to format FMT if debug is enabled."
+  (when (< partial-recall-log-level 1)
+    (apply 'partial-recall--log fmt args)))
+
 (defun partial-recall--message (fmt &rest args)
   "Use ARGS to format FMT and always show."
   (let ((partial-recall-log t))
@@ -948,11 +953,6 @@ If EXTEND is t, also extend."
   (if partial-recall-log-prefix
       (concat (propertize partial-recall-log-prefix 'face 'shadow) ": " format-string)
     format-string))
-
-(defun partial-recall--debug (fmt &rest args)
-  "Use ARGS to format FMT if debug is enabled."
-  (when (< partial-recall-log-level 1)
-    (apply 'partial-recall--log fmt args)))
 
 (defun partial-recall--repr (thing)
   "Format THING if it's a custom structure."
