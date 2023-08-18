@@ -11,8 +11,8 @@
 
 =partial-recall= provides a narrow buffer scope built on top of
 =tab-bar-mode=. It turns each tab into a living (that is: forgetful)
-workspace. Each file buffer that is first visited in a tab will be
-associated with that tab until a limit is met whereupon the oldest
+workspace. Each meaningful buffer that is first visited in a tab will
+be associated with that tab until a limit is met whereupon the oldest
 buffer is forgotten. If a newly visited buffer is already associated
 with another tab, it may be reclaimed (automatically or manually). If
 all buffers were visited relatively recently, the size of the limit
@@ -87,3 +87,5 @@ probably want to bind the following commands:
 - =partial-recall-reclaim=
 - =partial-recall-remember=
 - =partial-recall-switch-to-buffer=
+- =partial-recall-meld=
+- =partial-recall-flush=

@@ -1,6 +1,10 @@
 PACKAGE_NAME=partial-recall
 PACKAGE_SUFFIX=tar
-CURRENT_PACKAGE_VERSION=0.6.4
+CURRENT_PACKAGE_VERSION=0.7.0
+UPDATE_VERSION_FILES=Cask \
+					 partial-recall.el \
+					 partial-recall-menu.el \
+                     partial-recall-extensions.el
 
 PACIFY_DEPS=partial-recall.el \
 			partial-recall-menu.el \
