@@ -23,6 +23,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   memories.
 - Hooks `partial-recall-permanence-change-hook`,
   `partial-recall-probe-hook` and `partial-recall-after-insert-hook`.
+- Command `partial-recall-flush` to remove all moments that are
+  neither permanent nor were ever updated (excluding the currently
+  visited buffer).
 
 ### Changed
 

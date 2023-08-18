@@ -434,24 +434,21 @@
 
     (bydi (partial-recall--suppress)
       (with-tab-history :pre t
-        (partial-recall--remember another-temp)
-        (partial-recall--remember yet-another-temp)
+        (let ((ring (partial-recall--memory-ring (partial-recall--reality))))
 
-        (should (eq (ring-size (partial-recall--memory-ring (partial-recall--reality)))
-                    3))
+          (partial-recall--remember another-temp)
+          (partial-recall--remember yet-another-temp)
 
-        (partial-recall--forget another-temp)
+          (should (eq (ring-size ring) 3))
+          (should (eq (ring-length ring) 3))
 
-        (should (eq (ring-size (partial-recall--memory-ring (partial-recall--reality)))
-                    2))
+          (partial-recall--flush (partial-recall--reality))
 
-        (partial-recall--forget yet-another-temp)
+          (should (eq (ring-size ring) 2))
+          (should (eq (ring-length ring) 0))
 
-        (should (eq (ring-size (partial-recall--memory-ring (partial-recall--reality)))
-                    2))
-
-        (kill-buffer another-temp)
-        (kill-buffer yet-another-temp)))))
+          (kill-buffer another-temp)
+          (kill-buffer yet-another-temp))))))
 
 (ert-deftest partial-recall--suppress--remembers ()
   (with-tab-history :pre t
@@ -584,6 +581,33 @@
       (should (partial-recall--memory-buffer-p (current-buffer) second-memory))
 
       (bydi-was-called-with tab-bar-close-tab-by-name "test-tab"))))
+
+(ert-deftest pr--flush ()
+  (with-tab-history :pre t
+    (let ((another (generate-new-buffer " *temp*" t))
+          (ring (partial-recall--memory-ring (partial-recall--reality))))
+
+      (partial-recall--remember another)
+
+      (should (eq 2 (ring-length ring)))
+
+      (partial-recall--implant another)
+
+      (bydi (partial-recall--clean-up-buffer)
+        (partial-recall--flush (partial-recall--reality))
+
+        (bydi-was-called partial-recall--clean-up-buffer))
+
+      (should (eq 1 (ring-length ring)))
+      (should (eq another (partial-recall--moment-buffer (ring-ref ring 0))))
+
+      (with-current-buffer another
+        (partial-recall--implant another t)
+
+        (partial-recall--flush (partial-recall--reality) t)
+
+        (should (eq 1 (ring-length ring)))
+        (should (eq another (partial-recall--moment-buffer (ring-ref ring 0))))))))
 
 (ert-deftest pr--switch-to-and-neglect ()
   (let ((partial-recall--switch-to-buffer-function 'switch-to-buffer))
@@ -937,7 +961,8 @@
            partial-recall--lift
            partial-recall--remember
            partial-recall--switch-to-and-neglect
-           partial-recall--meld)
+           partial-recall--meld
+           partial-recall--flush)
 
       (call-interactively 'partial-recall-reclaim)
       (call-interactively 'partial-recall-forget)
@@ -946,6 +971,7 @@
       (call-interactively 'partial-recall-lift)
       (call-interactively 'partial-recall-remember)
       (call-interactively 'partial-recall-meld)
+      (call-interactively 'partial-recall-flush)
 
       (bydi-was-called partial-recall--reclaim)
       (bydi-was-called partial-recall--forget)
@@ -955,6 +981,7 @@
       (bydi-was-called partial-recall--lift)
       (bydi-was-called partial-recall--remember)
       (bydi-was-called partial-recall--meld)
+      (bydi-was-called partial-recall--flush)
       (bydi-was-called-n-times partial-recall--switch-to-and-neglect 4)
       (bydi-was-called-n-times partial-recall--complete-memory 2))
 

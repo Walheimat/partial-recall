@@ -661,6 +661,38 @@ If CLOSE is t, the tab of B is closed."
     (when close
       (tab-bar-close-tab-by-name (partial-recall--tab-name a)))))
 
+(defun partial-recall--flush (memory &optional exclude-current)
+  "Flush MEMORY.
+
+If MEMORY is not provided, flush the reality.
+
+Any moment that is neither permanent nor was ever updated will be
+suppressed.
+
+If EXCLUDE-CURRENT, the currently visited buffer's moment is not
+removed if it doesn't meet the criteria."
+  (let* ((ring (partial-recall--memory-ring memory))
+         (count 0)
+         (current (current-buffer)))
+
+    (dolist (moment (ring-elements ring))
+      (unless (or (partial-recall--moment-permanence moment)
+                  (> 0 (partial-recall--moment-update-count moment))
+                  (and exclude-current (eq current (partial-recall--moment-buffer moment))))
+
+        (setq count (1+ count))
+
+        (let* ((index (ring-member ring moment))
+               (removed (ring-remove ring index)))
+
+          (partial-recall--suppress removed))
+
+        (partial-recall--clean-up-buffer (partial-recall--moment-buffer moment))))
+
+    (partial-recall--log "Flushed %d moments from %s" count memory)
+
+    (partial-recall--probe-memory memory)))
+
 (defun partial-recall--clean-up-buffer (buffer)
   "Clean up BUFFER if necessary.
 
@@ -712,7 +744,7 @@ re-insert any implanted one."
                (> curr orig))
       (partial-recall--debug "Resizing %s" memory)
 
-      (ring-resize ring (1- (ring-size ring))))))
+      (ring-resize ring (max (ring-length ring) orig)))))
 
 (defun partial-recall--maybe-extend-memory (memory)
   "Maybe extend MEMORY.
@@ -1092,6 +1124,7 @@ t."
     (define-key map (kbd "u") 'partial-recall-meld)
     (define-key map (kbd "r") 'partial-recall-remember)
     (define-key map (kbd "l") 'partial-recall-lift)
+    (define-key map (kbd "x") 'partial-recall-flush)
     map)
   "Map for `partial-recall-mode' commands.")
 
@@ -1194,6 +1227,18 @@ memory B is closed afterwards."
                      current-prefix-arg))
 
   (partial-recall--meld a b close))
+
+;;;###autoload
+(defun partial-recall-flush (&optional include-current)
+  "Flush the current memory.
+
+Removes impermanent and never updated moments.
+
+If INCLUDE-CURRENT is t, the current buffer may also be flushed
+if it doesn't meet the criteria."
+  (interactive "P")
+
+  (partial-recall--flush (partial-recall--reality) (not include-current)))
 
 (provide 'partial-recall)
 
