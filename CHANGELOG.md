@@ -21,12 +21,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   buffer's characteristics.
 - Command `partial-recall-memory-specs` that does the same thing for
   memories.
+- Hooks `partial-recall-permanence-change-hook`,
+  `partial-recall-probe-hook` and `partial-recall-after-insert-hook`.
 
 ### Changed
 
 - Implanting moments no longer increases their update count. In fact,
   excising will reset it.
 - Forgetting buffers now probes the memory.
+- Insertion is now done using `partial-recall--insert`.
 
 ### Fixed
 

@@ -159,6 +159,17 @@ is not considered meaningful."
 (defvar partial-recall--before-minibuffer nil)
 (defvar-local partial-recall--implanted nil)
 
+;;; -- Hooks
+
+(defvar partial-recall-probe-hook nil
+  "Functions called after a memory was probed.")
+
+(defvar partial-recall-permanence-change-hook nil
+  "Functions called after a moment's permanence has changed.")
+
+(defvar partial-recall-after-insert-hook nil
+  "Functions called after a moment was inserted.")
+
 ;;; -- Structures
 
 (cl-defstruct (partial-recall--moment
@@ -310,6 +321,8 @@ If EXCLUDE-SUBCONSCIOUS is t, it is exclded."
 
   (with-current-buffer (partial-recall--moment-buffer moment)
     (setq-local partial-recall--implanted permanence))
+
+  (run-hooks 'partial-recall-permanence-change-hook)
 
   moment)
 
@@ -476,7 +489,7 @@ part of the current reality."
     (let ((moment (or (partial-recall--lift buffer)
                       (partial-recall--moment-create buffer))))
 
-      (ring-insert ring moment))))
+      (partial-recall--insert ring moment))))
 
 (defun partial-recall--reinforce (buffer)
   "Reinforce the BUFFER in reality.
@@ -567,7 +580,7 @@ If EXCISE is t, remove permanence instead."
 
     (partial-recall--moment-refresh moment t)
 
-    (ring-insert ring moment)))
+    (partial-recall--insert ring moment)))
 
 (defun partial-recall--lift (buffer)
   "Lift BUFFER into reality."
@@ -612,7 +625,7 @@ If RESET is t, reset the swapped moment."
 
       (partial-recall--moment-refresh moment reset)
 
-      (ring-insert b-ring removed))))
+      (partial-recall--insert b-ring removed))))
 
 (defun partial-recall--reinsert (moment memory)
   "Reinsert MOMENT into MEMORY.
@@ -642,7 +655,7 @@ If CLOSE is t, the tab of B is closed."
 
     (while (not (ring-empty-p moments-a))
       (let ((moment (ring-remove moments-a)))
-        (ring-insert+extend moments-b moment)))
+        (partial-recall--insert moments-b moment t)))
 
     (when close
       (tab-bar-close-tab-by-name (partial-recall--tab-name a)))))
@@ -668,7 +681,9 @@ as well as resize and extend the memory if necessary."
   (or  (partial-recall--maybe-resize-memory memory)
        (partial-recall--maybe-extend-memory memory))
   (partial-recall--maybe-reinsert-implanted memory)
-  (partial-recall--maybe-suppress-oldest-moment memory))
+  (partial-recall--maybe-suppress-oldest-moment memory)
+
+  (run-hooks 'partial-recall-probe-hook))
 
 (defun partial-recall--maybe-reinsert-implanted (memory)
   "Maybe reinforce oldest moments in MEMORY.
@@ -868,6 +883,14 @@ the max age."
              ((not (string-match-p filter (buffer-name buffer)))))))
 
 ;;; -- Utility
+
+(defun partial-recall--insert (ring item &optional extend)
+  "Insert ITEM in RING.
+
+If EXTEND is t, also extend."
+  (ring-insert+extend ring item extend)
+
+  (run-hooks 'partial-recall-after-insert-hook))
 
 (defun partial-recall--warn (message)
   "Warn about MESSAGE."
