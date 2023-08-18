@@ -450,6 +450,7 @@ Don't do anything if NORECORD is t."
              (moments (partial-recall--memory-ring memory)))
 
     (dolist (it (ring-elements moments))
+      (partial-recall--clean-up-buffer (partial-recall--moment-buffer it))
       (partial-recall--suppress it))
 
     (remhash tab-key table)))
@@ -486,10 +487,10 @@ part of the current reality."
 
     (partial-recall--probe-memory memory)
 
-    (let ((moment (or (partial-recall--lift buffer)
-                      (partial-recall--moment-create buffer))))
+    (unless (partial-recall--lift buffer)
+      (let ((moment (partial-recall--moment-create buffer)))
 
-      (partial-recall--insert ring moment))))
+        (partial-recall--insert ring moment)))))
 
 (defun partial-recall--reinforce (buffer)
   "Reinforce the BUFFER in reality.
