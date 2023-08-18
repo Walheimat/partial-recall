@@ -14,6 +14,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   command map.
 - New command `partial-recall-implanted-p` to check whether the
   (current) buffer is implanted.
+- New custom variable `partial-recall-traits`. This is a list of
+  functions used to determine whether a buffer is meaningful, i.e.
+  whether it should be scheduled. By default it only includes
+  `buffer-file-name`. The introduction of this variable means that
+  functionality is no longer tied to file buffers if so desired.
 
 ### Changed
 

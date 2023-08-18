@@ -10,13 +10,15 @@
 
 ;; Short-term (buffer) memory for `tab-bar-mode' tabs.
 ;;
-;;`partial-recall' will keep track of file buffers opened in a tab in
-;; a ring. These rings are called memories in the context of this
-;; package; the current memory is called reality, all other memories
-;; are dreams. Buffers are time-stamped to (1) allow for the memory to
-;; grow if the oldest one is still relatively young and (2) to allow
-;; reclaiming buffers from other tabs if they're relatively old.
-;; Buffers are called moments in the context of this package.
+;;`partial-recall' will keep track of meaningful buffers opened in a
+;; tab in a ring. A buffer is meaningful if it satisfies user-defined
+;; traits. The aforementioned rings are called memories in the context
+;; of this package; the current memory is called reality, all other
+;; memories are dreams. Buffers are time-stamped to (1) allow for the
+;; memory to grow if the oldest one is still relatively young and (2)
+;; to allow reclaiming buffers from other memories if they're
+;; relatively old. Buffers are called moments in the context of this
+;; package.
 ;;
 ;; Moments can be reclaimed from other memories, they can be
 ;; forgotten, they can be implanted and they can be reinforced. All of
@@ -130,6 +132,19 @@ This is will implant buffers that have met
 (defcustom partial-recall-filter '("COMMIT_EDITMSG")
   "Names of buffers that should be ignored."
   :type '(repeat regexp)
+  :group 'partial-recall)
+
+(defcustom partial-recall-traits '(buffer-file-name)
+  "List of functions that describe traits of a meaningful buffer.
+
+These functions are inspected using `func-arity'. If they have a
+minimum arity of at least 1 OR the symbol `many' for their
+maximum arity, they will be called with `current-buffer' as the
+first argument, otherwise they are called with no argument.
+
+If any such function does not return a truthy value, the buffer
+is not considered meaningful."
+  :type '(repeat function)
   :group 'partial-recall)
 
 ;;; -- Internal variables
@@ -851,7 +866,18 @@ the max age."
 
 (defun partial-recall--meaningful-buffer-p (buffer)
   "Check if BUFFER should be remembered."
-  (and-let* ((name (buffer-file-name buffer))
+  (and-let* ((verify (lambda (it)
+                       (let* ((arity (func-arity it))
+                              (min (car arity))
+                              (max (cdr arity)))
+                         (if (or (> min 0)
+                                 (eq 'many max)
+                                 (and (numberp max)
+                                      (> max 0)))
+                             (funcall it buffer)
+                           (partial-recall--warn (format "Function '%s' has the wrong arity" it))
+                           t))))
+             ((seq-every-p verify partial-recall-traits))
              (filter (mapconcat (lambda (it) (concat "\\(?:" it "\\)")) partial-recall-filter "\\|"))
              ((not (string-match-p filter (buffer-name buffer)))))))
 
@@ -940,19 +966,19 @@ If NO-PRESELECT is t, no initial input is set."
 
     (partial-recall--complete-buffer prompt buffers initial)))
 
-(defun partial-recall--complete-any (prompt &optional allow-non-file)
+(defun partial-recall--complete-any (prompt &optional allow-meaningless)
   "Complete any buffer using PROMPT.
 
-Mapped buffers and non-file buffers (unless ALLOW-NON-FILE is t)
+Mapped buffers and non-file buffers (unless ALLOW-MEANINGLESS is t)
 are not considered."
-  (let* ((buffers (if allow-non-file
+  (let* ((buffers (if allow-meaningless
                       (buffer-list)
                     (seq-filter #'partial-recall--meaningful-buffer-p (buffer-list))))
          (candidates (seq-filter (lambda (it) (not (partial-recall--mapped-buffer-p it t))) buffers))
          (current (current-buffer))
          (initial (unless (or (partial-recall--mapped-buffer-p current t)
                               (and (not (partial-recall--meaningful-buffer-p current))
-                                   (not allow-non-file)))
+                                   (not allow-meaningless)))
                     (buffer-name (current-buffer)))))
 
     (partial-recall--complete-buffer prompt candidates initial)))

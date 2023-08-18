@@ -650,14 +650,44 @@
     (should (partial-recall--has-buffers-p))))
 
 (ert-deftest pr--meaningful-buffer-p ()
-  (ert-with-temp-file file
-    :buffer buffer
-    (with-current-buffer buffer
-      (should (partial-recall--meaningful-buffer-p (current-buffer)))
+  (let ((partial-recall-traits '(buffer-file-name)))
 
-      (let ((partial-recall-filter (list (buffer-name))))
+    (ert-with-temp-file file
+      :buffer buffer
+      (with-current-buffer buffer
+        (should (partial-recall--meaningful-buffer-p (current-buffer)))
 
-        (should-not (partial-recall--meaningful-buffer-p (current-buffer)))))))
+        (let ((partial-recall-filter (list (buffer-name))))
+
+          (should-not (partial-recall--meaningful-buffer-p (current-buffer))))))))
+
+(ert-deftest pr--meaningful-buffer-p--no-traits ()
+  (with-temp-buffer
+    (let ((partial-recall-traits nil))
+      (should (partial-recall--meaningful-buffer-p (current-buffer))))))
+
+(ert-deftest pr--meaningful-buffer-p--bad-traits ()
+  (with-temp-buffer
+    (let ((partial-recall-traits '(point)))
+
+      (bydi (partial-recall--warn)
+        (should (partial-recall--meaningful-buffer-p (current-buffer)))
+
+        (bydi-was-called-with partial-recall--warn
+          "Function 'point' has the wrong arity")))))
+
+(ert-deftest pr--meaningful-buffer-p--calls-traits-with-buffer ()
+  (defun pr--trait-test (buffer)
+    "Return BUFFER as is."
+    buffer)
+
+  (bydi ((:spy pr--trait-test))
+
+    (let ((partial-recall-traits '(pr--trait-test)))
+
+      (partial-recall--meaningful-buffer-p (current-buffer))
+
+      (bydi-was-called-with pr--trait-test (current-buffer)))))
 
 ;; -- Utility
 
