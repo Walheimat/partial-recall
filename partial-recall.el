@@ -510,7 +510,7 @@ is t, the forgotten moment goes into the subconscious."
                                       (not (string= key partial-recall--subconscious-key)))
                              (partial-recall--suppress moment))
 
-                           (partial-recall--maybe-resize-memory memory)))))
+                           (partial-recall--probe-memory memory)))))
 
     (partial-recall--clean-up-buffer buffer)
 
@@ -653,9 +653,9 @@ no longer recorded as the last checked buffer."
 
 This will reinsert implanted moments, suppress removed moments,
 as well as resize and extend the memory if necessary."
-  (partial-recall--maybe-resize-memory memory)
+  (or  (partial-recall--maybe-resize-memory memory)
+       (partial-recall--maybe-extend-memory memory))
   (partial-recall--maybe-reinsert-implanted memory)
-  (partial-recall--maybe-extend-memory memory)
   (partial-recall--maybe-suppress-oldest-moment memory))
 
 (defun partial-recall--maybe-reinsert-implanted (memory)

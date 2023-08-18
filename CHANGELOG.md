@@ -19,6 +19,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Implanting moments no longer increases their update count. In fact,
   excising will reset it.
+- Forgetting buffers now probes the memory.
+
+### Fixed
+
+- Probing memories now only extends if there was no resizing.
 
 ## [v0.6.3]
 
