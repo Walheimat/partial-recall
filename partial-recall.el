@@ -383,7 +383,9 @@ RESET is t, reset the update count instead and remove permanence."
 If EXTEND is t, also extend."
   (ring-insert+extend ring item extend)
 
-  (run-hooks 'partial-recall-after-insert-hook))
+  (run-hooks 'partial-recall-after-insert-hook)
+
+  item)
 
 ;;; -- Handlers
 
