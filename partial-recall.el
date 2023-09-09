@@ -202,10 +202,9 @@ moments and the size it had upon construction."
 
 (defun partial-recall--key (&optional tab)
   "Get the hash key of TAB."
-  (when-let* ((tab (or tab (tab-bar--current-tab)))
-              (key (alist-get 'pr tab)))
+  (when-let* ((tab (or tab (tab-bar--current-tab))))
 
-    key))
+    (alist-get 'pr tab)))
 
 (defun partial-recall--create-key (tab)
   "Create the key for TAB.
@@ -218,10 +217,8 @@ PID and `recent-keys' vector."
 
 (defun partial-recall--ring-oldest (ring)
   "Get the oldest element in RING."
-  (and-let* ((length (ring-length ring))
-             ((> length 0)))
-
-    (ring-ref ring (1- length))))
+  (unless (ring-empty-p ring)
+    (ring-ref ring (1- (ring-length ring)))))
 
 (defun partial-recall--buffer-owner (&optional buffer)
   "Return the memory that owns BUFFER.
@@ -288,7 +285,7 @@ Searches all memories unless MEMORY is provided."
 (defun partial-recall--memories (&optional exclude-subconscious)
   "Get all memories.
 
-If EXCLUDE-SUBCONSCIOUS is t, it is exclded."
+If EXCLUDE-SUBCONSCIOUS is t, it is excluded."
   (let ((memories (hash-table-values partial-recall--table)))
 
     (if exclude-subconscious
@@ -541,23 +538,25 @@ threshold wasn't passed."
 
 This will remove the buffer's moment from the memory. If SUPPRESS
 is t, the forgotten moment goes into the subconscious."
-  (let* ((buffer (or buffer (current-buffer)))
-         (removed nil)
-         (maybe-remove (lambda (key memory)
-                         (when-let* (((not removed))
-                                     (moment (partial-recall--remove-buffer buffer memory)))
+  (when-let* ((buffer (or buffer (current-buffer)))
+              ((partial-recall--meaningful-buffer-p buffer))
+              (maybe-remove (lambda (key memory)
+                              (when-let ((moment (partial-recall--remove-buffer buffer memory)))
 
-                           (setq removed t)
+                                (when (and suppress
+                                           (not (string= key partial-recall--subconscious-key)))
+                                  (partial-recall--suppress moment))
 
-                           (when (and suppress
-                                      (not (string= key partial-recall--subconscious-key)))
-                             (partial-recall--suppress moment))
+                                (partial-recall--probe-memory memory)
 
-                           (partial-recall--probe-memory memory)))))
+                                (throw 'found memory)))))
 
     (partial-recall--clean-up-buffer buffer)
 
-    (maphash maybe-remove partial-recall--table)))
+    (let ((memory (catch 'found
+                    (maphash maybe-remove partial-recall--table))))
+
+      (partial-recall--log "%s was removed from %s" buffer memory))))
 
 (defun partial-recall--implant (&optional buffer excise)
   "Make BUFFER's moment permanent.
@@ -745,7 +744,8 @@ re-insert any implanted one."
 
     (let ((checked nil))
 
-      (while (and (not (memq oldest checked))
+      (while (and oldest
+                  (not (memq oldest checked))
                   (partial-recall--moment-permanence oldest))
         (partial-recall--reinsert oldest memory)
         (push oldest checked)
@@ -831,7 +831,7 @@ This also checks for buffers that might have been obscured."
                            (memq buffer (mapcar #'window-buffer (window-list))))))
          (verb (if visible "remains" "is no longer")))
 
-    (partial-recall--debug (concat "Buffer %s " verb " visible") buffer)
+    (partial-recall--debug "Buffer %s %s visible" buffer verb)
 
     visible))
 
@@ -839,7 +839,7 @@ This also checks for buffers that might have been obscured."
   "Check if MEMORY is at capacity."
   (when-let ((ring (partial-recall--memory-ring memory)))
 
-    (eq (ring-length ring) (ring-size ring))))
+    (= (ring-length ring) (ring-size ring))))
 
 (defun partial-recall--memory-buffer-p (buffer &optional memory)
   "Check if BUFFER is a member of MEMORY.
@@ -919,7 +919,7 @@ the max age."
                                  (and (numberp max)
                                       (> max 0)))
                              (funcall it buffer)
-                           (partial-recall--warn (format "Function '%s' has the wrong arity" it))
+                           (partial-recall--warn "Function '%s' has the wrong arity" it)
                            t))))
              ((seq-every-p verify partial-recall-traits))
              (filter (mapconcat (lambda (it) (concat "\\(?:" it "\\)")) partial-recall-filter "\\|"))
@@ -927,9 +927,11 @@ the max age."
 
 ;;; -- Printing
 
-(defun partial-recall--warn (message)
-  "Warn about MESSAGE."
-  (display-warning 'partial-recall message :warning))
+(defun partial-recall--warn (message &rest args)
+  "Warn about MESSAGE.
+
+Message will be formatted with ARGS."
+  (display-warning 'partial-recall (apply #'format message args) :warning))
 
 (defun partial-recall--log (fmt &rest args)
   "Use ARGS to format FMT if not silenced."
