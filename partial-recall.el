@@ -634,9 +634,9 @@ If RESET is t, reset the swapped moment."
              (b-ring (partial-recall--memory-ring b))
              (index (ring-member a-ring moment)))
 
-    (let* ((removed (ring-remove a-ring index)))
+    (partial-recall--log "Swapping '%s' from '%s' to '%s'" moment a b)
 
-      (partial-recall--log "Swapping '%s' from '%s' to '%s'" removed a b)
+    (let* ((removed (ring-remove a-ring index)))
 
       (partial-recall--probe-memory a)
       (partial-recall--probe-memory b)
