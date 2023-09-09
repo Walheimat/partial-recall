@@ -47,7 +47,8 @@ INCLUDE-SUBCONSCIOUS is t."
   (let* ((entries nil)
          (buffer-names nil)
          (tab-names nil)
-         (memories (pr--memories (not include-subconscious))))
+         (memories (pr--memories (not (or include-subconscious
+                                          prm--subconscious)))))
 
     (dolist (memory memories)
 

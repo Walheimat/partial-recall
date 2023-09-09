@@ -631,18 +631,17 @@ removed, memory B before it is inserted.
 If RESET is t, reset the swapped moment."
   (and-let* ((a-ring (partial-recall--memory-ring a))
              (b-ring (partial-recall--memory-ring b))
-             (index (ring-member a-ring moment)))
+             (index (ring-member a-ring moment))
+             (removed (ring-remove a-ring index)))
 
     (partial-recall--log "Swapping '%s' from '%s' to '%s'" moment a b)
 
-    (let* ((removed (ring-remove a-ring index)))
+    (partial-recall--probe-memory a)
+    (partial-recall--probe-memory b)
 
-      (partial-recall--probe-memory a)
-      (partial-recall--probe-memory b)
+    (partial-recall--moment-refresh moment reset)
 
-      (partial-recall--moment-refresh moment reset)
-
-      (partial-recall--insert b-ring removed))))
+    (partial-recall--insert b-ring removed)))
 
 (defun partial-recall--reinsert (moment memory)
   "Reinsert MOMENT into MEMORY.
