@@ -70,7 +70,7 @@ increased and the buffer will remain."
   :type 'boolean
   :group 'partial-recall)
 
-(defcustom partial-recall-reclaim-min-age (* 60 60)
+(defcustom partial-recall-reclaim-min-age (* 15 60)
   "Threshold in seconds that when exceeded allows reclaiming.
 
 Has no effect if `partial-recall-reclaim' is nil."
