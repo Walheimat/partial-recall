@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Enabling `partial-recall` now starts a timer that will check the
+  current moment every minute. If the same moment is encountered
+  enough times, it is made permanent. The required repeats are
+  governed by variable `partial-recall-min-focus`.
+
 ### Changed
 
 - By default the reclaim minimum age is now *below* the maximum age.

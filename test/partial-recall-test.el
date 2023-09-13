@@ -143,6 +143,47 @@
 
       (should-not partial-recall--timer))))
 
+(ert-deftest pr--concentrate--does-nothing-for-non-meaningful ()
+  (let ((partial-recall--last-focus nil))
+
+    (bydi ((:ignore partial-recall--meaningful-buffer-p))
+
+      (partial-recall--concentrate)
+
+      (should-not partial-recall--last-focus))))
+
+(ert-deftest pr--concentrate ()
+  (let ((partial-recall--last-focus nil)
+        (partial-recall-min-focus 2)
+        (moment nil))
+
+    (bydi ((:always partial-recall--meaningful-buffer-p)
+           partial-recall--moment-set-permanence
+           (:mock partial-recall--moment-from-buffer :return moment))
+
+      (partial-recall--concentrate)
+
+      (should-not partial-recall--last-focus)
+      (should (eq 0 partial-recall--focus-count))
+
+      (setq moment 'test)
+
+      (partial-recall--concentrate)
+
+      (should (eq 'test partial-recall--last-focus))
+      (should (eq 1 partial-recall--focus-count))
+      (bydi-was-not-called partial-recall--moment-set-permanence)
+
+      (setq moment 'other)
+
+      (partial-recall--concentrate)
+
+      (should (eq 1 partial-recall--focus-count))
+
+      (partial-recall--concentrate)
+
+      (bydi-was-called partial-recall--moment-set-permanence))))
+
 (ert-deftest pr--after-switch-to-buffer--schedules ()
   (bydi (partial-recall--schedule-buffer)
 
@@ -912,10 +953,12 @@
     (bydi (add-hook
            (:spy advice-add)
            partial-recall--queue-fix-up
-           (:mock tab-bar-mode :with (lambda (_) (setq tab-bar-mode t))))
+           (:mock tab-bar-mode :with (lambda (_) (setq tab-bar-mode t)))
+           run-with-timer)
 
       (partial-recall-mode--setup)
 
+      (bydi-was-called-with run-with-timer '(1 60 partial-recall--concentrate))
       (bydi-was-called partial-recall--queue-fix-up)
       (bydi-was-called-n-times advice-add 3)
       (bydi-was-called-n-times add-hook 7)
@@ -923,10 +966,12 @@
 
 (ert-deftest pr--teardown ()
   (bydi (remove-hook
-         (:spy advice-remove))
+         (:spy advice-remove)
+         cancel-timer)
 
     (partial-recall-mode--teardown)
 
+    (bydi-was-called cancel-timer)
     (bydi-was-called-n-times advice-remove 3)
     (bydi-was-called-n-times remove-hook 7)))
 

@@ -147,16 +147,30 @@ is not considered meaningful."
   :type '(repeat function)
   :group 'partial-recall)
 
+(defcustom partial-recall-min-focus 5
+  "Number of repeat focus that should make a moment permanent."
+  :type 'integer
+  :group 'partial-recall)
+
 ;;; -- Internal variables
 
 (defvar partial-recall--table (make-hash-table))
 (defvar partial-recall--subconscious-key "subconscious")
+
 (defvar partial-recall--timer nil)
+(defvar partial-recall--concentration-timer nil)
+
+(defvar partial-recall--last-focus nil)
+(defvar partial-recall--focus-count 0)
+
 (defvar partial-recall--last-checked nil)
 (defvar partial-recall--neglect nil)
+
 (defvar partial-recall--switch-to-buffer-function #'switch-to-buffer)
 (defvar partial-recall--pop-to-buffer-function #'pop-to-buffer)
+
 (defvar partial-recall--before-minibuffer nil)
+
 (defvar-local partial-recall--implanted nil)
 
 ;;; -- Hooks
@@ -429,6 +443,26 @@ be found, it will be ignored."
       (cancel-timer partial-recall--timer))
 
     (setq partial-recall--timer nil)))
+
+(defun partial-recall--concentrate ()
+  "Concentrate on the current moment.
+
+If the moment has remained the same since last time, increase the
+focus count, otherwise reset it. If threshold
+`partial-recall-min-focus' is met, make the moment permanent."
+  (when (partial-recall--meaningful-buffer-p (current-buffer))
+
+    (if-let* ((moment (partial-recall--moment-from-buffer (current-buffer)))
+              ((eq moment partial-recall--last-focus)))
+
+        (progn
+          (setq partial-recall--focus-count (1+ partial-recall--focus-count))
+          (when (>= partial-recall--focus-count partial-recall-min-focus)
+            (partial-recall--moment-set-permanence moment t)))
+
+      (when moment
+        (setq partial-recall--focus-count 1
+              partial-recall--last-focus moment)))))
 
 (defun partial-recall--before-switch-to-buffer (buffer &optional norecord &rest _)
   "Maybe switch memories before scheduling BUFFER.
@@ -1077,6 +1111,8 @@ t."
 
   (partial-recall--queue-fix-up)
 
+  (setq partial-recall--concentration-timer (run-with-timer 1 60 #'partial-recall--concentrate))
+
   (advice-add
    partial-recall--switch-to-buffer-function :before
    #'partial-recall--before-switch-to-buffer)
@@ -1086,6 +1122,7 @@ t."
   (advice-add
    partial-recall--pop-to-buffer-function :after
    #'partial-recall--after-pop-to-buffer)
+
   (add-hook 'minibuffer-setup-hook #'partial-recall--on-minibuffer-setup)
   (add-hook 'minibuffer-exit-hook #'partial-recall--on-minibuffer-exit)
   (add-hook 'after-make-frame-functions #'partial-recall--queue-fix-up)
@@ -1096,6 +1133,8 @@ t."
 
 (defun partial-recall-mode--teardown ()
   "Tear down `partial-recall-mode'."
+  (cancel-timer partial-recall--concentration-timer)
+
   (advice-remove
    partial-recall--switch-to-buffer-function
    #'partial-recall--before-switch-to-buffer)
@@ -1105,6 +1144,7 @@ t."
   (advice-remove
    partial-recall--pop-to-buffer-function
    #'partial-recall--after-pop-to-buffer)
+
   (remove-hook 'minibuffer-setup-hook #'partial-recall--on-minibuffer-setup)
   (remove-hook 'minibuffer-exit-hook #'partial-recall--on-minibuffer-exit)
   (remove-hook 'after-make-frame-functions #'partial-recall--queue-fix-up)
