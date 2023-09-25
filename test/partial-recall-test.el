@@ -31,7 +31,7 @@
       (should (eq memory (partial-recall--buffer-owner))))))
 
 (ert-deftest pr--update-count ()
-  (let ((partial-recall-buffer-limit 2))
+  (let ((partial-recall-memory-size 2))
 
     (with-tab-history :pre t
 
@@ -311,7 +311,7 @@
       (bydi-was-called ring-extend))))
 
 (ert-deftest pr-remember--reinforces-permanent ()
-  (let ((partial-recall-buffer-limit 1))
+  (let ((partial-recall-memory-size 1))
     (with-tab-history :pre t
       (let ((another-temp (generate-new-buffer " *temp*" t)))
 
@@ -324,7 +324,7 @@
         (kill-buffer another-temp)))))
 
 (ert-deftest pr-remember--removes-impermanent ()
-  (let ((partial-recall-buffer-limit 1))
+  (let ((partial-recall-memory-size 1))
     (with-tab-history :pre t
       (let ((another-temp (generate-new-buffer " *temp*" t)))
 
@@ -338,7 +338,7 @@
         (kill-buffer another-temp)))))
 
 (ert-deftest pr-swap ()
-  (let* ((partial-recall-buffer-limit 1)
+  (let* ((partial-recall-memory-size 1)
          (a (partial-recall--memory-create "a"))
          (b (partial-recall--memory-create "b"))
          (buffer (generate-new-buffer " *temp*" t))
@@ -392,7 +392,7 @@
                               (buffer (current-buffer))
                               (moment (ring-ref moments (partial-recall--moments-member moments buffer))))
                          (partial-recall--moment-update-count moment))))
-          (partial-recall-buffer-limit 2)
+          (partial-recall-memory-size 2)
           (another-temp (generate-new-buffer " *temp*" t)))
 
       (bydi ((:mock time-to-seconds :with (lambda () (pop seconds))))
@@ -469,7 +469,7 @@
       (should-not (partial-recall--memory-buffer-p (current-buffer) sub)))))
 
 (ert-deftest pr-forget--shortens-extended-memory ()
-  (let ((partial-recall-buffer-limit 2)
+  (let ((partial-recall-memory-size 2)
         (another-temp (generate-new-buffer " *temp*" t))
         (yet-another-temp (generate-new-buffer " *temp*" t)))
 
@@ -687,7 +687,7 @@
 
 (ert-deftest pr--should-extend-memory-p ()
   (let ((seconds '(10 11 12))
-        (partial-recall-buffer-limit 1)
+        (partial-recall-memory-size 1)
         (partial-recall-max-age 2))
 
     (with-tab-history
@@ -806,7 +806,7 @@
   (bydi-with-mock ((:mock format-time-string :return "now")
                    (:mock partial-recall--name :return "test"))
 
-    (let* ((partial-recall-buffer-limit 3)
+    (let* ((partial-recall-memory-size 3)
            (memory (partial-recall--memory-create "test"))
            (buffer (get-buffer-create "test-print"))
            (moment (partial-recall--moment-create buffer)))

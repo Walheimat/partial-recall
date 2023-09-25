@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - By default the reclaim minimum age is now *below* the maximum age.
+- !! `partial-recall-buffer-limit` was renamed to
+  `partial-recall-memory-size`.
 
 ## [v0.7.1]
 

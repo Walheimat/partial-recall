@@ -49,7 +49,7 @@
   :type 'integer
   :group 'partial-recall)
 
-(defcustom partial-recall-buffer-limit 10
+(defcustom partial-recall-memory-size 10
   "The amount of buffers to recall.
 
 This limit of a memory may increase if buffers are remembered in
@@ -204,8 +204,8 @@ permanence marker that can prevent it from being forgotten."
                (:constructor partial-recall--memory-create
                              (key
                               &aux
-                              (ring (make-ring partial-recall-buffer-limit))
-                              (orig-size partial-recall-buffer-limit))))
+                              (ring (make-ring partial-recall-memory-size))
+                              (orig-size partial-recall-memory-size))))
   "A memory of partial recall.
 
 A memory is a key that connects it to the hash table, a ring of
