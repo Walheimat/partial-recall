@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   current moment every minute. If the same moment is encountered
   enough times, it is made permanent. The required repeats are
   governed by variable `partial-recall-min-focus`.
+- `git-rebase-todo` files are ignored by default.
 
 ### Changed
 

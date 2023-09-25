@@ -129,7 +129,7 @@ This is will implant buffers that have met
                  (const :tag "None" nil))
   :group 'partial-recall)
 
-(defcustom partial-recall-filter '("COMMIT_EDITMSG")
+(defcustom partial-recall-filter '("COMMIT_EDITMSG" "git-rebase-todo")
   "Names of buffers that should be ignored."
   :type '(repeat regexp)
   :group 'partial-recall)
