@@ -662,6 +662,15 @@
 
         (bydi-was-called-with switch-to-buffer (current-buffer))))))
 
+(ert-deftest pr--next-and-prev ()
+  (with-tab-history :pre t
+    (let ((another (generate-new-buffer " *temp*" t)))
+
+      (partial-recall--remember another)
+
+      (should (equal (partial-recall--next-buffer) another))
+      (should (equal (partial-recall--previous-buffer) another)))))
+
 ;;; -- Conditionals
 
 (ert-deftest pr--memory-buffer-p ()
@@ -1007,7 +1016,9 @@
            partial-recall--remember
            partial-recall--switch-to-and-neglect
            partial-recall--meld
-           partial-recall--flush)
+           partial-recall--flush
+           (:mock partial-recall--previous-buffer :return 'buffer)
+           (:mock partial-recall--next-buffer :return 'buffer))
 
       (call-interactively 'partial-recall-reclaim)
       (call-interactively 'partial-recall-forget)
@@ -1017,6 +1028,8 @@
       (call-interactively 'partial-recall-remember)
       (call-interactively 'partial-recall-meld)
       (call-interactively 'partial-recall-flush)
+      (call-interactively 'partial-recall-next)
+      (call-interactively 'partial-recall-previous)
 
       (bydi-was-called partial-recall--reclaim)
       (bydi-was-called partial-recall--forget)
@@ -1027,7 +1040,9 @@
       (bydi-was-called partial-recall--remember)
       (bydi-was-called partial-recall--meld)
       (bydi-was-called partial-recall--flush)
-      (bydi-was-called-n-times partial-recall--switch-to-and-neglect 4)
+      (bydi-was-called partial-recall--next-buffer)
+      (bydi-was-called partial-recall--previous-buffer)
+      (bydi-was-called-n-times partial-recall--switch-to-and-neglect 6)
       (bydi-was-called-n-times partial-recall--complete-memory 2))
 
     (kill-buffer buffer)))

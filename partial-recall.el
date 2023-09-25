@@ -852,6 +852,22 @@ This means the buffer won't be scheduled for handling."
   (setq partial-recall--neglect buffer)
   (funcall partial-recall--switch-to-buffer-function buffer))
 
+(defun partial-recall--previous-buffer ()
+  "Get the previous moment."
+  (when-let* ((memory (partial-recall--reality))
+              (current (partial-recall--moment-from-buffer (current-buffer) memory))
+              (previous (ring-previous (partial-recall--memory-ring memory) current)))
+
+    (partial-recall--moment-buffer previous)))
+
+(defun partial-recall--next-buffer ()
+  "Get the next moment."
+  (when-let* ((memory (partial-recall--reality))
+              (current (partial-recall--moment-from-buffer (current-buffer) memory))
+              (next (ring-next (partial-recall--memory-ring memory) current)))
+
+    (partial-recall--moment-buffer next)))
+
 ;;; -- Conditionals
 
 (defun partial-recall--buffer-visible-p (buffer)
@@ -1164,12 +1180,20 @@ t."
     (define-key map (kbd "f") 'partial-recall-forget)
     (define-key map (kbd "i") 'partial-recall-implant)
     (define-key map (kbd "m") 'partial-recall-menu)
+    (define-key map (kbd "n") 'partial-recall-next)
+    (define-key map (kbd "p") 'partial-recall-previous)
     (define-key map (kbd "u") 'partial-recall-meld)
     (define-key map (kbd "r") 'partial-recall-remember)
     (define-key map (kbd "l") 'partial-recall-lift)
     (define-key map (kbd "x") 'partial-recall-flush)
     map)
   "Map for `partial-recall-mode' commands.")
+
+(defvar-keymap partial-recall-navigation-map
+  :doc "Keymap to repeat navigation commands."
+  :repeat t
+  "n" 'partial-recall-next
+  "p" 'partial-recall-previous)
 
 ;;;###autoload
 (define-minor-mode partial-recall-mode
@@ -1282,6 +1306,24 @@ if it doesn't meet the criteria."
   (interactive "P")
 
   (partial-recall--flush (partial-recall--reality) (not include-current)))
+
+;;;###autoload
+(defun partial-recall-next ()
+  "Go to the next moment."
+  (interactive)
+
+  (when-let ((next (partial-recall--next-buffer)))
+
+    (partial-recall--switch-to-and-neglect next)))
+
+;;;###autoload
+(defun partial-recall-previous ()
+  "Go to the previous moment."
+  (interactive)
+
+  (when-let ((previous (partial-recall--previous-buffer)))
+
+    (partial-recall--switch-to-and-neglect previous)))
 
 (provide 'partial-recall)
 

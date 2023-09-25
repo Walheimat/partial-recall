@@ -178,3 +178,5 @@ probably want to bind the following commands:
 - =partial-recall-switch-to-buffer=
 - =partial-recall-meld=
 - =partial-recall-flush=
+- =partial-recall-next=
+- =partial-recall-previous=

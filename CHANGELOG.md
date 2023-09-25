@@ -16,6 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `git-rebase-todo` files are ignored by default.
 - Menu uses new indicator for moments that are implanted but were
   never updated.
+- Commands `partial-recall-next` and `partial-recall-previous` to
+  quickly switch buffers bound to `n` and `p`.
+- New keymap to easily repeat new navigation commands.
 
 ### Changed
 
