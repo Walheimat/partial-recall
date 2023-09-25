@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   enough times, it is made permanent. The required repeats are
   governed by variable `partial-recall-min-focus`.
 - `git-rebase-todo` files are ignored by default.
+- Menu uses new indicator for moments that are implanted but were
+  never updated.
 
 ### Changed
 

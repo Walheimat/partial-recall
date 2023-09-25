@@ -20,6 +20,7 @@
 (defvar prm--null "-")
 (defvar prm--present "*")
 (defvar prm--persistence-blocks ["▂" "▄" "▆" "█"])
+(defvar prm--persistence-indicator "░")
 (defvar prm--persistence-ratios '(0.25 0.5 0.75 1))
 (defvar prm--excess-time (* 60 60 12))
 
@@ -137,7 +138,9 @@ If the moment is IMPLANTED, signal that."
          (index 0)
          (max-index (1- (length prm--persistence-ratios)))
          (text (if (zerop update-count)
-                   prm--empty
+                   (if implanted
+                       prm--persistence-indicator
+                     prm--empty)
                  (while (and (> update-count (* threshold (nth index prm--persistence-ratios)))
                              (< index max-index))
                    (setq index (1+ index)))
