@@ -1,8 +1,9 @@
-# Build artifacts
-.cask/
-dist/
 *.elc
-coverage/
 
-# Maintenance files
-partial-recall-tasks.org
+.dir-locals.el
+partial-recall-autoloads.el
+partial-recall-pkg.el
+
+coverage/
+dist/
+.cask/
