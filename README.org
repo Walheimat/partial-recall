@@ -18,6 +18,8 @@ with another tab, it may be reclaimed (automatically or manually). If
 all buffers were visited relatively recently, the size of the limit
 increases (for that tab).
 
+See *Concepts* section below for more information.
+
 ** Installation
 
 If you use =straight= or =quelpa=, you know what to do.
@@ -26,6 +28,92 @@ If you're on Emacs >29, I recommend using =package-vc-install=.
 
 Alternatively, provided you have Cask, you can install the package
 with =make package-install= after initializing the submodule =dinghy=.
+
+** Concepts
+
+*** Memories and moments
+
+The association buffer -> tab is done using two structures: memories
+and moments.
+
+A memory is a ring of moments and a key used for look-up. The size of
+the ring is determined by =partial-recall-memory-size=.
+
+A moment is a buffer, a timestamp at which it was last updated, a
+count of how many times it was updated and a flag indicating whether
+it is permanent (see below).
+
+Visiting a buffer will schedule its handling which is to say that
+handling is delayed by =partial-recall-handle-delay= seconds. So if
+you were to quickly switch between buffers, only the one you linger on
+eventually would be handled (handling is a no-op if the buffer is no
+longer visible at that point).
+
+Handling a buffer will do one of two things:
+
+1. A new moment is created from that buffer by "remembering" it; this
+   means storing it in the current tab's memory.
+2. An existing moment is "recollected", which in turn means one of two
+   things:
+   1. If it belongs to another memory, it is "reclaimed" depending on
+      =partial-recall-reclaim= and =partial-recall-reclaim-min-age=.
+   2. If it belongs to the current memory, it is "reinforced" that is
+      put at the top of the ring again.
+
+Since memories are rings, moments will leave the ring after more
+moments than its size will allow have been added without revisiting
+them. This removal is called "forgetting". You may also call
+=partial-recall-forget= manually (or kill the buffer). Memories will
+grow instead of forgetting the oldest moment if it is still relatively
+young. This is determined by =partial-recall-max-age=.
+
+Forgotten buffers are not immediately lost, they are put in a special
+memory called the "subconscious" from which they can be "lifted" using
+=partial-recall-lift=. The subconscious works like any other memory:
+it is a ring of moments and can only hold a limited amount. If
+=partial-recall-repress= is =t=, the buffers of moments leaving the
+subconscious are killed. Closing a tab means forgetting all of the
+associated memory's moments.
+
+*** Permanence
+
+Moments normally age out of its memory unless their buffers are
+re-visited and refreshed before that would happen. "Permanent" moments
+don't suffer this fate. There are three scenarios by which a moment is
+made permanent:
+
+1. The user calls =partial-recall-implant= and selects its buffer.
+2. The moment has been revisited and re-inserted
+   =partial-recall-auto-implant-threshold= times.
+3. The moments has been focused =partial-recall-min-focus= times (see
+   below).
+
+The reverse of implanting is "excising" which =partial-recall-implant=
+will do if called with =C-u=. Permanent buffers can still be forgotten
+manually.
+
+*** Concentration
+
+Every minute =partial-recall= will "concentrate" on the
+=current-buffer=. If the buffer doesn't change and is "focused" for
+=partial-recall-min-focus= times, it is made permanent automatically.
+If the buffer is switched before that threshold is reached, the
+counter restarts.
+
+/Note/ that concentration is a no-op if the =current-buffer= is not a
+meaningful buffer.
+
+*** Meaningful buffer and buffer traits
+
+=partial-recall= only "remembers" buffers that are "meaningful". This
+is governed by a list of predicates listed in =partial-recall-traits=.
+They all must return =t= to mark a meaningful buffer. By default only
+=buffer-file-name= is in the list, meaning any buffer that has a file
+name is meaningful. If you set it to ='(always)= all buffers would be
+considered meaningful.
+
+Even if meaningful, buffers whose names are in
+=partial-recall-filter=, will not be handled.
 
 ** Configuration
 
@@ -39,7 +127,7 @@ taken into account.
   (partial-recall-handle-delay 4) ;; The delay before a buffer is handled (remembered or re-inforced).
   (partial-recall-buffer-limit 10) ;; The number of buffers in the ring.
   (partial-recall-max-age 1800) ;; The age (in seconds) that will allow the ring to grow.
-  (partial-recall-reclaim-min-age 3600) ;; The age (in seconds) that will allow reclaiming.
+  (partial-recall-reclaim-min-age 900) ;; The age (in seconds) that will allow reclaiming.
   (partial-recall-repress t) ;; Whether forgotten buffers should (eventually) be killed.
   (partial-recall-auto-implant t) ;; Whether moments should get implanted after meeting a threshold.
   (partial-recall-auto-implant-threshold 4) ;; That very threshold.
@@ -51,6 +139,7 @@ taken into account.
   (partial-recall-log-prefix "PR") ;; Message prefix for log messages.
   (partial-recall-filter '("COMMIT_EDITMSG")) ;; Regexes of names that should be ignored.
   (partial-recall-traits '(buffer-file-name)) ;; List of functions that determine eligible buffers.
+  (partial-recall-min-focus 5) ;; Repeat focus until the buffer is made permanent.
 
   :config
   (partial-recall-mode)
