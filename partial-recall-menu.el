@@ -179,7 +179,8 @@ If the moment is IMPLANTED, signal that."
   "r" #'prm-reinforce-buffer
   "f" #'prm-forget-buffer
   "i" #'prm-implant-buffer
-  "x" #'prm-execute)
+  "x" #'prm-execute
+  "u" #'prm-unmark)
 
 (define-derived-mode prm-mode tabulated-list-mode "Partial Recall Menu"
   :interactive nil
@@ -292,6 +293,17 @@ If EXCISE is t, do that instead."
         (user-error "Can't implant subconscious buffer")
       (tabulated-list-set-col 0 (if excise "X" "I") t)
       (forward-line 1))))
+
+(defun partial-recall-menu-unmark ()
+  "Unmark the current marking."
+  (interactive)
+
+  (and-let* ((entry (tabulated-list-get-entry))
+             (mark (aref entry 0))
+             ((not (string= mark " "))))
+
+    (tabulated-list-set-col 0 " " t)
+    (forward-line 1)))
 
 ;;;###autoload
 (defun partial-recall-menu (&optional include-subconscious)

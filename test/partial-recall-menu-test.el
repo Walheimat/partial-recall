@@ -180,6 +180,24 @@
         (bydi-was-called-n-times forward-line 8)
         (bydi-was-called-n-times tabulated-list-revert 1)))))
 
+(ert-deftest prm-unmark ()
+  (let ((entry ["K"]))
+    (bydi ((:mock tabulated-list-get-entry :return entry)
+           tabulated-list-set-col
+           forward-line)
+
+      (partial-recall-menu-unmark)
+
+      (bydi-was-called-with tabulated-list-set-col '(0 " " t))
+      (bydi-was-called forward-line)
+
+      (bydi-clear-mocks)
+
+      (setq entry [" "])
+      (partial-recall-menu-unmark)
+
+      (bydi-was-not-called tabulasted-list-set-col))))
+
 (ert-deftest prm-api ()
   (let ((real nil)
         (sub nil))

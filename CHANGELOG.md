@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Commands `partial-recall-next` and `partial-recall-previous` to
   quickly switch buffers bound to `n` and `p`.
 - New keymap to easily repeat new navigation commands.
+- In `partial-recall-menu` key `u` is now bound to new command
+  `partial-recall-menu-unmark.`
 
 ### Changed
 
