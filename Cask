@@ -8,6 +8,6 @@
  (depends-on "undercover")
  (depends-on "compat"))
 
-(package "partial-recall" "0.7.1" "Short-term buffer memory")
+(package "partial-recall" "0.8.0" "Short-term buffer memory")
 
 (files "partial-recall.el" "partial-recall-menu.el" "partial-recall-extensions.el")
