@@ -150,10 +150,12 @@ is not considered meaningful."
 ;;; -- Internal variables
 
 (defvar partial-recall--table (make-hash-table))
-(defvar partial-recall--subconscious-key "subconscious")
+(defconst partial-recall--subconscious-key "subconscious")
 
 (defvar partial-recall--timer nil)
+
 (defvar partial-recall--concentration-timer nil)
+(defconst partial-recall--concentration-repeat 60)
 
 (defvar partial-recall--last-focus nil)
 
@@ -1121,7 +1123,10 @@ t."
 
   (partial-recall--queue-fix-up)
 
-  (setq partial-recall--concentration-timer (run-with-timer 1 60 #'partial-recall--concentrate))
+  (setq partial-recall--concentration-timer (run-with-timer
+                                             1
+                                             partial-recall--concentration-repeat
+                                             #'partial-recall--concentrate))
 
   (advice-add
    partial-recall--switch-to-buffer-function :before
