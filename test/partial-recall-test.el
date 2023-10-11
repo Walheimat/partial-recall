@@ -159,24 +159,24 @@
 
     (bydi ((:always partial-recall--meaningful-buffer-p)
            (:mock partial-recall--moment-from-buffer :return moment)
-           partial-recall--moment-refresh
+           partial-recall--intensify
            partial-recall--debug)
 
       (partial-recall--concentrate)
 
       (should-not partial-recall--last-focus)
-      (bydi-was-not-called partial-recall--moment-refresh)
+      (bydi-was-not-called partial-recall--intensify)
 
       (setq moment 'test)
 
       (partial-recall--concentrate)
 
       (should (eq 'test partial-recall--last-focus))
-      (bydi-was-not-called partial-recall--moment-refresh)
+      (bydi-was-not-called partial-recall--intensify)
 
       (partial-recall--concentrate)
 
-      (bydi-was-called partial-recall--moment-refresh)
+      (bydi-was-called partial-recall--intensify)
 
       (setq moment 'other)
 

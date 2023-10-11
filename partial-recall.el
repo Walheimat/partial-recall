@@ -355,11 +355,12 @@ If EXCLUDE-SUBCONSCIOUS is t, it is excluded."
 
     moment))
 
-(defun partial-recall--moment-refresh (moment &optional reset)
-  "Refresh MOMENT.
+(defun partial-recall--intensify (moment &optional reset)
+  "Intensify MOMENT.
 
-This will update its timestamp and increment its focus. If RESET
-is t, reset the focus instead and remove permanence."
+This will update its timestamp and increment its focus.
+
+If RESET is t, reset the focus instead and remove permanence."
   (if reset
       (progn
         (partial-recall--reset-count moment)
@@ -450,7 +451,7 @@ focus is increased, otherwise concentration breaks."
     (if (and partial-recall--last-focus (eq moment partial-recall--last-focus))
         (progn
           (partial-recall--debug "Concentration held on %s" moment)
-          (partial-recall--moment-refresh moment))
+          (partial-recall--intensify moment))
 
       (when partial-recall--last-focus
         (partial-recall--debug "Concentration on %s broke" partial-recall--last-focus))
@@ -622,7 +623,7 @@ If EXCISE is t, remove permanence instead."
 
     (partial-recall--debug "Suppressing %s" moment)
 
-    (partial-recall--moment-refresh moment t)
+    (partial-recall--intensify moment t)
 
     (partial-recall--insert ring moment)))
 
@@ -666,7 +667,7 @@ If RESET is t, reset the swapped moment."
     (partial-recall--probe-memory a)
     (partial-recall--probe-memory b)
 
-    (partial-recall--moment-refresh moment reset)
+    (partial-recall--intensify moment reset)
 
     (partial-recall--insert b-ring removed)))
 
@@ -680,7 +681,7 @@ This removes, inserts and extends. The moment is refreshed."
 
     (partial-recall--debug "Re-inserting '%s' in '%s'" moment memory)
 
-    (partial-recall--moment-refresh moment)
+    (partial-recall--intensify moment)
 
     (ring-remove+insert+extend ring moment t)))
 
