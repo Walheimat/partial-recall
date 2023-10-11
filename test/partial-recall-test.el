@@ -153,36 +153,41 @@
       (should-not partial-recall--last-focus))))
 
 (ert-deftest pr--concentrate ()
-  (let ((partial-recall--last-focus nil)
-        (partial-recall-min-focus 2)
-        (moment nil))
+  (let ((partial-recall--last-focus 'last))
 
-    (bydi ((:always partial-recall--meaningful-buffer-p)
-           (:mock partial-recall--moment-from-buffer :return moment)
+    (bydi ((:sometimes partial-recall--can-hold-concentration-p)
            partial-recall--intensify
-           partial-recall--debug)
-
-      (partial-recall--concentrate)
-
-      (should-not partial-recall--last-focus)
-      (bydi-was-not-called partial-recall--intensify)
-
-      (setq moment 'test)
-
-      (partial-recall--concentrate)
-
-      (should (eq 'test partial-recall--last-focus))
-      (bydi-was-not-called partial-recall--intensify)
+           partial-recall--debug
+           (:mock partial-recall--moment-from-buffer :return 'next))
 
       (partial-recall--concentrate)
 
       (bydi-was-called partial-recall--intensify)
 
-      (setq moment 'other)
+      (bydi-toggle-sometimes)
 
       (partial-recall--concentrate)
 
-      (bydi-was-called partial-recall--debug))))
+      (bydi-was-called partial-recall--debug)
+
+      (should (eq 'next partial-recall--last-focus)))))
+
+(ert-deftest pr--can-hold-concentration-p ()
+  (with-tab-history :pre t
+    (let ((partial-recall--last-focus nil))
+
+      (should-not (partial-recall--can-hold-concentration-p))
+
+      (setq partial-recall--last-focus (partial-recall--moment-from-buffer (current-buffer)))
+
+      (should (partial-recall--can-hold-concentration-p))
+
+      (bydi ((:sometimes partial-recall--buffer-remains-visible-p))
+        (let* ((another (generate-new-buffer " *temp*" t))
+               (moment (partial-recall--moment-create another)))
+
+          (setq partial-recall--last-focus moment)
+          (should-not (partial-recall--can-hold-concentration-p)))))))
 
 (ert-deftest pr--after-switch-to-buffer--schedules ()
   (bydi (partial-recall--schedule-buffer)

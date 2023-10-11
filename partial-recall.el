@@ -445,19 +445,16 @@ be found, it will be ignored."
   "Concentrate on the current moment.
 
 If the moment has remained the same since the last cycle, its
-focus is increased, otherwise concentration breaks."
-  (and-let* ((current (current-buffer))
-             ((partial-recall--meaningful-buffer-p current))
-             (moment (partial-recall--moment-from-buffer current)))
+focus is intensified, otherwise concentration breaks."
+  (if (partial-recall--can-hold-concentration-p)
+      (progn
+        (partial-recall--debug "Concentration held on '%s'" partial-recall--last-focus)
+        (partial-recall--intensify partial-recall--last-focus))
 
-    (if (and partial-recall--last-focus (eq moment partial-recall--last-focus))
-        (progn
-          (partial-recall--debug "Concentration held on '%s'" moment)
-          (partial-recall--intensify moment))
+    (when partial-recall--last-focus
+      (partial-recall--debug "Concentration on '%s' broke" partial-recall--last-focus))
 
-      (when partial-recall--last-focus
-        (partial-recall--debug "Concentration on '%s' broke" partial-recall--last-focus))
-
+    (when-let ((moment (partial-recall--moment-from-buffer (current-buffer))))
       (setq partial-recall--last-focus moment))))
 
 (defun partial-recall--before-switch-to-buffer (buffer &optional norecord &rest _)
@@ -969,6 +966,13 @@ the max age."
              ((seq-every-p verify partial-recall-traits))
              (filter (mapconcat (lambda (it) (concat "\\(?:" it "\\)")) partial-recall-filter "\\|"))
              ((not (string-match-p filter (buffer-name buffer)))))))
+
+(defun partial-recall--can-hold-concentration-p ()
+  "Check if concentration can be held."
+  (and partial-recall--last-focus
+       (or (eq (partial-recall--moment-from-buffer (current-buffer))
+               partial-recall--last-focus)
+           (partial-recall--buffer-visible-p (partial-recall--moment-buffer partial-recall--last-focus)))))
 
 ;;; -- Printing
 
