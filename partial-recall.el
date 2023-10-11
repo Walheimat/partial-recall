@@ -449,18 +449,22 @@ be found, it will be ignored."
 
 If the moment has remained the same since last time, increase the
 focus count, otherwise reset it. If threshold
-`partial-recall-min-focus' is met, make the moment permanent."
-  (when (partial-recall--meaningful-buffer-p (current-buffer))
+`partial-recall-min-focus' is met, make the moment permanent.
 
-    (if-let* ((moment (partial-recall--moment-from-buffer (current-buffer)))
-              ((eq moment partial-recall--last-focus)))
+While lingering on a non-meaningful buffer concentration isn't
+broken. If the current buffer has changed but the previous focus
+remains visible, concentration isn't broken."
+  (and-let* ((current (current-buffer))
+             ((partial-recall--meaningful-buffer-p current))
+             (moment (partial-recall--moment-from-buffer current)))
 
+    (if (and partial-recall--last-focus (eq moment partial-recall--last-focus))
         (progn
           (setq partial-recall--focus-count (1+ partial-recall--focus-count))
+
           (when (>= partial-recall--focus-count partial-recall-min-focus)
             (partial-recall--moment-set-permanence moment t)))
-
-      (when moment
+      (unless (partial-recall--buffer-visible-p current)
         (setq partial-recall--focus-count 1
               partial-recall--last-focus moment)))))
 
