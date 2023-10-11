@@ -191,14 +191,14 @@ is not considered meaningful."
                              (buffer
                               &aux
                               (timestamp (floor (time-to-seconds)))
-                              (update-count 0)
+                              (focus 0)
                               (permanence nil))))
   "A moment of partial recall.
 
 A moment is defined by a buffer, a timestamp when that buffer was
 first remembered, a count of how many times it was updated and a
 permanence marker that can prevent it from being forgotten."
-  buffer timestamp update-count permanence)
+  buffer timestamp focus permanence)
 
 (cl-defstruct (partial-recall--memory
                (:constructor partial-recall--memory-create
@@ -270,12 +270,12 @@ Searches all memories unless MEMORY is provided."
 
     (ring-ref ring index)))
 
-(defun partial-recall--update-count (&optional buffer)
+(defun partial-recall--focus (&optional buffer)
   "Get the update count of BUFFER."
   (when-let* ((buffer (or buffer (current-buffer)))
               (moment (partial-recall--moment-from-buffer buffer)))
 
-    (partial-recall--moment-update-count moment)))
+    (partial-recall--moment-focus moment)))
 
 (defun partial-recall--name (memory)
   "Get the name of MEMORY."
@@ -352,12 +352,12 @@ If EXCLUDE-SUBCONSCIOUS is t, it is excluded."
 
 (defun partial-recall--moment-increment-count (moment)
   "Increment the update count for MOMENT."
-  (let* ((count (partial-recall--moment-update-count moment))
+  (let* ((count (partial-recall--moment-focus moment))
          (updated-count (1+ count)))
 
     (partial-recall--maybe-implant-moment moment updated-count)
 
-    (setf (partial-recall--moment-update-count moment) updated-count)
+    (setf (partial-recall--moment-focus moment) updated-count)
 
     moment))
 
@@ -376,7 +376,7 @@ RESET is t, reset the update count instead and remove permanence."
 
 (defun partial-recall--reset-count (moment)
   "Reset the update count for MOMENT."
-  (setf (partial-recall--moment-update-count moment) 0)
+  (setf (partial-recall--moment-focus moment) 0)
 
   moment)
 
@@ -730,7 +730,7 @@ removed if it doesn't meet the criteria."
 
     (dolist (moment (ring-elements ring))
       (unless (or (partial-recall--moment-permanence moment)
-                  (> 0 (partial-recall--moment-update-count moment))
+                  (> 0 (partial-recall--moment-focus moment))
                   (and exclude-current (eq current (partial-recall--moment-buffer moment))))
 
         (setq count (1+ count))

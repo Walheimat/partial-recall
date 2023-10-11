@@ -67,7 +67,7 @@ INCLUDE-SUBCONSCIOUS is t."
                  (name (buffer-name buffer))
                  (ts (prm--print-timestamp (mom-timestamp moment)))
                  (implanted (mom-permanence moment))
-                 (presence (prm--print-presence (mom-update-count moment) implanted))
+                 (presence (prm--print-presence (mom-focus moment) implanted))
                  (item (list tab-name buffer real sub))
                  (line (vector prm--empty presence name mem-pp ts)))
 
@@ -130,24 +130,24 @@ If NO-OTHER-TAB is t, raise an error if that would be necessary."
       (format-time-string "   %d/%m" (seconds-to-time timestamp))
     (format-time-string "%H:%M:%S" (seconds-to-time timestamp))))
 
-(defun prm--print-presence (update-count implanted)
-  "Format presence using UPDATE-COUNT.
+(defun prm--print-presence (focus implanted)
+  "Format presence using FOCUS.
 
 If the moment is IMPLANTED, signal that."
   (let* ((threshold partial-recall-auto-implant-threshold)
          (index 0)
          (max-index (1- (length prm--persistence-ratios)))
-         (text (if (zerop update-count)
+         (text (if (zerop focus)
                    (if implanted
                        prm--persistence-indicator
                      prm--empty)
-                 (while (and (> update-count (* threshold (nth index prm--persistence-ratios)))
+                 (while (and (> focus (* threshold (nth index prm--persistence-ratios)))
                              (< index max-index))
                    (setq index (1+ index)))
 
                  (aref prm--persistence-blocks index)))
          (face (if implanted 'success 'shadow))
-         (help (format "Updates: %s, Implanted: %s" update-count implanted)))
+         (help (format "Focus: %s, Implanted: %s" focus implanted)))
 
     (propertize text 'face face 'help-echo help)))
 

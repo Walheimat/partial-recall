@@ -30,7 +30,7 @@
 
       (should (eq memory (partial-recall--buffer-owner))))))
 
-(ert-deftest pr--update-count ()
+(ert-deftest pr--focus ()
   (let ((partial-recall-memory-size 2))
 
     (with-tab-history :pre t
@@ -40,7 +40,7 @@
         (partial-recall--remember another-temp)
         (partial-recall--reinforce (current-buffer))
 
-        (should (eq 1 (partial-recall--update-count)))
+        (should (eq 1 (partial-recall--focus)))
         (kill-buffer another-temp)))))
 
 (ert-deftest pr--name ()
@@ -354,7 +354,7 @@
 
         (partial-recall--remember another-temp)
 
-        (should (eq 1 (partial-recall--update-count)))
+        (should (eq 1 (partial-recall--focus)))
 
         (kill-buffer another-temp)))))
 
@@ -426,7 +426,7 @@
                               (moments (partial-recall--memory-ring reality))
                               (buffer (current-buffer))
                               (moment (ring-ref moments (partial-recall--moments-member moments buffer))))
-                         (partial-recall--moment-update-count moment))))
+                         (partial-recall--moment-focus moment))))
           (partial-recall-memory-size 2)
           (another-temp (generate-new-buffer " *temp*" t)))
 
