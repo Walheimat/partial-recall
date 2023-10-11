@@ -158,66 +158,31 @@
         (moment nil))
 
     (bydi ((:always partial-recall--meaningful-buffer-p)
-           partial-recall--moment-set-permanence
-           (:mock partial-recall--moment-from-buffer :return moment))
+           (:mock partial-recall--moment-from-buffer :return moment)
+           partial-recall--moment-refresh
+           partial-recall--debug)
 
       (partial-recall--concentrate)
 
       (should-not partial-recall--last-focus)
-      (should (eq 0 partial-recall--focus-count))
+      (bydi-was-not-called partial-recall--moment-refresh)
 
       (setq moment 'test)
 
       (partial-recall--concentrate)
 
       (should (eq 'test partial-recall--last-focus))
-      (should (eq 1 partial-recall--focus-count))
-      (bydi-was-not-called partial-recall--moment-set-permanence)
+      (bydi-was-not-called partial-recall--moment-refresh)
+
+      (partial-recall--concentrate)
+
+      (bydi-was-called partial-recall--moment-refresh)
 
       (setq moment 'other)
 
       (partial-recall--concentrate)
 
-      (should (eq 1 partial-recall--focus-count))
-
-      (partial-recall--concentrate)
-
-      (bydi-was-called partial-recall--moment-set-permanence))))
-
-(ert-deftest pr--concentration--remains-when-focus-remains-visible ()
-  (let ((partial-recall--last-focus nil)
-        (partial-recall--focus-count 0)
-        (moment 'a))
-
-    (bydi ((:always partial-recall--meaningful-buffer-p)
-           (:mock partial-recall--moment-from-buffer :return moment)
-           (:sometimes partial-recall--buffer-visible-p))
-
-      (partial-recall--concentrate)
-
-      (should-not partial-recall--last-focus)
-
-      (bydi-toggle-sometimes)
-
-      (partial-recall--concentrate)
-
-      (should (eq 'a partial-recall--last-focus))
-      (should (eq 1 partial-recall--focus-count))
-
-      (setq moment 'b)
-
-      (bydi-toggle-sometimes)
-
-      (partial-recall--concentrate)
-
-      (should (eq 'a partial-recall--last-focus))
-      (should (eq 1 partial-recall--focus-count))
-
-      (bydi-toggle-sometimes)
-
-      (partial-recall--concentrate)
-
-      (should (eq 'b partial-recall--last-focus)))))
+      (bydi-was-called partial-recall--debug))))
 
 (ert-deftest pr--after-switch-to-buffer--schedules ()
   (bydi (partial-recall--schedule-buffer)

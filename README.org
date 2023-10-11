@@ -39,9 +39,9 @@ and moments.
 A memory is a ring of moments and a key used for look-up. The size of
 the ring is determined by =partial-recall-memory-size=.
 
-A moment is a buffer, a timestamp at which it was last updated, a
-count of how many times it was updated and a flag indicating whether
-it is permanent (see below).
+A moment is a buffer, a timestamp at which it was focused, a count of
+how many times it was focused and a flag indicating whether it is
+permanent (see below on topics **Permanence** and **Concentration**).
 
 Visiting a buffer will schedule its handling which is to say that
 handling is delayed by =partial-recall-handle-delay= seconds. So if
@@ -84,9 +84,8 @@ made permanent:
 
 1. The user calls =partial-recall-implant= and selects its buffer.
 2. The moment has been revisited and re-inserted
-   =partial-recall-auto-implant-threshold= times.
-3. The moments has been focused =partial-recall-min-focus= times (see
-   below).
+   for its focus to reach =partial-recall-auto-implant-threshold=.
+3. The moments has been concentrated upon to reach that same threshold.
 
 The reverse of implanting is "excising" which =partial-recall-implant=
 will do if called with =C-u=. Permanent buffers can still be forgotten
@@ -95,10 +94,9 @@ manually.
 *** Concentration
 
 Every minute =partial-recall= will "concentrate" on the
-=current-buffer=. If the buffer doesn't change and is "focused" for
-=partial-recall-min-focus= times, it is made permanent automatically.
-If the buffer is switched before that threshold is reached, the
-counter restarts.
+=current-buffer=. If the buffer doesn't change since the last cycle
+its focus will increase (see **Permanence**) otherwise concentration
+is broken and will begin again for the current buffer.
 
 /Note/ that concentration is a no-op if the =current-buffer= is not a
 meaningful buffer.
@@ -139,7 +137,6 @@ taken into account.
   (partial-recall-log-prefix "PR") ;; Message prefix for log messages.
   (partial-recall-filter '("COMMIT_EDITMSG")) ;; Regexes of names that should be ignored.
   (partial-recall-traits '(buffer-file-name)) ;; List of functions that determine eligible buffers.
-  (partial-recall-min-focus 5) ;; Repeat focus until the buffer is made permanent.
 
   :config
   (partial-recall-mode)

@@ -92,8 +92,8 @@ This is will implant buffers that have met
   :type 'boolean
   :group 'partial-recall)
 
-(defcustom partial-recall-auto-implant-threshold 4
-  "Minimum of updates before auto-implanting."
+(defcustom partial-recall-auto-implant-threshold 5
+  "Minimum of focus increases before auto-implanting."
   :type 'integer
   :group 'partial-recall)
 
@@ -147,11 +147,6 @@ is not considered meaningful."
   :type '(repeat function)
   :group 'partial-recall)
 
-(defcustom partial-recall-min-focus 5
-  "Number of repeat focus that should make a moment permanent."
-  :type 'integer
-  :group 'partial-recall)
-
 ;;; -- Internal variables
 
 (defvar partial-recall--table (make-hash-table))
@@ -161,7 +156,6 @@ is not considered meaningful."
 (defvar partial-recall--concentration-timer nil)
 
 (defvar partial-recall--last-focus nil)
-(defvar partial-recall--focus-count 0)
 
 (defvar partial-recall--last-checked nil)
 (defvar partial-recall--neglect nil)
@@ -271,7 +265,7 @@ Searches all memories unless MEMORY is provided."
     (ring-ref ring index)))
 
 (defun partial-recall--focus (&optional buffer)
-  "Get the update count of BUFFER."
+  "Get the focus of BUFFER."
   (when-let* ((buffer (or buffer (current-buffer)))
               (moment (partial-recall--moment-from-buffer buffer)))
 
@@ -350,8 +344,8 @@ If EXCLUDE-SUBCONSCIOUS is t, it is excluded."
 
   moment)
 
-(defun partial-recall--moment-increment-count (moment)
-  "Increment the update count for MOMENT."
+(defun partial-recall--increase-focus (moment)
+  "Increment the focus for MOMENT."
   (let* ((count (partial-recall--moment-focus moment))
          (updated-count (1+ count)))
 
@@ -364,18 +358,18 @@ If EXCLUDE-SUBCONSCIOUS is t, it is excluded."
 (defun partial-recall--moment-refresh (moment &optional reset)
   "Refresh MOMENT.
 
-This will update its timestamp and increment its update count. If
-RESET is t, reset the update count instead and remove permanence."
+This will update its timestamp and increment its focus. If RESET
+is t, reset the focus instead and remove permanence."
   (if reset
       (progn
         (partial-recall--reset-count moment)
         (partial-recall--moment-set-permanence moment nil))
-    (partial-recall--moment-increment-count moment))
+    (partial-recall--increase-focus moment))
 
   (partial-recall--moment-update-timestamp moment))
 
 (defun partial-recall--reset-count (moment)
-  "Reset the update count for MOMENT."
+  "Reset the focus for MOMENT."
   (setf (partial-recall--moment-focus moment) 0)
 
   moment)
@@ -447,26 +441,21 @@ be found, it will be ignored."
 (defun partial-recall--concentrate ()
   "Concentrate on the current moment.
 
-If the moment has remained the same since last time, increase the
-focus count, otherwise reset it. If threshold
-`partial-recall-min-focus' is met, make the moment permanent.
-
-While lingering on a non-meaningful buffer concentration isn't
-broken. If the current buffer has changed but the previous focus
-remains visible, concentration isn't broken."
+If the moment has remained the same since the last cycle, its
+focus is increased, otherwise concentration breaks."
   (and-let* ((current (current-buffer))
              ((partial-recall--meaningful-buffer-p current))
              (moment (partial-recall--moment-from-buffer current)))
 
     (if (and partial-recall--last-focus (eq moment partial-recall--last-focus))
         (progn
-          (setq partial-recall--focus-count (1+ partial-recall--focus-count))
+          (partial-recall--debug "Concentration held on %s" moment)
+          (partial-recall--moment-refresh moment))
 
-          (when (>= partial-recall--focus-count partial-recall-min-focus)
-            (partial-recall--moment-set-permanence moment t)))
-      (unless (partial-recall--buffer-visible-p current)
-        (setq partial-recall--focus-count 1
-              partial-recall--last-focus moment)))))
+      (when partial-recall--last-focus
+        (partial-recall--debug "Concentration on %s broke" partial-recall--last-focus))
+
+      (setq partial-recall--last-focus moment))))
 
 (defun partial-recall--before-switch-to-buffer (buffer &optional norecord &rest _)
   "Maybe switch memories before scheduling BUFFER.

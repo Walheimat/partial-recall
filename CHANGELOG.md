@@ -9,8 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Concentration is no longer interrupted if the previous focus target
-  remains visible.
+- Slot `update-count` has been renamed to `focus` (as well as various
+  private functions).
+- Concentration now instead increases the moment's focus.
+- `partial-recall-auto-implant-threshold` has been increased to
+  account for the change in how concentration works.
+
+### Removed
+
+- `partial-recall-min-focus` has been removed (now folded into
+  `partial-recall-auto-implant-threshold`.
 
 ## [v0.8.0]
 
