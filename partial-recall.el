@@ -406,7 +406,7 @@ If EXTEND is t, also extend."
 
       (partial-recall--void-timer)
 
-      (partial-recall--debug "Scheduling buffer %s" buffer)
+      (partial-recall--debug "Scheduling buffer '%s'" buffer)
 
       (setq partial-recall--timer
             (run-at-time
@@ -424,7 +424,7 @@ be found, it will be ignored."
 
   (when (partial-recall--buffer-visible-p buffer)
 
-    (partial-recall--log "Handling buffer %s" buffer)
+    (partial-recall--log "Handling buffer '%s'" buffer)
 
     (if (partial-recall--mapped-buffer-p buffer)
         (partial-recall--recollect buffer)
@@ -436,7 +436,7 @@ be found, it will be ignored."
   "Void the current timer."
   (when partial-recall--timer
     (unless (timer--triggered partial-recall--timer)
-      (partial-recall--debug "Canceling previous timer %s" partial-recall--timer)
+      (partial-recall--debug "Canceling previous timer '%s'" partial-recall--timer)
       (cancel-timer partial-recall--timer))
 
     (setq partial-recall--timer nil)))
@@ -452,11 +452,11 @@ focus is increased, otherwise concentration breaks."
 
     (if (and partial-recall--last-focus (eq moment partial-recall--last-focus))
         (progn
-          (partial-recall--debug "Concentration held on %s" moment)
+          (partial-recall--debug "Concentration held on '%s'" moment)
           (partial-recall--intensify moment))
 
       (when partial-recall--last-focus
-        (partial-recall--debug "Concentration on %s broke" partial-recall--last-focus))
+        (partial-recall--debug "Concentration on '%s' broke" partial-recall--last-focus))
 
       (setq partial-recall--last-focus moment))))
 
@@ -586,7 +586,7 @@ is t, the forgotten moment goes into the subconscious."
     (let ((memory (catch 'found
                     (maphash maybe-remove partial-recall--table))))
 
-      (partial-recall--log "%s was removed from %s" buffer memory))))
+      (partial-recall--log "'%s' was removed from '%s'" buffer memory))))
 
 (defun partial-recall--implant (&optional buffer excise)
   "Make BUFFER's moment permanent.
@@ -601,7 +601,7 @@ If EXCISE is t, remove permanence instead."
 
     (unless (eq (partial-recall--moment-permanence moment) (not excise))
 
-      (partial-recall--log "%s %s" verb moment)
+      (partial-recall--log "%s '%s'" verb moment)
 
       (partial-recall--moment-set-permanence moment (not excise))
 
@@ -620,10 +620,10 @@ If EXCISE is t, remove permanence instead."
              (buffer (partial-recall--moment-buffer removed)))
 
         (when partial-recall-repress
-          (partial-recall--log "Repressing %s" removed)
+          (partial-recall--log "Repressing '%s'" removed)
           (kill-buffer buffer))))
 
-    (partial-recall--debug "Suppressing %s" moment)
+    (partial-recall--debug "Suppressing '%s'" moment)
 
     (partial-recall--intensify moment t)
 
@@ -734,7 +734,7 @@ removed if it doesn't meet the criteria."
 
         (partial-recall--clean-up-buffer (partial-recall--moment-buffer moment))))
 
-    (partial-recall--log "Flushed %d moments from %s" count memory)
+    (partial-recall--log "Flushed %d moments from '%s'" count memory)
 
     (partial-recall--probe-memory memory)))
 
@@ -788,7 +788,7 @@ re-insert any implanted one."
 
     (when (and (not (partial-recall--memory-at-capacity-p memory))
                (> curr orig))
-      (partial-recall--debug "Resizing %s" memory)
+      (partial-recall--debug "Resizing '%s'" memory)
 
       (ring-resize ring (max (ring-length ring) orig)))))
 
@@ -798,7 +798,7 @@ re-insert any implanted one."
 See `partial-recall--should-extend-memory-p'."
   (when (and (partial-recall--memory-at-capacity-p memory)
              (partial-recall--should-extend-memory-p memory))
-    (partial-recall--debug "Extending %s" memory)
+    (partial-recall--debug "Extending '%s'" memory)
 
     (ring-extend (partial-recall--memory-ring memory) 1)))
 
@@ -876,7 +876,7 @@ This also checks for buffers that might have been obscured."
                            (memq buffer (mapcar #'window-buffer (window-list))))))
          (verb (if visible "remains" "is no longer")))
 
-    (partial-recall--debug "Buffer %s %s visible" buffer verb)
+    (partial-recall--debug "Buffer '%s' %s visible" buffer verb)
 
     visible))
 
