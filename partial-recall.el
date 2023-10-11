@@ -134,7 +134,7 @@ This is will implant buffers that have met
   :type '(repeat regexp)
   :group 'partial-recall)
 
-(defcustom partial-recall-traits '(buffer-file-name)
+(defcustom partial-recall-traits '(buffer-file-name partial-recall--not-in-view-mode-p)
   "List of functions that describe traits of a meaningful buffer.
 
 These functions are inspected using `func-arity'. If they have a
@@ -949,6 +949,10 @@ the max age."
    ((eq partial-recall--neglect buffer)
     (setq partial-recall--neglect nil))
    (t t)))
+
+(defun partial-recall--not-in-view-mode-p (buffer)
+  "Make sure BUFFER is not in `view-mode'."
+  (not (buffer-local-value 'view-mode buffer)))
 
 (defun partial-recall--meaningful-buffer-p (buffer)
   "Check if BUFFER should be remembered."

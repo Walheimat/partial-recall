@@ -136,7 +136,7 @@ taken into account.
   (partial-recall-log-level 1) ;; Info log level (0 is debug).
   (partial-recall-log-prefix "PR") ;; Message prefix for log messages.
   (partial-recall-filter '("COMMIT_EDITMSG")) ;; Regexes of names that should be ignored.
-  (partial-recall-traits '(buffer-file-name)) ;; List of functions that determine eligible buffers.
+  (partial-recall-traits '(buffer-file-name partial-recall--not-in-view-mode-p)) ;; List of functions that determine eligible buffers.
 
   :config
   (partial-recall-mode)
