@@ -73,7 +73,7 @@ increased and the buffer will remain."
 (defcustom partial-recall-reclaim-min-age (* 15 60)
   "Threshold in seconds that when exceeded allows reclaiming.
 
-Has no effect if `partial-recall-reclaim' is nil."
+Has no effect if function `partial-recall-reclaim' is nil."
   :type 'integer
   :group 'partial-recall)
 
@@ -347,9 +347,12 @@ If EXCLUDE-SUBCONSCIOUS is t, it is excluded."
   moment)
 
 (defun partial-recall--increase-focus (moment)
-  "Increment the focus for MOMENT."
-  (let* ((count (partial-recall--moment-focus moment))
-         (updated-count (1+ count)))
+  "Increment the focus for MOMENT.
+
+Permanent moments do not gain additional focus."
+  (and-let* (((not (partial-recall--moment-permanence moment)))
+             (count (partial-recall--moment-focus moment))
+             (updated-count (1+ count)))
 
     (partial-recall--maybe-implant-moment moment updated-count)
 

@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Concentration now instead increases the moment's focus.
 - `partial-recall-auto-implant-threshold` has been increased to
   account for the change in how concentration works.
+- The `focus` no longer is increased if the moment is already
+  implanted.
 - Trait `partial-recall--not-in-view-mode-p` to not consider buffers
   that were opened in `view-mode` meaningful.
 

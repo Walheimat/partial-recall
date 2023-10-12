@@ -317,14 +317,16 @@
 
 (ert-deftest pr-remember--reinforces-permanent ()
   (let ((partial-recall-memory-size 1))
+
     (with-tab-history :pre t
       (let ((another-temp (generate-new-buffer " *temp*" t)))
 
         (partial-recall--implant)
 
-        (partial-recall--remember another-temp)
+        (bydi ((:spy partial-recall--reinsert))
+          (partial-recall--remember another-temp)
 
-        (should (eq 1 (partial-recall--focus)))
+          (bydi-was-called partial-recall--reinsert))
 
         (kill-buffer another-temp)))))
 
@@ -575,7 +577,7 @@
         (partial-recall--reinforce (current-buffer))
         (partial-recall--reinforce (current-buffer))
 
-        (bydi-was-called-n-times partial-recall--maybe-implant-moment 3)
+        (bydi-was-called-n-times partial-recall--maybe-implant-moment 2)
         (bydi-was-called-n-times partial-recall--implant 1)
 
         (let ((moment (partial-recall--moment-from-buffer (current-buffer))))
