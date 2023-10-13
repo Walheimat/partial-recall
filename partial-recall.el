@@ -611,8 +611,9 @@ If EXCISE is t, remove permanence instead."
 (defun partial-recall--suppress (moment)
   "Suppress MOMENT in the subconscious."
   (and-let* ((buffer (partial-recall--moment-buffer moment))
-             ((partial-recall--meaningful-buffer-p buffer))
              (memory (partial-recall--subconscious))
+             ((not (partial-recall--memory-buffer-p buffer memory)))
+             ((partial-recall--meaningful-buffer-p buffer))
              (ring (partial-recall--memory-ring memory)))
 
     (when (partial-recall--memory-at-capacity-p memory)

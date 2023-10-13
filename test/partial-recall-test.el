@@ -498,8 +498,10 @@
           (kill-buffer another-temp)
           (kill-buffer yet-another-temp))))))
 
-(ert-deftest partial-recall--suppress--remembers ()
+(ert-deftest partial-recall--suppress--remembers-unique ()
   (with-tab-history :pre t
+    (partial-recall--forget (current-buffer) t)
+    (partial-recall--remember (current-buffer))
     (partial-recall--forget (current-buffer) t)
 
     (should (eq (ring-length (partial-recall--memory-ring (gethash partial-recall--subconscious-key partial-recall--table)))

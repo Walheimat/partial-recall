@@ -24,6 +24,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `partial-recall-min-focus` has been removed (now folded into
   `partial-recall-auto-implant-threshold`.
 
+### Fixed
+
+- `partial-recall--suppress` no longer inserts moments that point to
+  an already suppressed buffer.
+
 ## [v0.8.0]
 
 ### Added
