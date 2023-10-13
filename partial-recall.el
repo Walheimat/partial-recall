@@ -750,7 +750,12 @@ no longer recorded as the last checked buffer."
         (quit-window nil window))))
 
   (when (eq partial-recall--last-checked buffer)
-    (setq partial-recall--last-checked nil)))
+    (setq partial-recall--last-checked nil))
+
+  (when (and partial-recall--last-focus
+             (eq (partial-recall--moment-buffer partial-recall--last-focus)
+                 buffer))
+    (setq partial-recall--last-focus nil)))
 
 (defun partial-recall--probe-memory (memory)
   "Probe MEMORY.

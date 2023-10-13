@@ -28,6 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `partial-recall--suppress` no longer inserts moments that point to
   an already suppressed buffer.
+- If a killed buffer was the target of the last focus, the focus is
+  cleared.
 
 ## [v0.8.0]
 

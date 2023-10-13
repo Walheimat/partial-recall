@@ -36,7 +36,8 @@ second memory is created."
            (second-memory-key "second")
            (second-memory nil))
 
-       ,(when pre '(partial-recall--remember (current-buffer)))
+       ,(when pre '(setq partial-recall--last-focus
+                         (partial-recall--remember (current-buffer))))
 
        ,(when second
           '(progn

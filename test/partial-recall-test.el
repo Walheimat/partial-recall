@@ -619,6 +619,17 @@
 
     (bydi-was-called quit-window)))
 
+(ert-deftest pr--clean-up-buffer--clears-focus ()
+  (with-tab-history :pre t
+    (bydi ((:mock window-buffer :return (current-buffer))
+           quit-window)
+
+      (should partial-recall--last-focus)
+
+      (partial-recall--clean-up-buffer (current-buffer))
+
+      (should-not partial-recall--last-focus))))
+
 (ert-deftest pr--meld ()
   (with-tab-history :pre t :second t
     (should-error (partial-recall--meld (partial-recall--reality) (partial-recall--reality)))
