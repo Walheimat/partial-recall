@@ -590,7 +590,8 @@
         (bydi-was-called partial-recall--reset-count)))))
 
 (ert-deftest pr--maybe-switch-memory ()
-  (let ((partial-recall-auto-switch t))
+  (let ((partial-recall-auto-switch 'prompt)
+        (user-input nil))
 
     (with-tab-history :pre t :second t
       (let* ((another (generate-new-buffer " *temp*" t))
@@ -601,8 +602,28 @@
         (should-not (partial-recall--maybe-switch-memory (current-buffer)))
 
         (bydi (tab-bar-switch-to-tab
-               (:mock partial-recall--tab-name :return "test"))
+               (:mock partial-recall--tab-name :return "test")
+               (:mock yes-or-no-p :return user-input))
+
           (partial-recall--maybe-switch-memory another)
+          (bydi-was-not-called tab-bar-switch-to-tab)
+
+          (bydi-clear-mocks)
+          (setq user-input t)
+
+          (partial-recall--maybe-switch-memory another)
+          (bydi-was-called tab-bar-switch-to-tab)
+
+          (bydi-clear-mocks)
+          (setq partial-recall-auto-switch nil)
+
+          (partial-recall--maybe-switch-memory another)
+          (bydi-was-not-called tab-bar-switch-to-tab)
+
+          (bydi-clear-mocks)
+          (setq partial-recall-auto-switch t)
+          (partial-recall--maybe-switch-memory another)
+
           (bydi-was-called-with tab-bar-switch-to-tab "test"))))))
 
 (ert-deftest pr--clean-up-buffer ()

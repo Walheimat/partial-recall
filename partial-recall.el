@@ -99,7 +99,9 @@ This is will implant buffers that have met
 
 (defcustom partial-recall-auto-switch t
   "Whether to automatically switch to a buffer's memory."
-  :type 'boolean
+  :type '(choice (const :tag "Don't switch" nil)
+                 (const :tag "Switch" t)
+                 (const :tag "Prompt first" prompt))
   :group 'partial-recall)
 
 (defcustom partial-recall-mode-lighter " pr"
@@ -835,14 +837,18 @@ This is true if COUNT exceeds `partial-recall-auto-implant-threshold'."
 
 Memories in the subconscious are not considered."
   (with-current-buffer buffer
-    (and-let* (partial-recall-auto-switch
-               (buffer (current-buffer))
+    (and-let* ((buffer (current-buffer))
                ((partial-recall--mapped-buffer-p buffer))
                ((not (partial-recall--memory-buffer-p buffer)))
                (moment (partial-recall--moment-from-buffer buffer))
                ((not (partial-recall--exceeds-p moment (- partial-recall-reclaim-min-age
                                                           partial-recall-handle-delay))))
                (owner (partial-recall--buffer-owner buffer))
+               ((pcase partial-recall-auto-switch
+                  ('prompt
+                   (yes-or-no-p (format "Switch to %s?" (partial-recall--repr owner))))
+                  ('t t)
+                  (_ nil)))
                (tab (partial-recall--tab-name owner)))
 
       (tab-bar-switch-to-tab tab))))
