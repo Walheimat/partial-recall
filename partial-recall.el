@@ -171,6 +171,11 @@ is not considered meaningful."
 
 (defvar-local partial-recall--implanted nil)
 
+(defface partial-recall-emphasis
+  '((t (:inherit (shadow))))
+  "Face used for emphasis."
+  :group 'partial-recall)
+
 ;;; -- Hooks
 
 (defvar partial-recall-probe-hook nil
@@ -1023,7 +1028,7 @@ Message will be formatted with ARGS."
 (defun partial-recall--prefix-fmt-string (format-string)
   "Prefix FORMAT-STRING."
   (if partial-recall-log-prefix
-      (concat (propertize partial-recall-log-prefix 'face 'shadow) ": " format-string)
+      (concat (propertize partial-recall-log-prefix 'face 'partial-recall-emphasis) " :: " format-string)
     format-string))
 
 (defun partial-recall--repr (thing)

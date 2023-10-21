@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Variable `partial-recall-auto-switch` can now be set to symbol
   `prompt` to prompt the user whether a switch should happen.
+- The face used to highlight the `partial-recall-log-prefix` can now
+  be customized.
 
 ## [v0.8.1]
 
