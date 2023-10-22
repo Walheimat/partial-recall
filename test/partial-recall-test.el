@@ -840,7 +840,7 @@
         (shut-up
           (ert-with-message-capture messages
             (partial-recall--debug "The moment %s was %s" moment "found")
-            (should (string= "Test: The moment #<moment test-repr (now)> was found\n" messages))))
+            (should (string= "Test :: The moment #<moment test-repr (now)> was found\n" messages))))
 
         (kill-buffer buffer)))))
 
