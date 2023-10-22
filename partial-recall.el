@@ -104,8 +104,16 @@ This is will implant buffers that have met
                  (const :tag "Prompt first" prompt))
   :group 'partial-recall)
 
-(defcustom partial-recall-mode-lighter " pr"
-  "The mode line lighter."
+(defcustom partial-recall-lighter '(" "
+                                    partial-recall-lighter-prefix
+                                    partial-recall-lighter-moment
+                                    partial-recall-lighter-memory)
+  "The lighter as a list of mode line constructs."
+  :type '(repeat (choice string symbol))
+  :group 'partial-recall)
+
+(defcustom partial-recall-lighter-prefix "pr"
+  "The prefix used in `partial-recall-lighter'."
   :type 'string
   :group 'partial-recall)
 
@@ -174,6 +182,11 @@ is not considered meaningful."
 (defface partial-recall-emphasis
   '((t (:inherit (shadow))))
   "Face used for emphasis."
+  :group 'partial-recall)
+
+(defface partial-recall-contrast
+  '((t (:inherit (warning))))
+  "Face used for contrast."
   :group 'partial-recall)
 
 ;;; -- Hooks
@@ -1128,6 +1141,44 @@ t."
 
     (cdr-safe (assoc selection collection))))
 
+;;; -- Lighter
+
+(defun partial-recall--lighter-moment ()
+  "Show moment information.
+
+This will show a propertized asterisk if the moment is permanent."
+  (when-let* ((moment (partial-recall--moment-from-buffer (current-buffer))))
+    (if (partial-recall--moment-permanence moment)
+        '(:propertize "*" face partial-recall-contrast)
+      "")))
+
+(defun partial-recall--lighter-memory ()
+  "Show memory information.
+
+This will normally show the current number of items in the
+memory; if the memory has exceeded its original size, the surplus
+is shown."
+  (and-let* ((memory (partial-recall--reality))
+             (ring (partial-recall--memory-ring memory))
+             (orig-size (partial-recall--memory-orig-size memory))
+
+             (size (ring-size ring))
+             (length (ring-length ring)))
+
+    (if (> size orig-size)
+        (format " +%d" (- size orig-size))
+      (unless (zerop length)
+        (format " %d" length)))))
+
+(defvar partial-recall-lighter-moment '(:eval (partial-recall--lighter-moment)))
+(defvar partial-recall-lighter-memory '(:eval (partial-recall--lighter-memory)))
+
+;; If the variables are not considered risky, the mode line constructs
+;; they contain are not evaluated.
+(put 'partial-recall-lighter 'risky-local-variable t)
+(put 'partial-recall-lighter-moment 'risky-local-variable t)
+(put 'partial-recall-lighter-memory 'risky-local-variable t)
+
 ;;; -- Setup
 
 (defun partial-recall--fix-up-primary-tab ()
@@ -1225,7 +1276,7 @@ t."
 ;;;###autoload
 (define-minor-mode partial-recall-mode
   "Keep track of buffers opened in a tab."
-  :lighter partial-recall-mode-lighter
+  :lighter partial-recall-lighter
   :global t
   (if partial-recall-mode
       (partial-recall-mode--setup)

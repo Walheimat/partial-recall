@@ -957,6 +957,30 @@
 
     (bydi-was-called-with completing-read '(... ((a . a) (b . b) (c . c))))))
 
+;;; -- Lighter
+
+(ert-deftest pr--lighter-moment ()
+  (with-tab-history :pre t
+    (should (string= "" (partial-recall--lighter-moment)))
+
+    (partial-recall--implant)
+
+    (should (equal '(:propertize "*" face partial-recall-contrast)
+                   (partial-recall--lighter-moment)))))
+
+(ert-deftest pr--lighter-memory ()
+  (let ((partial-recall-memory-size 1))
+
+    (with-tab-history :pre t
+
+      (should (string= " 1" (partial-recall--lighter-memory)))
+
+      (let ((another-temp (generate-new-buffer " *temp*" t)))
+
+        (partial-recall--remember another-temp)
+
+        (should (string= " +1" (partial-recall--lighter-memory)))))))
+
 ;;; -- Setup
 
 (ert-deftest pr--fix-up-primary-tab ()

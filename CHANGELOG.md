@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `prompt` to prompt the user whether a switch should happen.
 - The face used to highlight the `partial-recall-log-prefix` can now
   be customized.
+- Custom variable `partial-recall-lighter` that holds several new mode
+  line constructs. Variable `partial-recall-mode-lighter` is replaced
+  by `partial-recall-lighter-prefix`.
 
 ## [v0.8.1]
 
