@@ -105,9 +105,11 @@ This is will implant buffers that have met
   :group 'partial-recall)
 
 (defcustom partial-recall-lighter '(" "
-                                    partial-recall-lighter-prefix
+                                    partial-recall-lighter-title
+                                    "["
                                     partial-recall-lighter-moment
-                                    partial-recall-lighter-memory)
+                                    partial-recall-lighter-memory
+                                    "]")
   "The lighter as a list of mode line constructs."
   :type '(repeat (choice string symbol))
   :group 'partial-recall)
@@ -179,9 +181,37 @@ is not considered meaningful."
 
 (defvar-local partial-recall--implanted nil)
 
+(defvar partial-recall-command-map
+  (let ((map (make-sparse-keymap)))
+
+    (define-key map (kbd "b") 'partial-recall-switch-to-buffer)
+    (define-key map (kbd "c") 'partial-recall-reclaim)
+    (define-key map (kbd "f") 'partial-recall-forget)
+    (define-key map (kbd "i") 'partial-recall-implant)
+    (define-key map (kbd "m") 'partial-recall-menu)
+    (define-key map (kbd "n") 'partial-recall-next)
+    (define-key map (kbd "p") 'partial-recall-previous)
+    (define-key map (kbd "u") 'partial-recall-meld)
+    (define-key map (kbd "r") 'partial-recall-remember)
+    (define-key map (kbd "l") 'partial-recall-lift)
+    (define-key map (kbd "x") 'partial-recall-flush)
+    map)
+  "Map for `partial-recall-mode' commands.")
+
+(defvar-keymap partial-recall-navigation-map
+  :doc "Keymap to repeat navigation commands."
+  :repeat t
+  "n" 'partial-recall-next
+  "p" 'partial-recall-previous)
+
 (defface partial-recall-emphasis
-  '((t (:inherit (shadow))))
+  '((t (:inherit (success))))
   "Face used for emphasis."
+  :group 'partial-recall)
+
+(defface partial-recall-deemphasized
+  '((t (:inherit (shadow))))
+  "Face used to de-emphasize."
   :group 'partial-recall)
 
 (defface partial-recall-contrast
@@ -1143,14 +1173,72 @@ t."
 
 ;;; -- Lighter
 
+(defvar partial-recall--lighter-map
+  (let ((map (make-sparse-keymap)))
+
+    (define-key map [mode-line mouse-1] 'partial-recall--lighter-toggle)
+    (define-key map [mode-line mouse-3] 'partial-recall--lighter-menu)
+
+    map))
+
+(defvar partial-recall--lighter-title
+  `(:propertize partial-recall-lighter-prefix
+                face partial-recall-deemphasized
+                mouse-face mode-line-highlight
+                help-echo "Partial Recall\nmouse-1: Implant/Excise\nmouse-3: Menu"
+                local-map ,partial-recall--lighter-map))
+
+(defun partial-recall--lighter-title ()
+  "Show the title.
+
+The title has a menu."
+  partial-recall--lighter-title)
+
+(defun partial-recall--lighter-toggle ()
+  "Implant or excise the current buffer."
+  (interactive)
+
+  (when-let* ((buffer (current-buffer))
+              (moment (partial-recall--moment-from-buffer buffer)))
+
+    (partial-recall-implant (current-buffer) (partial-recall--moment-permanence moment))))
+
+(defun partial-recall--lighter-menu ()
+  "Show a menu.."
+  (interactive)
+
+  (let* ((map (make-sparse-keymap))
+         (rename (lambda (sym) (substring (symbol-name sym)
+                                     (1+ (length "partial-recall")))))
+         (bind (lambda (_event func)
+                 (define-key-after map
+                   (vector func)
+                   (list 'menu-item (funcall rename func) func)))))
+
+    (define-key-after map [--actions] (list 'menu-item "Partial Recall"))
+
+    (map-keymap bind partial-recall-command-map)
+
+    (condition-case nil
+        (popup-menu map)
+      (quit nil))))
+
 (defun partial-recall--lighter-moment ()
   "Show moment information.
 
 This will show a propertized asterisk if the moment is permanent."
-  (when-let* ((moment (partial-recall--moment-from-buffer (current-buffer))))
-    (if (partial-recall--moment-permanence moment)
-        '(:propertize "*" face partial-recall-contrast)
-      "")))
+  (if-let* ((moment (partial-recall--moment-from-buffer (current-buffer))))
+
+      (if (partial-recall--moment-permanence moment)
+          '(:propertize "*"
+                        face partial-recall-contrast
+                        help-echo "Moment is implanted")
+        '(:propertize "-"
+                      face partial-recall-deemphasized
+                      help-echo "Moment is fleeting"))
+    '(:propertize "?"
+                  face partial-recall-deemphasized
+                  help-echo "Buffer is not meaningful")))
 
 (defun partial-recall--lighter-memory ()
   "Show memory information.
@@ -1161,21 +1249,27 @@ is shown."
   (and-let* ((memory (partial-recall--reality))
              (ring (partial-recall--memory-ring memory))
              (orig-size (partial-recall--memory-orig-size memory))
-
              (size (ring-size ring))
              (length (ring-length ring)))
 
     (if (> size orig-size)
-        (format " +%d" (- size orig-size))
-      (unless (zerop length)
-        (format " %d" length)))))
+        `(:propertize "+"
+                      face partial-recall-deemphasized
+                      help-echo ,(format "Memory has grown to +%d" (- size orig-size)))
+      (if (zerop length)
+          ""
+        `(:propertize "."
+                      face partial-recall-deemphasized
+                      help-echo ,(format "Memory contains %d moment(s)" length))))))
 
+(defvar partial-recall-lighter-title '(:eval (partial-recall--lighter-title)))
 (defvar partial-recall-lighter-moment '(:eval (partial-recall--lighter-moment)))
 (defvar partial-recall-lighter-memory '(:eval (partial-recall--lighter-memory)))
 
 ;; If the variables are not considered risky, the mode line constructs
 ;; they contain are not evaluated.
 (put 'partial-recall-lighter 'risky-local-variable t)
+(put 'partial-recall-lighter-title 'risky-local-variable t)
 (put 'partial-recall-lighter-moment 'risky-local-variable t)
 (put 'partial-recall-lighter-memory 'risky-local-variable t)
 
@@ -1248,30 +1342,6 @@ is shown."
   (remove-hook 'delete-frame-functions #'partial-recall--on-frame-delete))
 
 ;;; -- API
-
-;;;###autoload
-(defvar partial-recall-command-map
-  (let ((map (make-sparse-keymap)))
-
-    (define-key map (kbd "b") 'partial-recall-switch-to-buffer)
-    (define-key map (kbd "c") 'partial-recall-reclaim)
-    (define-key map (kbd "f") 'partial-recall-forget)
-    (define-key map (kbd "i") 'partial-recall-implant)
-    (define-key map (kbd "m") 'partial-recall-menu)
-    (define-key map (kbd "n") 'partial-recall-next)
-    (define-key map (kbd "p") 'partial-recall-previous)
-    (define-key map (kbd "u") 'partial-recall-meld)
-    (define-key map (kbd "r") 'partial-recall-remember)
-    (define-key map (kbd "l") 'partial-recall-lift)
-    (define-key map (kbd "x") 'partial-recall-flush)
-    map)
-  "Map for `partial-recall-mode' commands.")
-
-(defvar-keymap partial-recall-navigation-map
-  :doc "Keymap to repeat navigation commands."
-  :repeat t
-  "n" 'partial-recall-next
-  "p" 'partial-recall-previous)
 
 ;;;###autoload
 (define-minor-mode partial-recall-mode

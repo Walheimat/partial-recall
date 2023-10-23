@@ -959,27 +959,71 @@
 
 ;;; -- Lighter
 
+(ert-deftest pr--lighter-title ()
+  (should (equal (partial-recall--lighter-title) partial-recall--lighter-title)))
+
 (ert-deftest pr--lighter-moment ()
   (with-tab-history :pre t
-    (should (string= "" (partial-recall--lighter-moment)))
+    (should (equal
+             '(:propertize "-"
+                           face partial-recall-deemphasized
+                           help-echo "Moment is fleeting")
+             (partial-recall--lighter-moment)))
 
     (partial-recall--implant)
 
-    (should (equal '(:propertize "*" face partial-recall-contrast)
+    (should (equal '(:propertize "*"
+                                 face partial-recall-contrast
+                                 help-echo "Moment is implanted")
                    (partial-recall--lighter-moment)))))
+
+(ert-deftest partial-recall--lighter-menu ()
+  (defvar partial-recall-command-map)
+
+  (let ((partial-recall-command-map (make-sparse-keymap)))
+
+    (defun partial-recall-test ()
+      nil)
+
+    (define-key partial-recall-command-map (kbd "t") 'partial-recall-test)
+
+    (bydi (popup-menu)
+      (partial-recall--lighter-menu)
+      (bydi-was-called popup-menu))))
+
+(ert-deftest partial-recall--lighter-toggle ()
+  (with-tab-history :pre t
+
+    (bydi ((:spy partial-recall-implant))
+
+      (partial-recall--lighter-toggle)
+
+      (bydi-was-called-with partial-recall-implant '(... nil))
+
+      (partial-recall--lighter-toggle)
+
+      (bydi-was-called-with partial-recall-implant '(... t)))))
 
 (ert-deftest pr--lighter-memory ()
   (let ((partial-recall-memory-size 1))
 
     (with-tab-history :pre t
 
-      (should (string= " 1" (partial-recall--lighter-memory)))
+      (should (equal
+               '(:propertize "."
+                             face partial-recall-deemphasized
+                             help-echo "Memory contains 1 moment(s)")
+               (partial-recall--lighter-memory)))
 
       (let ((another-temp (generate-new-buffer " *temp*" t)))
 
         (partial-recall--remember another-temp)
 
-        (should (string= " +1" (partial-recall--lighter-memory)))))))
+        (should (equal
+                 '(:propertize "+"
+                               face partial-recall-deemphasized
+                               help-echo "Memory has grown to +1")
+                 (partial-recall--lighter-memory)))))))
 
 ;;; -- Setup
 
