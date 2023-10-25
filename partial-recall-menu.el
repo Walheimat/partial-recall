@@ -76,7 +76,7 @@ INCLUDE-SUBCONSCIOUS is t."
             (push (list item line) entries)))))
 
     (when include-subconscious
-      (setq-local prm--subconscious t))
+      (setq prm--subconscious t))
 
     (setq tabulated-list-format (prm--format buffer-names tab-names)
           tabulated-list-entries (nreverse entries)))
@@ -174,6 +174,7 @@ If the moment is IMPLANTED, signal that."
   "RET" #'prm-switch-to-buffer
   "e" #'prm-switch-to-buffer
   "o" #'prm-switch-to-buffer-other-window
+  "s" #'prm-toggle-subconscious
 
   "c" #'prm-reclaim-buffer
   "r" #'prm-reinforce-buffer
@@ -187,6 +188,13 @@ If the moment is IMPLANTED, signal that."
   (add-hook 'tabulated-list-revert-hook 'prm--revert nil t))
 
 ;; API
+
+(defun partial-recall-menu-toggle-subconscious ()
+  "Toggle the inclusion of the subconscious."
+  (interactive)
+
+  (setq prm--subconscious (not prm--subconscious))
+  (tabulated-list-revert))
 
 (defun partial-recall-menu-execute ()
   "Forget, steal and implant buffers."

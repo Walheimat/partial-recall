@@ -198,6 +198,17 @@
 
       (bydi-was-not-called tabulasted-list-set-col))))
 
+(ert-deftest prm-toggle-subconscious ()
+  (with-temp-buffer
+    (should-not partial-recall-menu--subconscious)
+
+    (bydi (tabulated-list-revert)
+      (partial-recall-menu-toggle-subconscious)
+
+      (should partial-recall-menu--subconscious)
+
+      (bydi-was-called tabulated-list-revert))))
+
 (ert-deftest prm-api ()
   (let ((real nil)
         (sub nil))

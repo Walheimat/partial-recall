@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   itself comprises several mode line constructs. Variable
   `partial-recall-mode-lighter` is replaced by
   `partial-recall-lighter-prefix`.
+- Key `s` in `partial-recall-menu` buffers is now bound to toggling
+  the inclusion of the subconscious.
 
 ## [v0.8.1]
 
