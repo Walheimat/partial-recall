@@ -181,6 +181,7 @@ is not considered meaningful."
 
 (defvar-local partial-recall--implanted nil)
 
+;;;###autoload
 (defvar partial-recall-command-map
   (let ((map (make-sparse-keymap)))
 
