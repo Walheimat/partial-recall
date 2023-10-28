@@ -2,12 +2,12 @@
 (source melpa)
 
 (development
- (depends-on "bydi" :git "https://github.com/Walheimat/bydi" :branch "trunk")
+ (depends-on "bydi" :git "https://github.com/Walheimat/bydi" :ref "v0.5.2")
  (depends-on "ert-runner")
  (depends-on "shut-up")
  (depends-on "undercover")
  (depends-on "compat"))
 
-(package "partial-recall" "0.8.1" "Short-term buffer memory")
+(package "partial-recall" "0.8.2" "Short-term buffer memory")
 
 (files "partial-recall.el" "partial-recall-menu.el" "partial-recall-extensions.el")
