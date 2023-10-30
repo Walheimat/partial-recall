@@ -508,8 +508,7 @@ focus is intensified, otherwise concentration breaks."
     (when partial-recall--last-focus
       (partial-recall--debug "Concentration on '%s' broke" partial-recall--last-focus))
 
-    (when-let ((moment (partial-recall--moment-from-buffer (current-buffer))))
-      (setq partial-recall--last-focus moment))))
+    (setq partial-recall--last-focus (partial-recall--moment-from-buffer (current-buffer)))))
 
 (defun partial-recall--before-switch-to-buffer (buffer &optional norecord &rest _)
   "Maybe switch memories before scheduling BUFFER.
