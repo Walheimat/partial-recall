@@ -16,6 +16,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   trait above. The function has the previous implementation as well as
   a check if the moment is below `partial-recall-reclaim-min-age`.
 
+
+### Changed
+
+- Custom variable `partial-recall-traits` was renamed to
+  `partial-recall-meaningful-traits`.
+
 ### Fixed
 
 - Concentration only breaks once.

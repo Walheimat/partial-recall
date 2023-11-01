@@ -761,7 +761,7 @@
     (should (partial-recall--has-buffers-p))))
 
 (ert-deftest pr--meaningful-buffer-p ()
-  (let ((partial-recall-traits '(buffer-file-name)))
+  (let ((partial-recall-meaningful-traits '(buffer-file-name)))
 
     (ert-with-temp-file file
       :buffer buffer
@@ -774,12 +774,12 @@
 
 (ert-deftest pr--meaningful-buffer-p--no-traits ()
   (with-temp-buffer
-    (let ((partial-recall-traits nil))
+    (let ((partial-recall-meaningful-traits nil))
       (should (partial-recall--meaningful-buffer-p (current-buffer))))))
 
 (ert-deftest pr--meaningful-buffer-p--bad-traits ()
   (with-temp-buffer
-    (let ((partial-recall-traits '(point)))
+    (let ((partial-recall-meaningful-traits '(point)))
 
       (bydi (partial-recall--warn)
         (should (partial-recall--meaningful-buffer-p (current-buffer)))
@@ -794,7 +794,7 @@
 
   (bydi ((:spy pr--trait-test))
 
-    (let ((partial-recall-traits '(pr--trait-test)))
+    (let ((partial-recall-meaningful-traits '(pr--trait-test)))
 
       (partial-recall--meaningful-buffer-p (current-buffer))
 

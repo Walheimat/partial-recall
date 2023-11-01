@@ -104,11 +104,11 @@ meaningful buffer.
 *** Meaningful buffer and buffer traits
 
 =partial-recall= only "remembers" buffers that are "meaningful". This
-is governed by a list of predicates listed in =partial-recall-traits=.
-They all must return =t= to mark a meaningful buffer. By default only
-=buffer-file-name= is in the list, meaning any buffer that has a file
-name is meaningful. If you set it to ='(always)= all buffers would be
-considered meaningful.
+is governed by a list of predicates listed in
+=partial-recall-meaningul-traits=. They all must return =t= to mark a
+meaningful buffer. By default only =buffer-file-name= is in the list,
+meaning any buffer that has a file name is meaningful. If you set it
+to ='(always)= all buffers would be considered meaningful.
 
 Even if meaningful, buffers whose names are in
 =partial-recall-filter=, will not be handled.
@@ -136,7 +136,7 @@ taken into account.
   (partial-recall-log-level 1) ;; Info log level (0 is debug).
   (partial-recall-log-prefix "PR") ;; Message prefix for log messages.
   (partial-recall-filter '("COMMIT_EDITMSG")) ;; Regexes of names that should be ignored.
-  (partial-recall-traits '(buffer-file-name partial-recall--not-in-view-mode-p)) ;; List of functions that determine eligible buffers.
+  (partial-recall-meaningful-traits '(buffer-file-name partial-recall--not-in-view-mode-p)) ;; List of functions that determine eligible buffers.
   (partial-recall-memorable-traits '(partial-recall--gracedp)) ;; Don't flush recent and implanted moments.
 
   :config

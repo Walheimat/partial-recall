@@ -146,7 +146,7 @@ This is will implant buffers that have met
   :type '(repeat regexp)
   :group 'partial-recall)
 
-(defcustom partial-recall-traits '(buffer-file-name partial-recall--not-in-view-mode-p)
+(defcustom partial-recall-meaningful-traits '(buffer-file-name partial-recall--not-in-view-mode-p)
   "List of functions that describe traits of a meaningful buffer.
 
 These functions are inspected using `func-arity'. If they have a
@@ -158,6 +158,8 @@ If any such function does not return a truthy value, the buffer
 is not considered meaningful."
   :type '(repeat function)
   :group 'partial-recall)
+
+(make-obsolete-variable 'partial-recall-traits 'partial-recall-meaningful-traits "0.8.2")
 
 (defcustom partial-recall-memorable-traits '(partial-recall--gracedp)
   "List of functions that determine a memorable moment.
@@ -1038,7 +1040,7 @@ the max age."
                              (funcall it buffer)
                            (partial-recall--warn "Function '%s' has the wrong arity" it)
                            t))))
-             ((seq-every-p verify partial-recall-traits))
+             ((seq-every-p verify partial-recall-meaningful-traits))
              (filter (mapconcat (lambda (it) (concat "\\(?:" it "\\)")) partial-recall-filter "\\|"))
              ((not (string-match-p filter (buffer-name buffer)))))))
 
