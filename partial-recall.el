@@ -244,7 +244,10 @@ is not considered meaningful."
 
 A moment is defined by a buffer, a timestamp when that buffer was
 first remembered, a count of how many times it was updated and a
-permanence marker that can prevent it from being forgotten."
+permanence marker that can prevent it from being forgotten.
+
+The timestamp is distinct from `buffer-display-time' and the
+focus is distinct from `buffer-display-count'."
   buffer timestamp focus permanence)
 
 (cl-defstruct (partial-recall--memory
