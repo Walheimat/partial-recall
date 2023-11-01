@@ -137,6 +137,7 @@ taken into account.
   (partial-recall-log-prefix "PR") ;; Message prefix for log messages.
   (partial-recall-filter '("COMMIT_EDITMSG")) ;; Regexes of names that should be ignored.
   (partial-recall-traits '(buffer-file-name partial-recall--not-in-view-mode-p)) ;; List of functions that determine eligible buffers.
+  (partial-recall-memorable-traits '(partial-recall--gracedp)) ;; Don't flush recent and implanted moments.
 
   :config
   (partial-recall-mode)

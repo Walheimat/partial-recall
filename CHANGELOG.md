@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Custom variable `partial-recall-memorable-traits` that holds a list
+  of functions to call during `partial-recall--flush` to save moment
+  from being flushed.
+- Function `partial-recall--gracedp` used as the default only such
+  trait above. The function has the previous implementation as well as
+  a check if the moment is below `partial-recall-reclaim-min-age`.
+
 ### Fixed
 
 - Concentration only breaks once.

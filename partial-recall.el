@@ -159,6 +159,17 @@ is not considered meaningful."
   :type '(repeat function)
   :group 'partial-recall)
 
+(defcustom partial-recall-memorable-traits '(partial-recall--gracedp)
+  "List of functions that determine a memorable moment.
+
+These functions are called with moments up for suppression and
+the current prefix argument.
+
+If any such function does return a truthy value, the moment is
+considered memorable."
+  :type '(repeat function)
+  :group 'partial-recall)
+
 ;;; -- Internal variables
 
 (defvar partial-recall--table (make-hash-table))
@@ -760,24 +771,18 @@ If CLOSE is t, the tab of B is closed."
     (when close
       (tab-bar-close-tab-by-name (partial-recall--tab-name a)))))
 
-(defun partial-recall--flush (memory &optional exclude-current)
+(defun partial-recall--flush (memory &optional arg)
   "Flush MEMORY.
 
 If MEMORY is not provided, flush the reality.
 
-Any moment that is neither permanent nor was ever updated will be
-suppressed.
-
-If EXCLUDE-CURRENT, the currently visited buffer's moment is not
-removed if it doesn't meet the criteria."
+This will call all functions of `partial-recall-memorable-traits'
+to check if the moment should be kept, passing moment and ARG."
   (let* ((ring (partial-recall--memory-ring memory))
-         (count 0)
-         (current (current-buffer)))
+         (count 0))
 
     (dolist (moment (ring-elements ring))
-      (unless (or (partial-recall--moment-permanence moment)
-                  (> 0 (partial-recall--moment-focus moment))
-                  (and exclude-current (eq current (partial-recall--moment-buffer moment))))
+      (unless (seq-some (lambda (it) (funcall it moment arg)) partial-recall-memorable-traits)
 
         (setq count (1+ count))
 
@@ -1043,6 +1048,19 @@ the max age."
        (or (eq (partial-recall--moment-from-buffer (current-buffer))
                partial-recall--last-focus)
            (partial-recall--buffer-visible-p (partial-recall--moment-buffer partial-recall--last-focus)))))
+
+(defun partial-recall--gracedp (moment &optional arg)
+  "Check if MOMENT was graced.
+
+This is either a permanent moment, a moment that has been focused
+once or a moment that couldn't be reclaimed.
+
+If ARG is t, the current moment is considered graced as well."
+  (or (partial-recall--moment-permanence moment)
+      (> 0 (partial-recall--moment-focus moment))
+      (partial-recall--falls-below-p moment partial-recall-reclaim-min-age)
+      (and arg
+           (eq (current-buffer) (partial-recall--moment-buffer moment)))))
 
 ;;; -- Printing
 
@@ -1447,16 +1465,16 @@ memory B is closed afterwards."
   (partial-recall--meld a b close))
 
 ;;;###autoload
-(defun partial-recall-flush (&optional include-current)
+(defun partial-recall-flush (&optional arg)
   "Flush the current memory.
 
 Removes impermanent and never updated moments.
 
-If INCLUDE-CURRENT is t, the current buffer may also be flushed
-if it doesn't meet the criteria."
+Passes ARG to the underlying function which will be passed to the
+`partial-recall-memorable-traits' functions."
   (interactive "P")
 
-  (partial-recall--flush (partial-recall--reality) (not include-current)))
+  (partial-recall--flush (partial-recall--reality) arg))
 
 ;;;###autoload
 (defun partial-recall-next ()

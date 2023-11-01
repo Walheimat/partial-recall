@@ -416,7 +416,7 @@
 
 (ert-deftest pr-reclaim--reclaims-from-other ()
   (let ((seconds '(10 12))
-        (partial-recall-reclaim-min-age 0)
+        (partial-recall-reclaim-min-age -1)
         (mock-reality (partial-recall--memory-create "other-key")))
 
     (with-tab-history
@@ -478,7 +478,8 @@
 (ert-deftest pr-forget--shortens-extended-memory ()
   (let ((partial-recall-memory-size 2)
         (another-temp (generate-new-buffer " *temp*" t))
-        (yet-another-temp (generate-new-buffer " *temp*" t)))
+        (yet-another-temp (generate-new-buffer " *temp*" t))
+        (partial-recall-reclaim-min-age -1))
 
     (bydi (partial-recall--suppress)
       (with-tab-history :pre t
@@ -667,7 +668,8 @@
 (ert-deftest pr--flush ()
   (with-tab-history :pre t
     (let ((another (generate-new-buffer " *temp*" t))
-          (ring (partial-recall--memory-ring (partial-recall--reality))))
+          (ring (partial-recall--memory-ring (partial-recall--reality)))
+          (partial-recall-reclaim-min-age -1))
 
       (partial-recall--remember another)
 
