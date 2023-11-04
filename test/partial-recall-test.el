@@ -335,7 +335,7 @@
 (ert-deftest pr-remember--extends-ring ()
   :tags '(history)
 
-  (with-tab-history
+  (with-tab-history :probes t
     (bydi ((:always partial-recall--memory-at-capacity-p)
            (:always partial-recall--should-extend-memory-p)
            partial-recall--maybe-forget-oldest-moment
@@ -349,7 +349,7 @@
 
   (let ((partial-recall-memory-size 1))
 
-    (with-tab-history :pre t
+    (with-tab-history :pre t :probes t
       (let ((another-temp (generate-new-buffer " *temp*" t)))
 
         (partial-recall--implant)
@@ -365,7 +365,7 @@
   :tags '(history)
 
   (let ((partial-recall-memory-size 1))
-    (with-tab-history :pre t
+    (with-tab-history :pre t :probes t
       (let ((another-temp (generate-new-buffer " *temp*" t)))
 
         (bydi ((:always partial-recall--memory-at-capacity-p)
@@ -529,7 +529,7 @@
         (partial-recall-reclaim-min-age -1))
 
     (bydi (partial-recall--suppress)
-      (with-tab-history :pre t
+      (with-tab-history :pre t :probes t
         (let ((ring (partial-recall--memory-ring (partial-recall--reality))))
 
           (partial-recall--remember another-temp)
@@ -1116,7 +1116,7 @@
 
   (let ((partial-recall-memory-size 1))
 
-    (with-tab-history :pre t
+    (with-tab-history :pre t :probes t
 
       (should (equal
                '(:propertize "."

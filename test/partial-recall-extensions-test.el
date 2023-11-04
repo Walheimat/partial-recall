@@ -25,7 +25,7 @@
 (ert-deftest pr-memory-specs ()
   :tags '(history)
 
-  (with-tab-history :pre t
+  (with-tab-history :pre t :probes t
 
     (should (equal '(:size 1 :capacity 10 :original-capacity 10)
                    (partial-recall-memory-specs)))
