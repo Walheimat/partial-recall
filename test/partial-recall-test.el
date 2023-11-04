@@ -11,10 +11,12 @@
 ;;; -- Accessors
 
 (ert-deftest pr--key--returns-if-set ()
+  :tags '(plain)
   (bydi ((:mock tab-bar--current-tab :return test-tab))
     (should (string= "test-hash" (partial-recall--key)))))
 
 (ert-deftest pr--create-key ()
+  :tags '(plain)
   (bydi ((:mock random :return 42)
          (:mock emacs-pid :return 1)
          (:mock recent-keys :return 'keys)
@@ -24,6 +26,7 @@
     (bydi-was-called-with md5 "test421keys")))
 
 (ert-deftest pr-recall--buffer-owner ()
+  :tags '(history)
   (with-tab-history :pre t
 
     (let ((memory (partial-recall--reality)))
@@ -31,6 +34,7 @@
       (should (eq memory (partial-recall--buffer-owner))))))
 
 (ert-deftest pr--focus ()
+  :tags '(history)
   (let ((partial-recall-memory-size 2))
 
     (with-tab-history :pre t
@@ -44,6 +48,7 @@
         (kill-buffer another-temp)))))
 
 (ert-deftest pr--name ()
+  :tags '(history)
   (with-tab-history
     (let ((reality (partial-recall--reality)))
 
@@ -56,10 +61,12 @@
         (should (string= "test-tab" (partial-recall--name reality)))))))
 
 (ert-deftest pr--tab ()
+  :tags '(history)
   (with-tab-history :pre t
     (should (string= (partial-recall--tab-name) "test-tab"))))
 
 (ert-deftest pr--ensure-subconscious ()
+  :tags '(plain)
   (let ((partial-recall-table (make-hash-table)))
 
     (partial-recall--subconscious)
@@ -69,6 +76,7 @@
 ;;; -- Handlers
 
 (ert-deftest pr--schedule-buffer--cancels-running-timer ()
+  :tags '(plain)
   (let ((partial-recall--timer nil)
         (partial-recall-handle-delay 1)
         (buffer (current-buffer))
@@ -85,12 +93,14 @@
       (bydi-was-called-with run-at-time `(1 nil partial-recall--handle-buffer ,buffer)))))
 
 (ert-deftest pr--schedule-buffer--ignores-neglected ()
+  :tags '(plain)
   (with-temp-buffer
     (setq partial-recall--neglect (current-buffer))
     (should-not (partial-recall--schedule-buffer (current-buffer)))
     (should-not partial-recall--neglect)))
 
 (ert-deftest pr--handle-buffer ()
+  :tags '(history)
   (with-tab-history
     (let ((buffers (list (current-buffer))))
 
@@ -105,6 +115,7 @@
         (bydi-was-called window-list)))))
 
 (ert-deftest pr--handle-buffer--missing ()
+  :tags '(history)
   (with-tab-history
     (let ((buffers nil))
 
@@ -119,6 +130,7 @@
         (bydi-was-called window-list)))))
 
 (ert-deftest pr--handle-buffer--reclaims ()
+  :tags '(history)
   (with-tab-history
     (bydi (partial-recall--remember
            partial-recall--recollect
@@ -130,6 +142,7 @@
       (bydi-was-called partial-recall--recollect))))
 
 (ert-deftest pr--void-timer--voids ()
+  :tags '(plain)
   (let* ((timer (timer--create))
          (partial-recall--timer timer))
 
@@ -144,6 +157,7 @@
       (should-not partial-recall--timer))))
 
 (ert-deftest pr--concentrate--does-nothing-for-non-meaningful ()
+  :tags '(plain)
   (let ((partial-recall--last-focus nil))
 
     (bydi ((:ignore partial-recall--meaningful-buffer-p))
@@ -153,6 +167,7 @@
       (should-not partial-recall--last-focus))))
 
 (ert-deftest pr--concentrate ()
+  :tags '(plain)
   (let ((partial-recall--last-focus 'last))
 
     (bydi ((:sometimes partial-recall--can-hold-concentration-p)
@@ -173,6 +188,7 @@
       (should (eq 'next partial-recall--last-focus)))))
 
 (ert-deftest pr--can-hold-concentration-p ()
+  :tags '(history)
   (with-tab-history :pre t
     (let ((partial-recall--last-focus nil))
 
@@ -190,6 +206,7 @@
           (should-not (partial-recall--can-hold-concentration-p)))))))
 
 (ert-deftest pr--after-switch-to-buffer--schedules ()
+  :tags '(plain)
   (bydi (partial-recall--schedule-buffer)
 
     (partial-recall--after-switch-to-buffer (current-buffer) t)
@@ -201,6 +218,7 @@
     (bydi-was-called partial-recall--schedule-buffer)))
 
 (ert-deftest pr--before-switch-to-buffer--maybe-switches ()
+  :tags '(plain)
   (bydi (partial-recall--maybe-switch-memory)
 
     (partial-recall--before-switch-to-buffer (current-buffer) t)
@@ -212,6 +230,7 @@
     (bydi-was-called partial-recall--maybe-switch-memory)))
 
 (ert-deftest pr--after-pop-to-buffer--schedules ()
+  :tags '(plain)
   (let ((buffer (current-buffer)))
 
     (bydi (partial-recall--schedule-buffer)
@@ -221,6 +240,7 @@
       (bydi-was-called-with partial-recall--schedule-buffer (current-buffer)))))
 
 (ert-deftest pr--on-create--sets-cdr ()
+  :tags '(plain)
   (bydi ((:mock partial-recall--create-key :return "test"))
 
     (let ((tab '(current-tab (name . "test-tab") (explicit-name))))
@@ -230,6 +250,7 @@
       (should (string= "test" (alist-get 'pr tab))))))
 
 (ert-deftest pr--on-close ()
+  :tags '(history)
   (bydi (partial-recall--suppress)
     (with-tab-history :pre t
 
@@ -246,6 +267,7 @@
       (bydi-was-called partial-recall--suppress))))
 
 (ert-deftest pr--on-frame-delete ()
+  :tags '(plain)
   (defvar tab-bar-tabs-function nil)
 
   (let ((tab-bar-tabs-function (lambda (_) '(one two))))
@@ -257,6 +279,7 @@
       (bydi-was-called-n-times partial-recall--on-close 2))))
 
 (ert-deftest pr--on-minibuffer-setup--records-for-triggers ()
+  :tags '(plain)
   (let ((partial-recall-record-triggers '(a b c))
         (this-command 'b))
 
@@ -278,6 +301,7 @@
       (should-not partial-recall--before-minibuffer))))
 
 (ert-deftest pr--on-minibuffer-setup--deletes-recording ()
+  :tags '(plain)
   (let ((partial-recall--before-minibuffer 'something))
 
     (partial-recall--on-minibuffer-exit)
@@ -287,6 +311,7 @@
 ;;; -- Actions
 
 (ert-deftest pr-remember--remembers ()
+  :tags '(history)
   (with-tab-history
 
     (partial-recall--remember (current-buffer))
@@ -294,6 +319,8 @@
     (should-not (null (gethash (alist-get 'pr test-tab) partial-recall--table)))))
 
 (ert-deftest pr-remember--inserts-once ()
+  :tags '(history)
+
   (defvar partial-recall--table)
 
   (with-tab-history :pre t
@@ -306,6 +333,8 @@
       (should (eq 1 (ring-length ring))))))
 
 (ert-deftest pr-remember--extends-ring ()
+  :tags '(history)
+
   (with-tab-history
     (bydi ((:always partial-recall--memory-at-capacity-p)
            (:always partial-recall--should-extend-memory-p)
@@ -316,6 +345,8 @@
       (bydi-was-called ring-extend))))
 
 (ert-deftest pr-remember--reinforces-permanent ()
+  :tags '(history)
+
   (let ((partial-recall-memory-size 1))
 
     (with-tab-history :pre t
@@ -331,6 +362,8 @@
         (kill-buffer another-temp)))))
 
 (ert-deftest pr-remember--removes-impermanent ()
+  :tags '(history)
+
   (let ((partial-recall-memory-size 1))
     (with-tab-history :pre t
       (let ((another-temp (generate-new-buffer " *temp*" t)))
@@ -345,6 +378,7 @@
         (kill-buffer another-temp)))))
 
 (ert-deftest pr-swap ()
+  :tags '(plain)
   (let* ((partial-recall-memory-size 1)
          (a (partial-recall--memory-create "a"))
          (b (partial-recall--memory-create "b"))
@@ -370,6 +404,7 @@
         (should (ring-member ring moment))))))
 
 (ert-deftest pr-recollect--reinforces-reality-or-reclaims ()
+  :tags '(plain)
   (bydi ((:sometimes partial-recall--memory-buffer-p)
          partial-recall--reinforce
          partial-recall--reclaim)
@@ -390,6 +425,8 @@
       (bydi-was-not-called partial-recall--reclaim))))
 
 (ert-deftest pr-reinforce--reinforces-old-buffers ()
+  :tags '(history)
+
   (with-tab-history
     (let ((count nil)
           (seconds '(6 8 10 12))
@@ -415,6 +452,8 @@
       (kill-buffer another-temp))))
 
 (ert-deftest pr-reclaim--reclaims-from-other ()
+  :tags '(history)
+
   (let ((seconds '(10 12))
         (partial-recall-reclaim-min-age -1)
         (mock-reality (partial-recall--memory-create "other-key")))
@@ -441,6 +480,8 @@
             (bydi-was-called partial-recall--swap)))))))
 
 (ert-deftest pr-reclaim--no-op-for-same ()
+  :tags '(history)
+
   (with-tab-history :pre t
 
     (bydi (partial-recall--remember)
@@ -450,6 +491,8 @@
       (bydi-was-not-called partial-recall--remember))))
 
 (ert-deftest pr-forget--forgets ()
+  :tags '(history)
+
   (with-tab-history :pre t
 
     (bydi (partial-recall--suppress)
@@ -463,6 +506,8 @@
       (should (eq 0 (ring-length ring))))))
 
 (ert-deftest pr-forget--clears-subconscious ()
+  :tags '(history)
+
   (with-tab-history :pre t :lifts t
 
     (let ((sub (partial-recall--subconscious)))
@@ -476,6 +521,8 @@
       (should-not (partial-recall--memory-buffer-p (current-buffer) sub)))))
 
 (ert-deftest pr-forget--shortens-extended-memory ()
+  :tags '(history)
+
   (let ((partial-recall-memory-size 2)
         (another-temp (generate-new-buffer " *temp*" t))
         (yet-another-temp (generate-new-buffer " *temp*" t))
@@ -500,6 +547,8 @@
           (kill-buffer yet-another-temp))))))
 
 (ert-deftest partial-recall--suppress--remembers-unique ()
+  :tags '(history)
+
   (with-tab-history :pre t
     (partial-recall--forget (current-buffer) t)
     (partial-recall--remember (current-buffer))
@@ -509,6 +558,8 @@
                 1))))
 
 (ert-deftest partial-recall--suppress--removes-permanence ()
+  :tags '(history)
+
   (with-tab-history :pre t
     (let ((moment (partial-recall--moment-from-buffer (current-buffer))))
 
@@ -519,6 +570,8 @@
       (should-not (partial-recall--moment-permanence moment)))))
 
 (ert-deftest partial-recall--suppress--kills ()
+  :tags '(history)
+
   (with-tab-history
 
     (let ((another-temp (generate-new-buffer " *temp*" t)))
@@ -537,6 +590,8 @@
       (kill-buffer another-temp))))
 
 (ert-deftest partial-recall--suppress--just-removes ()
+  :tags '(history)
+
   (let ((partial-recall-repress nil))
 
     (with-tab-history
@@ -556,6 +611,8 @@
         (kill-buffer another-temp)))))
 
 (ert-deftest partial-recall--lift ()
+  :tags '(history)
+
   (with-tab-history :lifts t :pre t
     (let ((sub (gethash partial-recall--subconscious-key partial-recall--table)))
 
@@ -568,6 +625,8 @@
       (should (eq (ring-length (partial-recall--memory-ring sub)) 0)))))
 
 (ert-deftest pr--maybe-implant-moment ()
+  :tags '(history)
+
   (let ((partial-recall-auto-implant t)
         (partial-recall-auto-implant-threshold 1))
     (with-tab-history :pre t
@@ -591,6 +650,8 @@
         (bydi-was-called partial-recall--reset-count)))))
 
 (ert-deftest pr--maybe-switch-memory ()
+  :tags '(history)
+
   (let ((partial-recall-auto-switch 'prompt)
         (user-input nil))
 
@@ -628,6 +689,7 @@
           (bydi-was-called-with tab-bar-switch-to-tab "test"))))))
 
 (ert-deftest pr--clean-up-buffer ()
+  :tags '(plain)
   (let ((partial-recall--last-checked (current-buffer)))
 
     (partial-recall--clean-up-buffer (current-buffer))
@@ -642,6 +704,8 @@
     (bydi-was-called quit-window)))
 
 (ert-deftest pr--clean-up-buffer--clears-focus ()
+  :tags '(history)
+
   (with-tab-history :pre t
     (bydi ((:mock window-buffer :return (current-buffer))
            quit-window)
@@ -653,6 +717,8 @@
       (should-not partial-recall--last-focus))))
 
 (ert-deftest pr--meld ()
+  :tags '(history)
+
   (with-tab-history :pre t :second t
     (should-error (partial-recall--meld (partial-recall--reality) (partial-recall--reality)))
 
@@ -666,6 +732,8 @@
       (bydi-was-called-with tab-bar-close-tab-by-name "test-tab"))))
 
 (ert-deftest pr--flush ()
+  :tags '(history)
+
   (with-tab-history :pre t
     (let ((another (generate-new-buffer " *temp*" t))
           (ring (partial-recall--memory-ring (partial-recall--reality)))
@@ -706,6 +774,8 @@
         (bydi-was-called-with switch-to-buffer (current-buffer))))))
 
 (ert-deftest pr--next-and-prev ()
+  :tags '(history)
+
   (with-tab-history :pre t
     (let ((another (generate-new-buffer " *temp*" t)))
 
@@ -717,6 +787,8 @@
 ;;; -- Conditionals
 
 (ert-deftest pr--memory-buffer-p ()
+  :tags '(history)
+
   (with-tab-history :pre t
 
     (let ((memory (gethash (alist-get 'pr test-tab) partial-recall--table)))
@@ -724,6 +796,8 @@
       (should (partial-recall--memory-buffer-p (current-buffer) memory)))))
 
 (ert-deftest pr-moment-buffer-p ()
+  :tags '(history)
+
   (with-tab-history :pre t
 
     (let* ((memory (gethash (alist-get 'pr test-tab) partial-recall--table))
@@ -733,11 +807,15 @@
       (should (partial-recall--moment-buffer-p (current-buffer) moment)))))
 
 (ert-deftest pr--mapped-buffer-p ()
+  :tags '(history)
+
   (with-tab-history :pre t
 
     (should (partial-recall--mapped-buffer-p (current-buffer)))))
 
 (ert-deftest pr--should-extend-memory-p ()
+  :tags '(history)
+
   (let ((seconds '(10 11 12))
         (partial-recall-memory-size 1)
         (partial-recall-max-age 2))
@@ -753,6 +831,8 @@
           (should-not (partial-recall--should-extend-memory-p memory)))))))
 
 (ert-deftest pr--has-buffers-p ()
+  :tags '(history)
+
   (with-tab-history
     (should-not (partial-recall--has-buffers-p))
 
@@ -761,6 +841,7 @@
     (should (partial-recall--has-buffers-p))))
 
 (ert-deftest pr--meaningful-buffer-p ()
+  :tags '(plain)
   (let ((partial-recall-meaningful-traits '(buffer-file-name)))
 
     (ert-with-temp-file file
@@ -773,11 +854,13 @@
           (should-not (partial-recall--meaningful-buffer-p (current-buffer))))))))
 
 (ert-deftest pr--meaningful-buffer-p--no-traits ()
+  :tags '(plain)
   (with-temp-buffer
     (let ((partial-recall-meaningful-traits nil))
       (should (partial-recall--meaningful-buffer-p (current-buffer))))))
 
 (ert-deftest pr--meaningful-buffer-p--bad-traits ()
+  :tags '(plain)
   (with-temp-buffer
     (let ((partial-recall-meaningful-traits '(point)))
 
@@ -788,6 +871,7 @@
           (list "Function '%s' has the wrong arity" 'point))))))
 
 (ert-deftest pr--meaningful-buffer-p--calls-traits-with-buffer ()
+  :tags '(plain)
   (defun pr--trait-test (buffer)
     "Return BUFFER as is."
     buffer)
@@ -803,11 +887,13 @@
 ;; -- Utility
 
 (ert-deftest pr--warn ()
+  :tags '(plain)
   (bydi (display-warning)
     (partial-recall--warn "Testing")
     (bydi-was-called-with display-warning (list 'partial-recall "Testing" :warning))))
 
 (ert-deftest pr--log ()
+  :tags '(plain)
   (let ((partial-recall-log nil)
         (partial-recall-log-level 1)
         (partial-recall-log-prefix nil))
@@ -829,6 +915,8 @@
         (should (string= messages "test: one two\ntest: four\n"))))))
 
 (ert-deftest pr--log--uses-repr ()
+  :tags '(history)
+
   (with-tab-history
     (bydi-with-mock ((:mock format-time-string :return "now")
                      (:mock partial-recall--name :return "test"))
@@ -847,6 +935,7 @@
         (kill-buffer buffer)))))
 
 (ert-deftest pr--message--always-calls ()
+  :tags '(plain)
   (let ((partial-recall-log nil))
 
     (bydi (partial-recall--log)
@@ -855,6 +944,7 @@
       (bydi-was-called partial-recall--log))))
 
 (ert-deftest pr--repr ()
+  :tags '(plain)
   (bydi-with-mock ((:mock format-time-string :return "now")
                    (:mock partial-recall--name :return "test"))
 
@@ -872,6 +962,7 @@
 ;;; -- Completion
 
 (ert-deftest pr--complete-dream ()
+  :tags '(plain)
   (bydi-with-mock ((:mock completing-read :return "second")
                    (:ignore partial-recall--memory-buffer-p)
                    (:mock partial-recall--mapped-buffers :return '("first" "second" "third"))
@@ -879,6 +970,7 @@
     (should (string= "second" (partial-recall--complete-dream "Some prompt: ")))))
 
 (ert-deftest pr--complete-dream--initial-input ()
+  :tags '(plain)
   (bydi-with-mock (completing-read
                    (:ignore partial-recall--memory-buffer-p)
                    (:mock partial-recall--mapped-buffers :return '(third))
@@ -888,6 +980,7 @@
     (bydi-was-called-with completing-read '(... third))))
 
 (ert-deftest pr--complete-reality ()
+  :tags '(plain)
   (bydi-with-mock ((:mock completing-read :return "second")
                    (:always partial-recall--memory-buffer-p)
                    (:mock partial-recall--mapped-buffers :return '("first" "second" "third"))
@@ -895,6 +988,7 @@
     (should (string= "second" (partial-recall--complete-reality "Some prompt: ")))))
 
 (ert-deftest pr--complete-reality--initial-input ()
+  :tags '(plain)
   (bydi (completing-read
          (:always partial-recall--memory-buffer-p)
          (:mock partial-recall--mapped-buffers :return '(first second third))
@@ -906,6 +1000,7 @@
     (bydi-was-called-with completing-read '(... second))))
 
 (ert-deftest pr--complete-subconscious ()
+  :tags '(plain)
   (let* ((partial-recall--table (make-hash-table))
          (buf (generate-new-buffer " *temp*" t))
          (name (buffer-name buf))
@@ -919,6 +1014,8 @@
       (should (equal buf (partial-recall--complete-subconscious "Some prompt: "))))))
 
 (ert-deftest pr--complete-subconscious--initial-input ()
+  :tags '(history)
+
   (with-tab-history :pre t
     (let ((another (generate-new-buffer " *temp*" t)))
 
@@ -934,6 +1031,7 @@
           (bydi-was-called-with completing-read `(... "another-one")))))))
 
 (ert-deftest pr--complete-any ()
+  :tags '(plain)
   (bydi (completing-read
          (:mock buffer-list :return '(a b c d))
          (:mock buffer-name :with bydi-rf)
@@ -951,6 +1049,7 @@
     (bydi-was-called-with completing-read '(... ((b . b) (d . d)) ... current))))
 
 (ert-deftest pr--complete-memory ()
+  :tags '(plain)
   (bydi (completing-read
          (:mock partial-recall--memories :return '(a b c))
          (:mock partial-recall--name :with bydi-rf))
@@ -962,9 +1061,12 @@
 ;;; -- Lighter
 
 (ert-deftest pr--lighter-title ()
+  :tags '(plain)
   (should (equal (partial-recall--lighter-title) partial-recall--lighter-title)))
 
 (ert-deftest pr--lighter-moment ()
+  :tags '(history)
+
   (with-tab-history :pre t
     (should (equal
              '(:propertize "-"
@@ -980,6 +1082,7 @@
                    (partial-recall--lighter-moment)))))
 
 (ert-deftest partial-recall--lighter-menu ()
+  :tags '(plain)
   (defvar partial-recall-command-map)
 
   (let ((partial-recall-command-map (make-sparse-keymap)))
@@ -994,6 +1097,8 @@
       (bydi-was-called popup-menu))))
 
 (ert-deftest partial-recall--lighter-toggle ()
+  :tags '(history)
+
   (with-tab-history :pre t
 
     (bydi ((:spy partial-recall-implant))
@@ -1007,6 +1112,8 @@
       (bydi-was-called-with partial-recall-implant '(... t)))))
 
 (ert-deftest pr--lighter-memory ()
+  :tags '(history)
+
   (let ((partial-recall-memory-size 1))
 
     (with-tab-history :pre t
@@ -1030,6 +1137,7 @@
 ;;; -- Setup
 
 (ert-deftest pr--fix-up-primary-tab ()
+  :tags '(plain)
   (let ((tab-bar-mode nil)
         (tab-bar-tabs-function (lambda () (list test-tab))))
 
@@ -1058,12 +1166,14 @@
       (bydi-was-called partial-recall--on-create))))
 
 (ert-deftest pr--queue-fix-up ()
+  :tags '(plain)
   (bydi (run-at-time)
     (partial-recall--queue-fix-up)
 
     (bydi-was-called-with run-at-time '(... partial-recall--fix-up-primary-tab))))
 
 (ert-deftest pr--setup ()
+  :tags '(plain)
   (defvar tab-bar-tabs-function nil)
   (defvar tab-bar-mode nil)
 
@@ -1085,6 +1195,7 @@
       (bydi-was-called tab-bar-mode))))
 
 (ert-deftest pr--teardown ()
+  :tags '(plain)
   (bydi (remove-hook
          (:spy advice-remove)
          cancel-timer)
@@ -1098,6 +1209,7 @@
 ;;; -- API
 
 (ert-deftest pr-mode ()
+  :tags '(plain)
   (bydi (partial-recall-mode--setup
          partial-recall-mode--teardown)
 
@@ -1110,6 +1222,7 @@
     (bydi-was-called partial-recall-mode--teardown)))
 
 (ert-deftest pr--api ()
+  :tags '(plain)
   (let* ((partial-recall-mode nil)
          (buffer (get-buffer-create "api"))
          (moment (partial-recall--moment-create buffer)))
