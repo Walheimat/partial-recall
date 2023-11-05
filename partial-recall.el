@@ -201,6 +201,7 @@ considered memorable."
     (define-key map (kbd "b") 'partial-recall-switch-to-buffer)
     (define-key map (kbd "c") 'partial-recall-reclaim)
     (define-key map (kbd "f") 'partial-recall-forget)
+    (define-key map (kbd "k") 'partial-recall-forget-some)
     (define-key map (kbd "i") 'partial-recall-implant)
     (define-key map (kbd "m") 'partial-recall-menu)
     (define-key map (kbd "n") 'partial-recall-next)
@@ -312,13 +313,20 @@ Defaults to the current buffer."
 
 This excludes moments in the subconscious unless
 INCLUDE-SUBCONSCIOUS is t."
-  (let ((mapped (cl-loop for k being the hash-keys of partial-recall--table
-                         using (hash-values memory)
-                         unless (and (not include-subconscious)
-                                     (string= k partial-recall--subconscious-key))
-                         append (ring-elements (partial-recall--memory-ring memory)))))
+  (let ((mapped (partial-recall--mapped include-subconscious)))
 
     (mapcar #'partial-recall--moment-buffer mapped)))
+
+(defun partial-recall--mapped (&optional include-subconscious)
+  "Get all moments.
+
+This excludes moments in the subconscious unless
+INCLUDE-SUBCONSCIOUS is t."
+  (cl-loop for k being the hash-keys of partial-recall--table
+           using (hash-values memory)
+           unless (and (not include-subconscious)
+                       (string= k partial-recall--subconscious-key))
+           append (ring-elements (partial-recall--memory-ring memory))))
 
 (defun partial-recall--moment-from-buffer (buffer &optional memory)
   "Get the moment that encapsulates BUFFER.
@@ -653,6 +661,25 @@ is t, the forgotten moment goes into the subconscious."
                     (maphash maybe-remove partial-recall--table))))
 
       (partial-recall--log "'%s' was removed from '%s'" buffer memory))))
+
+(defun partial-recall--forget-some ()
+  "Prompt the user to forget some moments."
+  (let ((moments (partial-recall--mapped)))
+
+    (while moments
+      (let* ((moment (car moments))
+             (buffer (partial-recall--moment-buffer moment)))
+
+
+        (when (yes-or-no-p (format "Forget %s (%s)?"
+                                   (partial-recall--repr moment)
+                                   (if (buffer-modified-p buffer)
+                                       "modified"
+                                     "unmodified")))
+
+          (partial-recall--forget buffer t))
+
+        (setq moments (cdr moments))))))
 
 (defun partial-recall--implant (&optional buffer excise)
   "Make BUFFER's moment permanent.
@@ -1495,6 +1522,13 @@ Passes ARG to the underlying function which will be passed to the
   (when-let ((previous (partial-recall--previous-buffer)))
 
     (partial-recall--switch-to-and-neglect previous)))
+
+;;;###autoload
+(defun partial-recall-forget-some ()
+  "Prompt the user to forget some moments."
+  (interactive)
+
+  (partial-recall--forget-some))
 
 (provide 'partial-recall)
 

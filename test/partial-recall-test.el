@@ -505,6 +505,21 @@
 
       (should (eq 0 (ring-length ring))))))
 
+(ert-deftest pr--forget-some ()
+  :tags '(history)
+
+  (with-tab-history :pre t
+
+    (bydi ((:always yes-or-no-p)
+           partial-recall--forget
+           (:mock partial-recall--repr :return "#<test-moment>"))
+
+      (partial-recall--forget-some)
+
+      (bydi-was-called-with yes-or-no-p "Forget #<test-moment> (unmodified)?")
+
+      (bydi-was-called-with partial-recall--forget (list (current-buffer) t)))))
+
 (ert-deftest pr-forget--clears-subconscious ()
   :tags '(history)
 
@@ -1241,6 +1256,7 @@
            partial-recall--switch-to-and-neglect
            partial-recall--meld
            partial-recall--flush
+           partial-recall--forget-some
            (:mock partial-recall--previous-buffer :return 'buffer)
            (:mock partial-recall--next-buffer :return 'buffer))
 
@@ -1254,6 +1270,7 @@
       (call-interactively 'partial-recall-flush)
       (call-interactively 'partial-recall-next)
       (call-interactively 'partial-recall-previous)
+      (call-interactively 'partial-recall-forget-some)
 
       (bydi-was-called partial-recall--reclaim)
       (bydi-was-called partial-recall--forget)
@@ -1266,6 +1283,7 @@
       (bydi-was-called partial-recall--flush)
       (bydi-was-called partial-recall--next-buffer)
       (bydi-was-called partial-recall--previous-buffer)
+      (bydi-was-called partial-recall--forget-some)
       (bydi-was-called-n-times partial-recall--switch-to-and-neglect 6)
       (bydi-was-called-n-times partial-recall--complete-memory 2))
 

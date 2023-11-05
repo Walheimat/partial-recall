@@ -15,7 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Function `partial-recall--gracedp` used as the default only such
   trait above. The function has the previous implementation as well as
   a check if the moment is below `partial-recall-reclaim-min-age`.
-
+- New command `partial-recall-forget-some` that works like
+  `kill-some-buffers` but instead prompts to forget moments.
 
 ### Changed
 
