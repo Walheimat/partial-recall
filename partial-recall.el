@@ -667,8 +667,10 @@ is t, the forgotten moment goes into the subconscious."
   (let ((moments (partial-recall--mapped)))
 
     (while moments
-      (let* ((moment (car moments))
-             (buffer (partial-recall--moment-buffer moment)))
+      (and-let* ((moment (car moments))
+                 (buffer (partial-recall--moment-buffer moment))
+                 (name (buffer-name buffer))
+                 ((not (string-equal name ""))))
 
 
         (when (yes-or-no-p (format "Forget %s (%s)?"
