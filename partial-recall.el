@@ -212,6 +212,7 @@ considered memorable."
     (define-key map (kbd "r") 'partial-recall-remember)
     (define-key map (kbd "l") 'partial-recall-lift)
     (define-key map (kbd "x") 'partial-recall-flush)
+    (define-key map (kbd "o") 'partial-recall-explain-omission)
     map)
   "Map for `partial-recall-mode' commands.")
 
@@ -1058,27 +1059,51 @@ the max age."
   "Make sure BUFFER is not in `view-mode'."
   (not (buffer-local-value 'view-mode buffer)))
 
+
+
 (defun partial-recall--not-filtered-p (buffer)
   "Verify that BUFFER isn't filtered."
   (let ((filter (mapconcat (lambda (it) (concat "\\(?:" it "\\)")) partial-recall-filter "\\|")))
 
     (not (string-match-p filter (buffer-name buffer)))))
 
+(defun partial-recall--maybe-call-with-buffer (buffer fun)
+  "Call FUN maybe with BUFFER."
+  (let* ((arity (func-arity fun))
+         (min (car arity))
+         (max (cdr arity)))
+    (if (or (> min 0)
+            (eq 'many max)
+            (and (numberp max)
+                 (> max 0)))
+        (funcall fun buffer)
+      (partial-recall--warn "Function '%s' has the wrong arity" fun)
+      t)))
+
 (defun partial-recall--meaningful-buffer-p (buffer)
   "Check if BUFFER should be remembered."
-  (let ((verify (lambda (it)
-                  (let* ((arity (func-arity it))
-                         (min (car arity))
-                         (max (cdr arity)))
-                    (if (or (> min 0)
-                            (eq 'many max)
-                            (and (numberp max)
-                                 (> max 0)))
-                        (funcall it buffer)
-                      (partial-recall--warn "Function '%s' has the wrong arity" it)
-                      t)))))
+  (let ((verify (apply-partially #'partial-recall--maybe-call-with-buffer buffer)))
 
     (seq-every-p verify partial-recall-meaningful-traits)))
+
+(defun partial-recall--explain-omission (&optional buffer)
+  "Get the reason why BUFFER is omitted.
+
+This will try to find the first trait in
+`partial-recall-meaningful-traits' that returns falsy and return
+its explainer (property
+`partial-recall-non-meaningful-explainer')if it exists."
+  (and-let* ((buffer (or buffer (current-buffer)))
+             (verify (apply-partially 'partial-recall--maybe-call-with-buffer buffer))
+             (finder (lambda (it) (not (funcall verify it))))
+             (failing (seq-find finder partial-recall-meaningful-traits))
+             (explainer (get failing 'partial-recall-non-meaningful-explainer)))
+
+    explainer))
+
+(put 'buffer-file-name 'partial-recall-non-meaningful-explainer "Buffer does not have a name")
+(put 'partial-recall--not-filtered-p 'partial-recall-non-meaningful-explainer "Buffer is filtered by `partial-recall-filter'")
+(put 'partial-recall--not-in-view-mode-p 'partial-recall-non-meaningful-explainer "Buffer is in `view-mode'")
 
 (defun partial-recall--can-hold-concentration-p ()
   "Check if concentration can be held."
@@ -1295,9 +1320,9 @@ This will show a propertized asterisk if the moment is permanent."
         '(:propertize "-"
                       face partial-recall-deemphasized
                       help-echo "Moment is fleeting"))
-    '(:propertize "?"
+    `(:propertize "?"
                   face partial-recall-deemphasized
-                  help-echo "Buffer is not meaningful")))
+                  help-echo ,(format "Not meaningful: %s" (partial-recall--explain-omission)))))
 
 (defun partial-recall--lighter-memory ()
   "Show memory information.
@@ -1538,6 +1563,15 @@ Passes ARG to the underlying function which will be passed to the
   (interactive)
 
   (partial-recall--forget-some))
+
+;;;###autoload
+(defun partial-recall-explain-omission ()
+  "Explain why the current buffer is non-meaningful."
+  (interactive)
+
+  (if-let ((explanation (partial-recall--explain-omission)))
+      (message explanation)
+    (message "Buffer is meaningful or infringed trait has no explanation")))
 
 (provide 'partial-recall)
 

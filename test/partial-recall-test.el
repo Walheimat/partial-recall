@@ -205,6 +205,19 @@
           (setq partial-recall--last-focus moment)
           (should-not (partial-recall--can-hold-concentration-p)))))))
 
+(ert-deftest pr--explain-omission-internal ()
+  :tags '(meaningful)
+
+  (defun test-meaningful (buffer)
+    "Test trait for BUFFER."
+    nil)
+
+  (put 'test-meaningful 'partial-recall-non-meaningful-explainer "Testing")
+
+  (let ((partial-recall-meaningful-traits '(test-meaningful)))
+
+    (should (string= "Testing" (partial-recall--explain-omission)))))
+
 (ert-deftest pr--after-switch-to-buffer--schedules ()
   :tags '(plain)
   (bydi (partial-recall--schedule-buffer)
@@ -1101,7 +1114,15 @@
     (should (equal '(:propertize "*"
                                  face partial-recall-contrast
                                  help-echo "Moment is implanted")
-                   (partial-recall--lighter-moment)))))
+                   (partial-recall--lighter-moment)))
+
+    (bydi ((:ignore partial-recall--moment-from-buffer)
+           (:mock partial-recall--explain-omission :return "testing"))
+
+      (should (equal '(:propertize "?"
+                                   face partial-recall-deemphasized
+                                   help-echo "Not meaningful: testing")
+                     (partial-recall--lighter-moment))))))
 
 (ert-deftest partial-recall--lighter-menu ()
   :tags '(plain)
@@ -1297,6 +1318,20 @@
       (bydi-was-called-n-times partial-recall--complete-memory 2))
 
     (kill-buffer buffer)))
+
+(ert-deftest pr-explain-omission ()
+  :tags '(api)
+
+  (let ((explanation nil))
+    (bydi ((:mock partial-recall--explain-omission :return explanation))
+      (ert-with-message-capture messages
+        (partial-recall-explain-omission)
+
+        (setq explanation "Testing")
+
+        (partial-recall-explain-omission)
+
+        (should (string= messages "Buffer is meaningful or infringed trait has no explanation\nTesting\n"))))))
 
 ;;; partial-recall-test.el ends here
 

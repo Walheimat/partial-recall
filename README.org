@@ -120,6 +120,16 @@ By default only three traits are in the list:
    self-explanatory.
 meaningful.
 
+For these three traits property
+=partial-recall-non-meaningful-explainer= is set which is ready by
+=partial-recall-explain-omission= if you want to know why a buffer was
+omitted (also present in the help echo of the mode-line lighter). So
+if you add your own trait here, consider doing the following:
+
+#+begin_src emacs-lisp
+(put 'my/partial-recall-trait 'partial-recall-non-meaningful-explainer "I have my reasons")
+#+end_src
+
 ** Configuration
 
 =partial-recall= will turn on =tab-bar-mode= if it isn't already turned

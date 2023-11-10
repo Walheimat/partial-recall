@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   a check if the moment is below `partial-recall-reclaim-min-age`.
 - New command `partial-recall-forget-some` that works like
   `kill-some-buffers` but instead prompts to forget moments.
+- Functions in `partial-recall-meaningful-traits` can now have
+  property `partial-recall-non-meaningful-explainer`: a string
+  explaining why the trait was infringed. This is used for new command
+  `partial-recall-explain-omission` and in the mode-line lighter.
 
 ### Changed
 
