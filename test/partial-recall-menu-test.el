@@ -7,11 +7,13 @@
 (require 'partial-recall-menu nil t)
 
 (ert-deftest prm--format--works-if-empty ()
-  :tags '(plain)
+  :tags '(menu)
+
   (should (partial-recall-menu--format nil nil)))
 
 (ert-deftest prm--format--sets-column-from-longest ()
-  :tags '(plain)
+  :tags '(menu)
+
   (let ((buffers '("a" "bb" "ccc"))
         (tabs '("dddd" "eee" "ff")))
 
@@ -21,7 +23,7 @@
                    '("Tab" 4 t)))))
 
 (ert-deftest prm--revert ()
-  :tags '(history)
+  :tags '(needs-history menu user-facing)
 
   (bydi (tabulated-list-init-header
          (:mock partial-recall-menu--print-timestamp :return "today")
@@ -53,7 +55,8 @@
       (should partial-recall-menu--subconscious))))
 
 (ert-deftest prm--list ()
-  :tags '(plain)
+  :tags '(menu)
+
   (bydi (partial-recall-menu-mode
          partial-recall-menu--revert
          tabulated-list-print)
@@ -69,7 +72,8 @@
       (kill-buffer buf))))
 
 (ert-deftest prm--id ()
-  :tags '(plain)
+  :tags '(menu)
+
   (bydi ((:sometimes tabulated-list-get-id))
 
     (should (partial-recall-menu--id))
@@ -79,7 +83,8 @@
     (should-error (partial-recall-menu--id) :type 'error)))
 
 (ert-deftest prm--switch ()
-  :tags '(plain)
+  :tags '(menu)
+
   (let ((real nil))
     (bydi ((:mock partial-recall-menu--id :return (list "tab" 'buffer real 'sub))
            tab-bar-switch-to-tab
@@ -102,7 +107,8 @@
 ;; Utility
 
 (ert-deftest prm--print-timestamp ()
-  :tags '(plain)
+  :tags '(menu)
+
   (let ((partial-recall-menu--excess-time 2)
         (seconds '(1 6)))
 
@@ -121,7 +127,8 @@
       (bydi-was-called-with format-time-string (list "   %d/%m" 'time)))))
 
 (ert-deftest prm--print-update-count ()
-  :tags '(plain)
+  :tags '(menu)
+
   (let ((partial-recall-menu--empty "e")
         (partial-recall-menu--persistence-blocks ["a" "b" "c" "d"])
         (partial-recall-menu--persistence-indicator "f")
@@ -138,7 +145,7 @@
     (should (string= "d" (partial-recall-menu--print-presence 6 t)))))
 
 (ert-deftest prm--print-memory ()
-  :tags '(history)
+  :tags '(needs-history menu)
 
   (let ((partial-recall-buffer-limit 10)
         (partial-recall-menu--null "0")
@@ -155,7 +162,8 @@
         (should (string= "test-tab (+1)" (partial-recall-menu--print-memory (partial-recall--reality))))))))
 
 (ert-deftest prm-mode ()
-  :tags '(plain)
+  :tags '(menu user-facing)
+
   (with-temp-buffer
     (partial-recall-menu-mode)
 
@@ -164,7 +172,8 @@
 ;; API
 
 (ert-deftest prm-execute ()
-  :tags '(plain)
+  :tags '(menu user-facing)
+
   (let ((entries '(["C"] ["C" ][" "] ["F"] nil ["I"] ["R"] ["X"]))
         (sub nil))
 
@@ -194,7 +203,8 @@
         (bydi-was-called-n-times tabulated-list-revert 1)))))
 
 (ert-deftest prm-unmark ()
-  :tags '(plain)
+  :tags '(menu user-facing)
+
   (let ((entry ["K"]))
     (bydi ((:mock tabulated-list-get-entry :return entry)
            tabulated-list-set-col
@@ -213,7 +223,8 @@
       (bydi-was-not-called tabulasted-list-set-col))))
 
 (ert-deftest prm-toggle-subconscious ()
-  :tags '(plain)
+  :tags '(menu user-facing)
+
   (with-temp-buffer
     (should-not partial-recall-menu--subconscious)
 
@@ -225,7 +236,8 @@
       (bydi-was-called tabulated-list-revert))))
 
 (ert-deftest prm-api ()
-  :tags '(plain)
+  :tags '(menu user-facing)
+
   (let ((real nil)
         (sub nil))
 

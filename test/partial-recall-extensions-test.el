@@ -9,7 +9,7 @@
 (require 'partial-recall-extensions nil t)
 
 (ert-deftest pr-buffer-specs ()
-  :tags '(history)
+  :tags '(needs-history)
 
   (with-tab-history :pre t
     (partial-recall--implant)
@@ -23,7 +23,7 @@
       (bydi-was-called partial-recall--message))))
 
 (ert-deftest pr-memory-specs ()
-  :tags '(history)
+  :tags '(needs-history)
 
   (with-tab-history :pre t
     (should (equal '(:size 1 :capacity 10 :original-capacity 10)
