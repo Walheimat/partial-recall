@@ -146,7 +146,9 @@ This is will implant buffers that have met
   :type '(repeat regexp)
   :group 'partial-recall)
 
-(defcustom partial-recall-meaningful-traits '(buffer-file-name partial-recall--not-in-view-mode-p)
+(defcustom partial-recall-meaningful-traits '(buffer-file-name
+                                              partial-recall--not-filtered-p
+                                              partial-recall--not-in-view-mode-p)
   "List of functions that describe traits of a meaningful buffer.
 
 These functions are inspected using `func-arity'. If they have a
@@ -1056,22 +1058,27 @@ the max age."
   "Make sure BUFFER is not in `view-mode'."
   (not (buffer-local-value 'view-mode buffer)))
 
+(defun partial-recall--not-filtered-p (buffer)
+  "Verify that BUFFER isn't filtered."
+  (let ((filter (mapconcat (lambda (it) (concat "\\(?:" it "\\)")) partial-recall-filter "\\|")))
+
+    (not (string-match-p filter (buffer-name buffer)))))
+
 (defun partial-recall--meaningful-buffer-p (buffer)
   "Check if BUFFER should be remembered."
-  (and-let* ((verify (lambda (it)
-                       (let* ((arity (func-arity it))
-                              (min (car arity))
-                              (max (cdr arity)))
-                         (if (or (> min 0)
-                                 (eq 'many max)
-                                 (and (numberp max)
-                                      (> max 0)))
-                             (funcall it buffer)
-                           (partial-recall--warn "Function '%s' has the wrong arity" it)
-                           t))))
-             ((seq-every-p verify partial-recall-meaningful-traits))
-             (filter (mapconcat (lambda (it) (concat "\\(?:" it "\\)")) partial-recall-filter "\\|"))
-             ((not (string-match-p filter (buffer-name buffer)))))))
+  (let ((verify (lambda (it)
+                  (let* ((arity (func-arity it))
+                         (min (car arity))
+                         (max (cdr arity)))
+                    (if (or (> min 0)
+                            (eq 'many max)
+                            (and (numberp max)
+                                 (> max 0)))
+                        (funcall it buffer)
+                      (partial-recall--warn "Function '%s' has the wrong arity" it)
+                      t)))))
+
+    (seq-every-p verify partial-recall-meaningful-traits)))
 
 (defun partial-recall--can-hold-concentration-p ()
   "Check if concentration can be held."

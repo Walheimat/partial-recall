@@ -22,6 +22,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Custom variable `partial-recall-traits` was renamed to
   `partial-recall-meaningful-traits`.
+- Filtering based on `partial-recall-filter` is now a trait of
+  `partial-recall-meaningful-traits`.
 
 ### Fixed
 

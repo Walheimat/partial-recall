@@ -107,12 +107,18 @@ meaningful buffer.
 =partial-recall= only "remembers" buffers that are "meaningful". This
 is governed by a list of predicates listed in
 =partial-recall-meaningul-traits=. They all must return =t= to mark a
-meaningful buffer. By default only =buffer-file-name= is in the list,
-meaning any buffer that has a file name is meaningful. If you set it
-to ='(always)= all buffers would be considered meaningful.
+meaningful buffer. If you set it to ='(always)= all buffers would be
+considered
 
-Even if meaningful, buffers whose names are in
-=partial-recall-filter=, will not be handled.
+By default only three traits are in the list:
+
+1. =buffer-file-name=, meaning any buffer that has a file name is
+   meaningful.
+2. =partial-recall--not-filtered-p= which means the buffers name is
+   not matched by =partial-recall-filter=.
+3. =partial-recall--not-in-view-mode= which should be
+   self-explanatory.
+meaningful.
 
 ** Configuration
 
@@ -180,3 +186,4 @@ probably want to bind the following commands:
 - =partial-recall-next=
 - =partial-recall-previous=
 - =partial-recall-forget-some=
+- =partial-recall-explain-omission=

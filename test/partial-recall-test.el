@@ -870,7 +870,8 @@
       (with-current-buffer buffer
         (should (partial-recall--meaningful-buffer-p (current-buffer)))
 
-        (let ((partial-recall-filter (list (buffer-name))))
+        (let ((partial-recall-filter (list (buffer-name)))
+              (partial-recall-meaningful-traits '(partial-recall--not-filtered-p)))
 
           (should-not (partial-recall--meaningful-buffer-p (current-buffer))))))))
 
