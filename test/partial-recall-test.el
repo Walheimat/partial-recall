@@ -338,6 +338,8 @@
   (with-tab-history :probes t
     (bydi ((:always partial-recall--memory-at-capacity-p)
            (:always partial-recall--should-extend-memory-p)
+           partial-recall--maybe-reinserted-implanted
+           partial-recall--maybe-suppress-oldest-moment
            partial-recall--maybe-forget-oldest-moment
            ring-extend)
 
@@ -370,6 +372,9 @@
 
         (bydi ((:always partial-recall--memory-at-capacity-p)
                (:ignore partial-recall--should-extend-memory-p)
+               partial-recall--maybe-resize-memory
+               partial-recall--maybe-extend-memory
+               partial-recall--maybe-reinsert-implanted
                partial-recall--suppress)
           (partial-recall--remember another-temp)
 
@@ -543,7 +548,8 @@
         (yet-another-temp (generate-new-buffer " *temp*" t))
         (partial-recall-reclaim-min-age -1))
 
-    (bydi (partial-recall--suppress)
+    (bydi (partial-recall--suppress
+           partial-recall--maybe-reinsert-implanted)
       (with-tab-history :pre t :probes t
         (let ((ring (partial-recall--memory-ring (partial-recall--reality))))
 
@@ -1132,12 +1138,14 @@
   (let ((partial-recall-memory-size 1))
 
     (with-tab-history :pre t :probes t
+      (bydi (partial-recall--maybe-reinsert-implanted
+             partial-recall--maybe-suppress-oldest-moment)
 
-      (should (equal
-               '(:propertize "."
-                             face partial-recall-deemphasized
-                             help-echo "Memory contains 1 moment(s)")
-               (partial-recall--lighter-memory)))
+        (should (equal
+                 '(:propertize "."
+                               face partial-recall-deemphasized
+                               help-echo "Memory contains 1 moment(s)")
+                 (partial-recall--lighter-memory))))
 
       (let ((another-temp (generate-new-buffer " *temp*" t)))
 

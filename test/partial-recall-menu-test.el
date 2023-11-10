@@ -144,7 +144,7 @@
         (partial-recall-menu--null "0")
         (partial-recall-menu--present "1"))
 
-    (with-tab-history :pre t :probes t
+    (with-tab-history :pre t
       (should (string= "1" (partial-recall-menu--print-memory (partial-recall--reality))))
       (should (string= "0" (partial-recall-menu--print-memory (partial-recall--subconscious))))
       (bydi ((:ignore partial-recall--reality-p))
