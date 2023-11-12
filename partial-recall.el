@@ -1101,7 +1101,7 @@ its explainer (property
 
     explainer))
 
-(put 'buffer-file-name 'partial-recall-non-meaningful-explainer "Buffer does not have a name")
+(put 'buffer-file-name 'partial-recall-non-meaningful-explainer "Buffer not associated with a file")
 (put 'partial-recall--not-filtered-p 'partial-recall-non-meaningful-explainer "Buffer is filtered by `partial-recall-filter'")
 (put 'partial-recall--not-in-view-mode-p 'partial-recall-non-meaningful-explainer "Buffer is in `view-mode'")
 
