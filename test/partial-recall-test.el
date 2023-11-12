@@ -1292,15 +1292,16 @@
   :tags '(user-facing)
 
   (let ((explanation nil))
-    (bydi ((:mock partial-recall--explain-omission :return explanation))
-      (ert-with-message-capture messages
-        (partial-recall-explain-omission)
+    (shut-up
+      (bydi ((:mock partial-recall--explain-omission :return explanation))
+        (ert-with-message-capture messages
+          (partial-recall-explain-omission)
 
-        (setq explanation "Testing")
+          (setq explanation "Testing")
 
-        (partial-recall-explain-omission)
+          (partial-recall-explain-omission)
 
-        (should (string= messages "Buffer is meaningful or infringed trait has no explanation\nTesting\n"))))))
+          (should (string= messages "Buffer is meaningful or infringed trait has no explanation\nTesting\n")))))))
 
 ;;; partial-recall-test.el ends here
 
