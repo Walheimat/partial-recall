@@ -28,6 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `partial-recall-meaningful-traits`.
 - Filtering based on `partial-recall-filter` is now a trait of
   `partial-recall-meaningful-traits`.
+- Lighter now uses "!" to indicate buffer that is not meanignful and
+  "?" to indicate a meaningful but not yet remembered buffer.
 
 ### Fixed
 

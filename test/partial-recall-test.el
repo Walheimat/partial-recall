@@ -1068,7 +1068,7 @@
 (ert-deftest pr--lighter-moment ()
   :tags '(needs-history)
 
-  (with-tab-history :pre t
+  (with-tab-history :pre t :wavers t
     (should (equal
              '(:propertize "-"
                            face partial-recall-deemphasized
@@ -1083,11 +1083,19 @@
                    (partial-recall--lighter-moment)))
 
     (bydi ((:ignore partial-recall--moment-from-buffer)
-           (:mock partial-recall--explain-omission :return "testing"))
+           (:mock partial-recall--explain-omission :return "testing")
+           (:sometimes partial-recall--meaningful-buffer-p))
 
       (should (equal '(:propertize "?"
                                    face partial-recall-deemphasized
-                                   help-echo "Not meaningful: testing")
+                                   help-echo "Considering")
+                     (partial-recall--lighter-moment)))
+
+      (bydi-toggle-sometimes)
+
+      (should (equal '(:propertize "!"
+                                   face partial-recall-deemphasized
+                                   help-echo  "Not meaningful: testing")
                      (partial-recall--lighter-moment))))))
 
 (ert-deftest partial-recall--lighter-menu ()

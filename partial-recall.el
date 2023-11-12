@@ -1311,7 +1311,8 @@ The title has a menu."
   "Show moment information.
 
 This will show a propertized asterisk if the moment is permanent."
-  (if-let* ((moment (partial-recall--moment-from-buffer (current-buffer))))
+  (if-let* ((buffer (current-buffer))
+            (moment (partial-recall--moment-from-buffer buffer)))
 
       (if (partial-recall--moment-permanence moment)
           '(:propertize "*"
@@ -1320,9 +1321,13 @@ This will show a propertized asterisk if the moment is permanent."
         '(:propertize "-"
                       face partial-recall-deemphasized
                       help-echo "Moment is fleeting"))
-    `(:propertize "?"
-                  face partial-recall-deemphasized
-                  help-echo ,(format "Not meaningful: %s" (partial-recall--explain-omission)))))
+    (if (partial-recall--meaningful-buffer-p buffer)
+        '(:propertize "?"
+                      face partial-recall-deemphasized
+                      help-echo "Considering")
+      `(:propertize "!"
+                    face partial-recall-deemphasized
+                    help-echo ,(format "Not meaningful: %s" (partial-recall--explain-omission))))))
 
 (defun partial-recall--lighter-memory ()
   "Show memory information.
