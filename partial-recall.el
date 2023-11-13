@@ -492,6 +492,20 @@ If EXTEND is t, also extend."
 
                            (throw 'found (list :tab tab :frame frame)))))))
     found))
+
+(defmacro partial-recall--in-other-frame (memory &rest forms)
+  "Evaluate FORMS in other frame.
+
+If MEMORY is not in another form, this is a no-op."
+  (declare (indent defun))
+
+  `(and-let* ((partial-recall--foreignp ,memory)
+              (info (partial-recall--from-other-frame ,memory))
+              (frame (plist-get info :frame)))
+
+     (with-selected-frame frame
+       ,@forms)))
+
 ;;; -- Handlers
 
 (defun partial-recall--schedule-buffer (buffer)
@@ -1151,6 +1165,10 @@ If ARG is t, the current moment is considered graced as well."
 (defun partial-recall--is-other-frame-p (frame)
   "Check that FRAME is not the selected frame."
   (not (eq frame (selected-frame))))
+
+(defun partial-recall--foreignp (memory)
+  "Check if MEMORY belongs to foreign frame."
+  (null (partial-recall--tab memory)))
 
 ;;; -- Utility
 

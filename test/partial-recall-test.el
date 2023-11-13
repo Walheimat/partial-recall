@@ -1314,6 +1314,15 @@
 (ert-deftest pr--is-other-frame-p ()
   (should-not (partial-recall--is-other-frame-p (selected-frame))))
 
+(ert-deftest pr--foreignp ()
+  (bydi ((:sometimes partial-recall--tab))
+
+    (should-not (partial-recall--foreignp 'memory))
+
+    (bydi-toggle-sometimes)
+
+    (should (partial-recall--foreignp 'memory))))
+
 ;;; partial-recall-test.el ends here
 
 ;; Local Variables:
