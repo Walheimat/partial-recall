@@ -840,18 +840,19 @@ to check if the moment should be kept, passing moment and ARG."
 
 Deletes any window currently displaying it and makes sure it is
 no longer recorded as the last checked buffer."
-  (when-let* ((windows (window-list)))
-    (dolist (window windows)
-      (when (eq (window-buffer window) buffer)
-        (quit-window nil window))))
+  (dolist (frame (frame-list))
+    (when-let* ((windows (window-list frame)))
+      (dolist (window windows)
+        (when (eq (window-buffer window) buffer)
+          (quit-window nil window))))
 
-  (when (eq partial-recall--last-checked buffer)
-    (setq partial-recall--last-checked nil))
+    (when (eq partial-recall--last-checked buffer)
+      (setq partial-recall--last-checked nil))
 
-  (when (and partial-recall--last-focus
-             (eq (partial-recall--moment-buffer partial-recall--last-focus)
-                 buffer))
-    (setq partial-recall--last-focus nil)))
+    (when (and partial-recall--last-focus
+               (eq (partial-recall--moment-buffer partial-recall--last-focus)
+                   buffer))
+      (setq partial-recall--last-focus nil))))
 
 (defun partial-recall--probe-memory (memory)
   "Probe MEMORY.

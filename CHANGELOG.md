@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - The menu now works across frames.
+- Clean-up now works across frames.
 
 ### Fixed
 
