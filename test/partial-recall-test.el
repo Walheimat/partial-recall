@@ -61,7 +61,8 @@
 (ert-deftest pr--tab ()
   :tags '(needs-history)
   (with-tab-history :pre t
-    (should (string= (partial-recall--tab-name) "test-tab"))))
+    (should (string= (partial-recall--tab-name nil (selected-frame))
+                     "test-tab"))))
 
 (ert-deftest pr--ensure-subconscious ()
   (let ((partial-recall-table (make-hash-table)))
