@@ -55,7 +55,8 @@ INCLUDE-SUBCONSCIOUS is t."
 
       (let* ((real (eq memory (pr--reality)))
              (sub (pr--subconscious-p memory))
-             (tab-name (pr--tab-name memory))
+             (tab-name (prm--tab-name memory))
+             (frame (prm--frame memory))
              (mem-pp (prm--print-memory memory)))
 
         (unless (eq memory (partial-recall--reality))
@@ -68,7 +69,7 @@ INCLUDE-SUBCONSCIOUS is t."
                  (ts (prm--print-timestamp (mom-timestamp moment)))
                  (implanted (mom-permanence moment))
                  (presence (prm--print-presence (mom-focus moment) implanted))
-                 (item (list tab-name buffer real sub))
+                 (item (list tab-name frame buffer real sub))
                  (line (vector prm--empty presence name mem-pp ts)))
 
             (push name buffer-names)
@@ -113,14 +114,54 @@ Includes subconscious buffers if INCLUDE-SUBCONSCIOUS is t."
   "Switch using FUN.
 
 If NO-OTHER-TAB is t, raise an error if that would be necessary."
-  (prm--with-props (tab buffer real _sub)
-    (unless real
-      (if no-other-tab
-          (user-error "Can't switch tabs")
-        (tab-bar-switch-to-tab tab)))
-    (funcall fun buffer)))
+  (prm--with-props (tab frame buffer real _sub)
+    (with-selected-frame frame
+      (unless real
+        (if no-other-tab
+            (user-error "Can't switch tabs")
+          (tab-bar-switch-to-tab tab)))
+      (funcall fun buffer))))
 
-;; Utility
+;;; -- Utility
+
+(defun prm--is-other-frame-p (frame)
+  "Check that FRAME is not the selected frame."
+  (not (eq frame (selected-frame))))
+
+(defun prm--tab (memory)
+  "Get tab and frame for MEMORY."
+  (if-let* ((tab (partial-recall--tab memory)))
+
+      (list tab (selected-frame) nil)
+
+    (let* ((other-frames (filtered-frame-list #'prm--is-other-frame-p))
+           (found (catch 'found
+                    (dotimes (ind (length other-frames))
+                      (when-let* ((frame (nth ind other-frames))
+                                  (tab (partial-recall--tab memory frame)))
+
+                        (throw 'found (list tab frame t)))))))
+      found)))
+
+(defun prm--frame (memory)
+  "Get frame for MEMORY."
+  (when-let ((result (prm--tab memory)))
+
+    (nth 1 result)))
+
+(defun prm--tab-name (memory &optional indicate-foreign-frame)
+  "Get tab name for MEMORY.
+
+This will also consider other frames. If INDICATE-FOREIGN-FRAME
+is t, the name will be propertized."
+  (if-let ((result (prm--tab memory)))
+
+    (cl-destructuring-bind (tab _frame foreign) result
+
+      (if (and foreign indicate-foreign-frame)
+          (propertize (alist-get 'name tab) 'face 'shadow)
+        (alist-get 'name tab)))
+    "?"))
 
 (defun prm--print-timestamp (timestamp)
   "Format TIMESTAMP."
@@ -161,7 +202,7 @@ If the moment is IMPLANTED, signal that."
                    ((pr--subconscious-p memory)
                     prm--null)
                    (t
-                    (pr--tab-name memory)))))
+                    (prm--tab-name memory t)))))
 
     (if (not (eq orig-size actual-size))
         (format "%s (+%d)" tab-name (- actual-size orig-size))
@@ -212,8 +253,8 @@ If the moment is IMPLANTED, signal that."
           (if (null entry)
               (forward-line 1)
             (let ((action (aref entry 0))
-                  (buffer (nth 1 id))
-                  (sub (nth 3 id)))
+                  (buffer (nth 2 id))
+                  (sub (nth 4 id)))
 
               (when (and (not needs-update)
                          (not (equal action prm--empty)))
@@ -262,7 +303,7 @@ If OTHER-WINDOW is t, do that."
   "Reclaim buffer."
   (interactive nil partial-recall-menu-mode)
 
-  (prm--with-props (_tab _buffer real _sub)
+  (prm--with-props (_tab _frame _buffer real _sub)
     (if real
         (user-error "Buffer is part of reality")
       (tabulated-list-set-col 0 "C" t)
@@ -272,7 +313,7 @@ If OTHER-WINDOW is t, do that."
   "Reinforce buffer."
   (interactive nil partial-recall-menu-mode)
 
-  (prm--with-props (_tab _buffer real sub)
+  (prm--with-props (_tab _frame _buffer real sub)
     (cond
      (sub
       (user-error "Can't reinforce subconscious buffer"))
@@ -286,7 +327,7 @@ If OTHER-WINDOW is t, do that."
   "Forget the buffer."
   (interactive nil partial-recall-menu-mode)
 
-  (prm--with-props (_tab _buffer _real _sub)
+  (prm--with-props (_tab _frame _buffer _real _sub)
     (tabulated-list-set-col 0 "F" t)
     (forward-line 1)))
 
@@ -296,7 +337,7 @@ If OTHER-WINDOW is t, do that."
 If EXCISE is t, do that instead."
   (interactive "P" partial-recall-menu-mode)
 
-  (prm--with-props (_tab _buffer _real sub)
+  (prm--with-props (_tab _frame _buffer _real sub)
     (if sub
         (user-error "Can't implant subconscious buffer")
       (tabulated-list-set-col 0 (if excise "X" "I") t)

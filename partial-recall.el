@@ -357,17 +357,21 @@ Searches all memories unless MEMORY is provided."
       partial-recall--subconscious-key
     (partial-recall--tab-name memory)))
 
-(defun partial-recall--tab (memory)
-  "Get the tab for MEMORY."
+(defun partial-recall--tab (memory &optional frame)
+  "Get the tab for MEMORY.
+
+Optionally search in FRAME."
   (when-let ((key (partial-recall--memory-key memory))
-             (tabs (funcall tab-bar-tabs-function)))
+             (tabs (funcall tab-bar-tabs-function frame)))
 
     (seq-find (lambda (it) (string= key (alist-get 'pr it))) tabs)))
 
-(defun partial-recall--tab-name (&optional memory)
-  "Get the tab name for MEMORY."
+(defun partial-recall--tab-name (&optional memory frame)
+  "Get the tab name for MEMORY.
+
+Optionally search in FRAME."
   (when-let ((memory (or memory (partial-recall--reality)))
-             (tab (partial-recall--tab memory)))
+             (tab (partial-recall--tab memory frame)))
     (alist-get 'name tab)))
 
 (defun partial-recall--memories (&optional exclude-subconscious)

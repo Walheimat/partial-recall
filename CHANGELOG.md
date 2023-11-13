@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- The menu now works across frames.
+
 ### Fixed
 
 - Explainer for trait `buffer-file-name` now mentions the actual

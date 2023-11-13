@@ -29,7 +29,8 @@
          (:mock partial-recall-menu--print-timestamp :return "today")
          (:mock partial-recall-menu--print-memory :return "rem")
          (:mock partial-recall-menu--print-presence :return "*")
-         (:mock partial-recall--tab-name :return "test-tab"))
+         (:mock partial-recall-menu--tab-name :return "test-tab")
+         (:mock partial-recall-menu--frame :return "frame"))
 
     (with-tab-history :pre t :second t
 
@@ -39,8 +40,9 @@
 
       (partial-recall-menu--revert)
 
-      (should (equal `(("test-tab" ,(current-buffer) t nil) [" " "*" ,(buffer-name) "rem" "today"])
+      (should (equal `(("test-tab" "frame" ,(current-buffer) t nil) [" " "*" ,(buffer-name) "rem" "today"])
                      (nth 1 tabulated-list-entries)))
+
       (should (equal (vector
                       '("A" 1 t :pad-right 0)
                       '("P" 1 t :pad-right 1)
@@ -86,7 +88,7 @@
   :tags '(menu)
 
   (let ((real nil))
-    (bydi ((:mock partial-recall-menu--id :return (list "tab" 'buffer real 'sub))
+    (bydi ((:mock partial-recall-menu--id :return (list "tab" (selected-frame) 'buffer real 'sub))
            tab-bar-switch-to-tab
            switch-to-buffer)
 
@@ -177,7 +179,7 @@
   (let ((entries '(["C"] ["C" ][" "] ["F"] nil ["I"] ["R"] ["X"]))
         (sub nil))
 
-    (bydi ((:mock tabulated-list-get-id :with (lambda () (list t 'buffer nil sub)))
+    (bydi ((:mock tabulated-list-get-id :with (lambda () (list t 'frame 'buffer nil sub)))
            (:mock tabulated-list-get-entry :with (lambda () (let ((res (pop entries)))
                                                          (setq sub t)
                                                          res)))
@@ -242,7 +244,7 @@
         (sub nil))
 
     (bydi (partial-recall-menu--switch
-           (:mock partial-recall-menu--id :return (list "tab" 'buffer real sub))
+           (:mock partial-recall-menu--id :return (list "tab" "frame" 'buffer real sub))
            tabulated-list-set-col
            forward-line
            display-buffer
@@ -276,7 +278,34 @@
       (partial-recall-menu)
       (bydi-was-called-with display-buffer 'list))))
 
-;;; Code:
+(ert-deftest prm--tab ()
+  (bydi ((:mock partial-recall--tab :return "tab"))
+
+    (should (equal (list "tab" (selected-frame) nil)
+                   (partial-recall-menu--tab 'memory))))
+
+  (bydi ((:mock
+          partial-recall--tab
+          :with
+          (lambda (mem &optional fr) (when (string= fr "second") "tab")))
+         (:mock filtered-frame-list :return '("first" "second")))
+
+    (should (equal (list "tab" "second" t)
+                   (partial-recall-menu--tab 'memory)))))
+
+(ert-deftest prm--frame ()
+  (bydi ((:mock partial-recall-menu--tab :return (list 'tab 'frame nil)))
+
+    (should (eq 'frame (partial-recall-menu--frame 'memory)))))
+
+(ert-deftest prm--is-other-frame-p ()
+  (should-not (partial-recall-menu--is-other-frame-p (selected-frame))))
+
+(ert-deftest prm--tab-name ()
+  (let ((foreign t))
+
+    (bydi ((:mock partial-recall-menu--tab :return (list '((name . "name")) 'frame foreign)))
+      (should (string= "name" (partial-recall-menu--tab-name 'memory t))))))
 
 ;;; partial-recall-menu-test.el ends here
 
