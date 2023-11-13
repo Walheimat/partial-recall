@@ -362,7 +362,10 @@ Searches all memories unless MEMORY is provided."
 
 Optionally search in FRAME."
   (when-let ((key (partial-recall--memory-key memory))
-             (tabs (funcall tab-bar-tabs-function frame)))
+             (tabs (if frame
+                       (with-selected-frame frame
+                         (funcall tab-bar-tabs-function frame))
+                     (funcall tab-bar-tabs-function))))
 
     (seq-find (lambda (it) (string= key (alist-get 'pr it))) tabs)))
 
@@ -488,7 +491,7 @@ If EXTEND is t, also extend."
               (found (catch 'found
                        (dotimes (ind (length other-frames))
                          (when-let* ((frame (nth ind other-frames))
-                                (tab (partial-recall--tab memory frame)))
+                                     (tab (partial-recall--tab memory frame)))
 
                            (throw 'found (list :tab tab :frame frame)))))))
     found))
