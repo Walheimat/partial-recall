@@ -101,13 +101,13 @@
 
       (bydi (partial-recall--remember
              (:always buffer-live-p)
-             (:mock window-list :return buffers)
+             (:mock partial-recall--window-list :return buffers)
              (:mock window-buffer :with bydi-rf)
              (:ignore partial-recall--mapped-buffer-p))
 
         (partial-recall--handle-buffer (current-buffer))
         (bydi-was-called partial-recall--remember)
-        (bydi-was-called window-list)))))
+        (bydi-was-called partial-recall--window-list)))))
 
 (ert-deftest pr--handle-buffer--missing ()
   :tags '(needs-history)

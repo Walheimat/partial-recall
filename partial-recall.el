@@ -633,16 +633,17 @@ If BUFFER is nil, reclaim the current buffer.
 
 If FORCE is t, will reclaim even if it was implanted or the
 threshold wasn't passed."
-  (and-let* ((reality (partial-recall--reality))
-             (owner (partial-recall--buffer-owner buffer))
-             ((not (eq reality owner)))
-             (moment (partial-recall--moment-from-buffer buffer owner))
-             ((or force
-                  (and
-                   (not (partial-recall--moment-permanence moment))
-                   (partial-recall--exceeds-p moment partial-recall-reclaim-min-age)))))
+  (if-let* ((reality (partial-recall--reality))
+            (owner (partial-recall--buffer-owner buffer))
+            ((not (eq reality owner)))
+            (moment (partial-recall--moment-from-buffer buffer owner))
+            ((or force
+                 (and
+                  (not (partial-recall--moment-permanence moment))
+                  (partial-recall--exceeds-p moment partial-recall-reclaim-min-age)))))
 
-    (partial-recall--swap owner reality moment)))
+      (partial-recall--swap owner reality moment)
+    (partial-recall--debug "Won't claim `%s'" buffer)))
 
 (defun partial-recall--forget (&optional buffer suppress)
   "Forget BUFFER.
@@ -977,10 +978,11 @@ This means the buffer won't be scheduled for handling."
   "Check that BUFFER remains visible.
 
 This also checks for buffers that might have been obscured."
-  (let* ((visible (and buffer
+  (let* ((windows (partial-recall--window-list))
+         (visible (and buffer
                        (buffer-live-p buffer)
                        (or (eq buffer partial-recall--before-minibuffer)
-                           (memq buffer (mapcar #'window-buffer (window-list))))))
+                           (memq buffer (mapcar #'window-buffer windows)))))
          (verb (if visible "remains" "is no longer")))
 
     (partial-recall--debug "Buffer '%s' %s visible" buffer verb)
@@ -1129,6 +1131,13 @@ If ARG is t, the current moment is considered graced as well."
       (partial-recall--falls-below-p moment partial-recall-reclaim-min-age)
       (and arg
            (eq (current-buffer) (partial-recall--moment-buffer moment)))))
+
+;;; -- Utility
+
+(defun partial-recall--window-list ()
+  "Get all windows."
+  (cl-loop for frame in (visible-frame-list)
+           append (window-list frame)))
 
 ;;; -- Printing
 
