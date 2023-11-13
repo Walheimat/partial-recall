@@ -584,9 +584,12 @@ Don't do anything if NORECORD is t."
   (unless norecord
     (partial-recall--schedule-buffer buffer)))
 
-(defun partial-recall--after-pop-to-buffer (buffer &rest _)
-  "Schedule the BUFFER that was popped to."
-  (partial-recall--schedule-buffer buffer))
+(defun partial-recall--after-pop-to-buffer (buffer &optional _action norecord)
+  "Schedule the BUFFER that was popped to.
+
+Don't do anything if NORECORD is t."
+  (unless norecord
+    (partial-recall--schedule-buffer buffer)))
 
 (defun partial-recall--on-create (tab)
   "Equip TAB with a unique hash key."
