@@ -279,6 +279,8 @@
       (bydi-was-called-with display-buffer 'list))))
 
 (ert-deftest prm--tab ()
+  :tags '(menu)
+
   (bydi ((:mock partial-recall--tab :return "tab"))
 
     (should (equal (list "tab" (selected-frame) nil)
@@ -294,14 +296,20 @@
                    (partial-recall-menu--tab 'memory)))))
 
 (ert-deftest prm--frame ()
+  :tags '(menu)
+
   (bydi ((:mock partial-recall-menu--tab :return (list 'tab 'frame nil)))
 
     (should (eq 'frame (partial-recall-menu--frame 'memory)))))
 
 (ert-deftest prm--is-other-frame-p ()
+  :tags '(menu)
+
   (should-not (partial-recall-menu--is-other-frame-p (selected-frame))))
 
 (ert-deftest prm--tab-name ()
+  :tags '(menu)
+
   (let ((foreign t))
 
     (bydi ((:mock partial-recall-menu--tab :return (list '((name . "name")) 'frame foreign)))
