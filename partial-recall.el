@@ -848,16 +848,22 @@ to check if the moment should be kept, passing moment and ARG."
 
     (partial-recall--probe-memory memory)))
 
+(defun partial-recall--clean-up-window (buffer &optional frame)
+  "Clean up BUFFER's window.
+
+Optionally in FRAME."
+  (when-let* ((windows (window-list frame)))
+    (dolist (window windows)
+      (when (eq (window-buffer window) buffer)
+        (quit-window nil window)))))
+
 (defun partial-recall--clean-up-buffer (buffer)
   "Clean up BUFFER if necessary.
 
 Deletes any window currently displaying it and makes sure it is
 no longer recorded as the last checked buffer."
   (dolist (frame (frame-list))
-    (when-let* ((windows (window-list frame)))
-      (dolist (window windows)
-        (when (eq (window-buffer window) buffer)
-          (quit-window nil window))))
+    (partial-recall--clean-up-window buffer frame)
 
     (when (eq partial-recall--last-checked buffer)
       (setq partial-recall--last-checked nil))
