@@ -124,24 +124,16 @@ If NO-OTHER-TAB is t, raise an error if that would be necessary."
 
 ;;; -- Utility
 
-(defun prm--is-other-frame-p (frame)
-  "Check that FRAME is not the selected frame."
-  (not (eq frame (selected-frame))))
-
 (defun prm--tab (memory)
   "Get tab and frame for MEMORY."
   (if-let* ((tab (partial-recall--tab memory)))
 
       (list tab (selected-frame) nil)
 
-    (let* ((other-frames (filtered-frame-list #'prm--is-other-frame-p))
-           (found (catch 'found
-                    (dotimes (ind (length other-frames))
-                      (when-let* ((frame (nth ind other-frames))
-                                  (tab (partial-recall--tab memory frame)))
-
-                        (throw 'found (list tab frame t)))))))
-      found)))
+    (when-let* ((info (pr--from-other-frame memory))
+                (tab (plist-get info :tab))
+                (frame (plist-get info :frame)))
+      (list tab frame t))))
 
 (defun prm--frame (memory)
   "Get frame for MEMORY."

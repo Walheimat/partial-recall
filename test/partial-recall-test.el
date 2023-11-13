@@ -1311,6 +1311,9 @@
 
           (should (string= messages "Buffer is meaningful or infringed trait has no explanation\nTesting\n")))))))
 
+(ert-deftest pr--is-other-frame-p ()
+  (should-not (partial-recall--is-other-frame-p (selected-frame))))
+
 ;;; partial-recall-test.el ends here
 
 ;; Local Variables:

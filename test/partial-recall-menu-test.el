@@ -302,11 +302,6 @@
 
     (should (eq 'frame (partial-recall-menu--frame 'memory)))))
 
-(ert-deftest prm--is-other-frame-p ()
-  :tags '(menu)
-
-  (should-not (partial-recall-menu--is-other-frame-p (selected-frame))))
-
 (ert-deftest prm--tab-name ()
   :tags '(menu)
 

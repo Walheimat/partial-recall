@@ -480,6 +480,18 @@ If EXTEND is t, also extend."
 
   item)
 
+;;; -- Dealing with frames
+
+(defun partial-recall--from-other-frame (memory)
+  "Get tab and frame of MEMORY."
+  (when-let* ((other-frames (filtered-frame-list #'partial-recall--is-other-frame-p))
+              (found (catch 'found
+                       (dotimes (ind (length other-frames))
+                         (when-let* ((frame (nth ind other-frames))
+                                (tab (partial-recall--tab memory frame)))
+
+                           (throw 'found (list :tab tab :frame frame)))))))
+    found))
 ;;; -- Handlers
 
 (defun partial-recall--schedule-buffer (buffer)
@@ -1066,8 +1078,6 @@ the max age."
   "Make sure BUFFER is not in `view-mode'."
   (not (buffer-local-value 'view-mode buffer)))
 
-
-
 (defun partial-recall--not-filtered-p (buffer)
   "Verify that BUFFER isn't filtered."
   (let ((filter (mapconcat (lambda (it) (concat "\\(?:" it "\\)")) partial-recall-filter "\\|")))
@@ -1131,6 +1141,10 @@ If ARG is t, the current moment is considered graced as well."
       (partial-recall--falls-below-p moment partial-recall-reclaim-min-age)
       (and arg
            (eq (current-buffer) (partial-recall--moment-buffer moment)))))
+
+(defun partial-recall--is-other-frame-p (frame)
+  "Check that FRAME is not the selected frame."
+  (not (eq frame (selected-frame))))
 
 ;;; -- Utility
 
