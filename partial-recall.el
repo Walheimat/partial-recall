@@ -668,7 +668,11 @@ threshold wasn't passed."
                   (not (partial-recall--moment-permanence moment))
                   (partial-recall--exceeds-p moment partial-recall-reclaim-min-age)))))
 
-      (partial-recall--swap owner reality moment)
+      (progn
+        (partial-recall--in-other-frame owner
+          (partial-recall--clean-up-window buffer))
+
+        (partial-recall--swap owner reality moment))
     (partial-recall--debug "Won't claim `%s'" buffer)))
 
 (defun partial-recall--forget (&optional buffer suppress)

@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The menu now works across frames.
 - Clean-up now works across frames.
 - Visibility check now works across frames.
+- Claiming from other frames now quits the window on the other frame.
 
 ### Fixed
 
