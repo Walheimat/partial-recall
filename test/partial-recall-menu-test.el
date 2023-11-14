@@ -4,6 +4,8 @@
 ;;
 ;; Tests for `partial-recall-menu'.
 
+;;; Code:
+
 (require 'partial-recall-menu nil t)
 
 (ert-deftest prm--format--works-if-empty ()
@@ -84,27 +86,25 @@
 
     (should-error (partial-recall-menu--id) :type 'error)))
 
-(ert-deftest prm--switch ()
+(ert-deftest prm--display ()
   :tags '(menu)
 
   (let ((real nil))
     (bydi ((:mock partial-recall-menu--id :return (list "tab" (selected-frame) 'buffer real 'sub))
            tab-bar-switch-to-tab
-           switch-to-buffer)
+           display-buffer-use-some-window)
 
-      (should-error (partial-recall-menu--switch #'switch-to-buffer t))
-
-      (partial-recall-menu--switch #'switch-to-buffer)
+      (partial-recall-menu--display)
 
       (bydi-was-called tab-bar-switch-to-tab)
-      (bydi-was-called switch-to-buffer)
+      (bydi-was-called display-buffer-use-some-window)
 
       (setq real t)
       (bydi-clear-mocks)
 
-      (partial-recall-menu--switch #'switch-to-buffer)
+      (partial-recall-menu--display)
       (bydi-was-not-called tab-bar-switch-tab)
-      (bydi-was-called switch-to-buffer))))
+      (bydi-was-called display-buffer-use-some-window))))
 
 ;; Utility
 
@@ -243,18 +243,15 @@
   (let ((real nil)
         (sub nil))
 
-    (bydi (partial-recall-menu--switch
+    (bydi (partial-recall-menu--display
            (:mock partial-recall-menu--id :return (list "tab" "frame" 'buffer real sub))
            tabulated-list-set-col
            forward-line
            display-buffer
            (:mock partial-recall-menu--list :return 'list))
 
-      (partial-recall-menu-switch-to-buffer)
-      (bydi-was-called-with partial-recall-menu--switch #'switch-to-buffer)
-
-      (partial-recall-menu-switch-to-buffer-other-window)
-      (bydi-was-called-with partial-recall-menu--switch '(switch-to-buffer-other-window t))
+      (partial-recall-menu-display-buffer)
+      (bydi-was-called partial-recall-menu--display)
 
       (partial-recall-menu-reclaim-buffer)
       (bydi-was-called-with tabulated-list-set-col '(... "C"))

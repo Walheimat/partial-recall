@@ -14,6 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Visibility check now works across frames.
 - Claiming from other frames now quits the window on the other frame.
 
+### Changed
+
+- The menu how always uses `display-buffer-use-some-window`.
+
 ### Fixed
 
 - Explainer for trait `buffer-file-name` now mentions the actual

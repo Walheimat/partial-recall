@@ -110,17 +110,16 @@ Includes subconscious buffers if INCLUDE-SUBCONSCIOUS is t."
   `(cl-destructuring-bind ,args (prm--id)
      ,@body))
 
-(defun prm--switch (fun &optional no-other-tab)
+(defun prm--display ()
   "Switch using FUN.
 
 If NO-OTHER-TAB is t, raise an error if that would be necessary."
   (prm--with-props (tab frame buffer real _sub)
     (with-selected-frame frame
       (unless real
-        (if no-other-tab
-            (user-error "Can't switch tabs")
-          (tab-bar-switch-to-tab tab)))
-      (funcall fun buffer))))
+        (tab-bar-switch-to-tab tab))
+
+     (display-buffer-use-some-window buffer nil))))
 
 ;;; -- Utility
 
@@ -204,9 +203,8 @@ If the moment is IMPLANTED, signal that."
 
 (defvar-keymap prm-mode-map
   :doc "Local keymap for `partial-recall-menu-mode' buffers."
-  "RET" #'prm-switch-to-buffer
-  "e" #'prm-switch-to-buffer
-  "o" #'prm-switch-to-buffer-other-window
+  "RET" #'prm-display-buffer
+  "e" #'prm-display-buffer
   "s" #'prm-toggle-subconscious
 
   "c" #'prm-reclaim-buffer
@@ -275,21 +273,13 @@ If the moment is IMPLANTED, signal that."
       (when needs-update
         (tabulated-list-revert)))))
 
-(defun partial-recall-menu-switch-to-buffer ()
+(defun partial-recall-menu-display-buffer ()
   "Switch to buffer.
 
 If OTHER-WINDOW is t, do that."
   (interactive nil partial-recall-menu-mode)
 
-  (prm--switch #'switch-to-buffer))
-
-(defun partial-recall-menu-switch-to-buffer-other-window ()
-  "Switch to buffer.
-
-If OTHER-WINDOW is t, do that."
-  (interactive nil partial-recall-menu-mode)
-
-  (prm--switch #'switch-to-buffer-other-window t))
+  (prm--display))
 
 (defun partial-recall-menu-reclaim-buffer ()
   "Reclaim buffer."
