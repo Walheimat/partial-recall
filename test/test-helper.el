@@ -13,7 +13,7 @@
 ;; Helpers
 
 (defvar test-tab '(current-tab (name . "test-tab") (explicit-name . t) (pr . "test-hash")))
-(defvar test-table (make-hash-table))
+(defvar test-table (make-hash-table :test #'equal))
 (defvar test-tabs (list test-tab))
 
 (cl-defmacro with-tab-history (&rest body &key pre lifts probes second wavers &allow-other-keys)

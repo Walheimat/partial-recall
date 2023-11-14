@@ -24,6 +24,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   issue.
 - Calling `pop-to-buffer` with NORECORD flag is now honored.
 - Memories are only created for non-nil keys.
+- Hash table tests are now done using `equal` to avoid duplicate
+  subconsciousnesses.
 
 ## [v0.8.3]
 

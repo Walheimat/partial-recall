@@ -176,7 +176,7 @@ considered memorable."
 
 ;;; -- Internal variables
 
-(defvar partial-recall--table (make-hash-table))
+(defvar partial-recall--table (make-hash-table :test #'equal))
 (defconst partial-recall--subconscious-key "subconscious")
 
 (defvar partial-recall--timer nil)
