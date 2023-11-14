@@ -399,15 +399,16 @@ If EXCLUDE-SUBCONSCIOUS is t, it is excluded."
 
 (defun partial-recall--memory-by-key (key)
   "Get or create memory identified by KEY."
-  (if-let* ((table partial-recall--table)
-            (memory (gethash key table)))
+  (when key
+    (if-let* ((table partial-recall--table)
+              (memory (gethash key table)))
 
-      memory
+        memory
 
-    (let ((new-memory (partial-recall--memory-create key)))
+      (let ((new-memory (partial-recall--memory-create key)))
 
-      (puthash key new-memory table)
-      new-memory)))
+        (puthash key new-memory table)
+        new-memory))))
 
 (defun partial-recall--reality ()
   "Get the current memory."

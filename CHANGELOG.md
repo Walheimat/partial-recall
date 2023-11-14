@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Explainer for trait `buffer-file-name` now mentions the actual
   issue.
 - Calling `pop-to-buffer` with NORECORD flag is now honored.
+- Memories are only created for non-nil keys.
 
 ## [v0.8.3]
 
