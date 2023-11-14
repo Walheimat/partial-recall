@@ -355,7 +355,7 @@ Searches all memories unless MEMORY is provided."
   "Get the name of MEMORY."
   (if (partial-recall--subconscious-p memory)
       partial-recall--subconscious-key
-    (partial-recall--tab-name memory)))
+    (partial-recall--tab-name-all-frames memory)))
 
 (defun partial-recall--tab (memory &optional frame)
   "Get the tab for MEMORY.
@@ -368,6 +368,16 @@ Optionally search in FRAME."
                      (funcall tab-bar-tabs-function))))
 
     (seq-find (lambda (it) (string= key (alist-get 'pr it))) tabs)))
+
+(defun partial-recall--tab-name-all-frames (memory)
+  "Get the tab name for MEMORY searching all frames."
+  (let ((frames (frame-list)))
+    (catch 'found
+      (dotimes (ind (length frames))
+        (when-let* ((frame (nth ind frames))
+                    (name (partial-recall--tab-name memory frame)))
+
+          (throw 'found name))))))
 
 (defun partial-recall--tab-name (&optional memory frame)
   "Get the tab name for MEMORY.
@@ -505,6 +515,8 @@ If MEMORY is not in another form, this is a no-op."
   `(and-let* ((partial-recall--foreignp ,memory)
               (info (partial-recall--from-other-frame ,memory))
               (frame (plist-get info :frame)))
+
+     (partial-recall--debug "Evaluating on behalf of %s in other frame" ,memory)
 
      (with-selected-frame frame
        ,@forms)))
