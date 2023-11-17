@@ -33,15 +33,15 @@ with =make package-install= after initializing the submodule =dinghy=.
 
 *** Memories and moments
 
-The association buffer -> tab is done using two structures: memories
-and moments.
+The association buffer=>tab is done using two structures: memories and
+moments.
 
 A memory is a ring of moments and a key used for look-up. The size of
 the ring is determined by =partial-recall-memory-size=.
 
 A moment is a buffer, a timestamp at which it was focused, a count of
 how many times it was focused and a flag indicating whether it is
-permanent (see below on topics **Permanence** and **Concentration**).
+permanent (see below on topics *Permanence* and *Concentration*).
 
 Visiting a buffer will schedule its handling which is to say that
 handling is delayed by =partial-recall-handle-delay= seconds. So if
@@ -55,10 +55,11 @@ Handling a buffer will do one of two things:
    means storing it in the current tab's memory.
 2. An existing moment is "recollected", which in turn means one of two
    things:
-   1. If it belongs to another memory, it is "reclaimed" depending on
-      =partial-recall-reclaim= and =partial-recall-reclaim-min-age=.
-   2. If it belongs to the current memory, it is "reinforced" that is
-      put at the top of the ring again.
+   1. If it belongs to another memory, it may be "reclaimed" depending
+      on =partial-recall-reclaim= and
+      =partial-recall-reclaim-min-age=.
+   2. If it belongs to the current memory, it is "reinforced", that
+      is, pushed to the top of the ring again.
 
 Since memories are rings, moments will leave the ring after more
 moments than its size will allow have been added without revisiting
@@ -79,14 +80,14 @@ associated memory's moments.
 *** Permanence
 
 Moments normally age out of its memory unless their buffers are
-re-visited and refreshed before that would happen. "Permanent" moments
-don't suffer this fate. There are three scenarios by which a moment is
-made permanent:
+re-visited (or focused upon) and refreshed before that would happen.
+"Permanent" moments don't suffer this fate. There are three scenarios
+by which a moment is made permanent:
 
 1. The user calls =partial-recall-implant= and selects its buffer.
-2. The moment has been revisited and re-inserted
-   for its focus to reach =partial-recall-auto-implant-threshold=.
-3. The moments has been concentrated upon to reach that same threshold.
+2. The moment has been revisited and re-inserted so often that its
+   focus reached =partial-recall-auto-implant-threshold=.
+3. The moment has been concentrated upon to reach that same threshold.
 
 The reverse of implanting is "excising" which =partial-recall-implant=
 will do if called with =C-u=. Permanent buffers can still be forgotten
@@ -95,20 +96,20 @@ manually.
 *** Concentration
 
 Every minute =partial-recall= will "concentrate" on the
-=current-buffer=. If the buffer doesn't change since the last cycle
-its focus will increase (see **Permanence**) otherwise concentration
+=current-buffer=. If the focused buffer doesn't change between cycles
+its focus will increase (see *Permanence*) otherwise concentration
 is broken and will begin again for the current buffer.
 
 /Note/ that concentration is a no-op if the =current-buffer= is not a
 meaningful buffer.
 
-*** Meaningful buffer and buffer traits
+*** Meaningful buffers and buffer traits
 
 =partial-recall= only "remembers" buffers that are "meaningful". This
 is governed by a list of predicates listed in
 =partial-recall-meaningul-traits=. They all must return =t= to mark a
 meaningful buffer. If you set it to ='(always)= all buffers would be
-considered
+considered meaningful.
 
 By default only three traits are in the list:
 
@@ -118,13 +119,13 @@ By default only three traits are in the list:
    not matched by =partial-recall-filter=.
 3. =partial-recall--not-in-view-mode= which should be
    self-explanatory.
-meaningful.
 
 For these three traits property
-=partial-recall-non-meaningful-explainer= is set which is ready by
-=partial-recall-explain-omission= if you want to know why a buffer was
-omitted (also present in the help echo of the mode-line lighter). So
-if you add your own trait here, consider doing the following:
+=partial-recall-non-meaningful-explainer= is set which is read by
+=partial-recall-explain-omission= if you want to know why a particular
+buffer was omitted (also present in the help echo of the mode-line
+lighter). So if you add your own trait here, consider doing the
+following:
 
 #+begin_src emacs-lisp
 (put 'my/partial-recall-trait 'partial-recall-non-meaningful-explainer "I have my reasons")
