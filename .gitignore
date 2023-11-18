@@ -7,3 +7,4 @@ partial-recall-pkg.el
 coverage/
 dist/
 .cask/
+node_modules/
