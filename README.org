@@ -142,8 +142,8 @@ taken into account.
   :custom
   (partial-recall-handle-delay 4) ;; The delay before a buffer is handled (remembered or re-inforced).
   (partial-recall-buffer-limit 10) ;; The number of buffers in the ring.
-  (partial-recall-max-age 1800) ;; The age (in seconds) that will allow the ring to grow.
-  (partial-recall-reclaim-min-age 900) ;; The age (in seconds) that will allow reclaiming.
+  (partial-recall-max-age 1200) ;; The age (in seconds) that will allow the ring to grow.
+  (partial-recall-reclaim-min-age 600) ;; The age (in seconds) that will allow reclaiming.
   (partial-recall-repress t) ;; Whether forgotten buffers should (eventually) be killed.
   (partial-recall-auto-implant t) ;; Whether moments should get implanted after meeting a threshold.
   (partial-recall-auto-implant-threshold 4) ;; That very threshold.

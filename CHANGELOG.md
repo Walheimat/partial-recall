@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - The menu how always uses `display-buffer-use-some-window`.
+- The thresholds for `partial-recall-max-age` (30=>20) and
+  `partial-recall-reclaim-min-age` (15=>10) were reduced.
 
 ### Fixed
 
