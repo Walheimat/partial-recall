@@ -1041,8 +1041,7 @@
          (:mock buffer-name :with bydi-rf)
          (:mock partial-recall--meaningful-buffer-p :with (lambda (it) (memq it '(b))))
          (:mock partial-recall--mapped-buffers :return '(a c))
-         (:mock partial-recall--mapped-buffer-p :with (lambda (it &rest _) (memq it '(a c))))
-         (:mock current-buffer :return 'current))
+         (:mock partial-recall--mapped-buffer-p :with (lambda (it &rest _) (memq it '(a c)))))
 
     (partial-recall--complete-any "Some prompt: ")
 
@@ -1050,7 +1049,7 @@
 
     (partial-recall--complete-any "Some prompt: " t)
 
-    (bydi-was-called-with completing-read '(... ((b . b) (d . d)) ... current))))
+    (bydi-was-called-with completing-read `(... ((b . b) (d . d)) ... ,(current-buffer)))))
 
 (ert-deftest pr--complete-memory ()
   (bydi (completing-read
