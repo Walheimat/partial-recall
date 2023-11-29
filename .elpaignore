@@ -1,5 +1,10 @@
 Cask
+CHANGELOG.md
+commitlint.config.js
+package.json
+package-lock.json
 Makefile
 
 .github/
 test/
+dinghy/
