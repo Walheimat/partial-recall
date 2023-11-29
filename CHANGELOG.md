@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Buffers not having a name no longer breaks `partial-recall-menu`.
+- `partial-recall--forget` now checks
+  `partial-recall--mapped-buffer-p` instead of
+  `partial-recall--meaningful-buffer-p` as the latter may fluctuate
+  and it was possible to add meaningless buffers without the ability
+  to remove them.
+
 ## [v0.8.4]
 
 ### Added

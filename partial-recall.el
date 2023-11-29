@@ -700,7 +700,7 @@ threshold wasn't passed."
 This will remove the buffer's moment from the memory. If SUPPRESS
 is t, the forgotten moment goes into the subconscious."
   (when-let* ((buffer (or buffer (current-buffer)))
-              ((partial-recall--meaningful-buffer-p buffer))
+              ((partial-recall--mapped-buffer-p buffer t))
               (maybe-remove (lambda (key memory)
                               (when-let ((moment (partial-recall--remove-buffer buffer memory)))
 
