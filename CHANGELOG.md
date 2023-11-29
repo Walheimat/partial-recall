@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - `partial-recall-menu` no longer uses `read-symbol-shorthands`.
+- `partial-recall-extensions` was renamed to `partial-recall-x`. All
+  provided functions and variables also use the `partial-recall-x-`
+  prefix.
 
 ### Fixed
 
