@@ -4,10 +4,10 @@ CURRENT_PACKAGE_VERSION=0.8.4
 UPDATE_VERSION_FILES=Cask \
 					 partial-recall.el \
 					 partial-recall-menu.el \
-                     partial-recall-extensions.el
+                     partial-recall-x.el
 
 PACIFY_DEPS=partial-recall.el \
 			partial-recall-menu.el \
-			partial-recall-extensions.el
+			partial-recall-x.el
 
 include dinghy/emacs-package.mk

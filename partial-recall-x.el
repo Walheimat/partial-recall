@@ -1,4 +1,4 @@
-;;; partial-recall-extensions.el --- Extension for `partial-recall' -*- lexical-binding: t; -*-
+;;; partial-recall-x.el --- Extension for `partial-recall' -*- lexical-binding: t; -*-
 
 ;; Author: Krister Schuchardt <krister.schuchardt@gmail.com>
 ;; Homepage: https://github.com/Walheimat/partial-recall
@@ -18,7 +18,7 @@
 (require 'partial-recall)
 
 ;;;###autoload
-(defvar partial-recall--consult-buffer-source
+(defvar partial-recall-x-consult-buffer-source
   (list :name "Partial Recall"
         :narrow ?r
         :category 'buffer
@@ -32,7 +32,7 @@
   "Buffers that are recalled from the current tab.")
 
 ;;;###autoload
-(defun partial-recall-buffer-specs (&optional buffer)
+(defun partial-recall-x-buffer-specs (&optional buffer)
   "Get the BUFFER's specs.
 
 The specs are a plist of the attributes `:meaningful', `:real'
@@ -48,7 +48,7 @@ and `:implanted'."
         (partial-recall--message "Buffer '%s' has specs '%s'" buffer specs)
       specs)))
 
-(defun partial-recall-memory-specs (&optional memory)
+(defun partial-recall-x-memory-specs (&optional memory)
   "Get the MEMORY's specs.
 
 The specs are a plist of attributes `:size' and `:capacity' and
@@ -64,6 +64,6 @@ The specs are a plist of attributes `:size' and `:capacity' and
         (partial-recall--message "Memory '%s' has specs '%s'" memory specs)
       specs)))
 
-(provide 'partial-recall-extensions)
+(provide 'partial-recall-x)
 
-;;; partial-recall-extensions.el ends here
+;;; partial-recall-x.el ends here

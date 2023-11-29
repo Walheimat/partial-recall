@@ -1,40 +1,40 @@
-;;; partial-recall-extensions-test.el --- Tests for package. -*- lexical-binding: t; -*-
+;;; partial-recall-x-test.el --- Tests for package. -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 ;;
-;; Tests for `partial-recall-extensions'.
+;; Tests for `partial-recall-x'.
 
 ;;; Code:
 
-(require 'partial-recall-extensions nil t)
+(require 'partial-recall-x nil t)
 
-(ert-deftest pr-buffer-specs ()
+(ert-deftest buffer-specs ()
   :tags '(needs-history)
 
   (with-tab-history :pre t
     (partial-recall--implant)
 
     (should (equal '(:meaningful t :real t :implanted t)
-                   (partial-recall-buffer-specs)))
+                   (partial-recall-x-buffer-specs)))
 
     (bydi-with-mock (partial-recall--message)
-      (call-interactively 'partial-recall-buffer-specs)
+      (call-interactively 'partial-recall-x-buffer-specs)
 
       (bydi-was-called partial-recall--message))))
 
-(ert-deftest pr-memory-specs ()
+(ert-deftest memory-specs ()
   :tags '(needs-history)
 
   (with-tab-history :pre t
     (should (equal '(:size 1 :capacity 10 :original-capacity 10)
-                   (partial-recall-memory-specs)))
+                   (partial-recall-x-memory-specs)))
 
     (bydi-with-mock (partial-recall--message)
-      (call-interactively 'partial-recall-memory-specs)
+      (call-interactively 'partial-recall-x-memory-specs)
 
       (bydi-was-called partial-recall--message))))
 
-;;; partial-recall-extensions-test.el ends here
+;;; partial-recall-x-test.el ends here
 
 ;; Local Variables:
 ;; no-byte-compile: t
