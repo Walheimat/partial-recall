@@ -19,6 +19,7 @@
 (defvar prm--empty " ")
 (defvar prm--null "-")
 (defvar prm--present "*")
+(defvar prm--missing "?")
 (defvar prm--persistence-blocks ["▂" "▄" "▆" "█"])
 (defvar prm--persistence-indicator "░")
 (defvar prm--persistence-ratios '(0.25 0.5 0.75 1))
@@ -65,14 +66,16 @@ INCLUDE-SUBCONSCIOUS is t."
         (dolist (moment (ring-elements (mem-ring memory)))
 
           (let* ((buffer (mom-buffer moment))
-                 (name (buffer-name buffer))
-                 (ts (prm--print-timestamp (mom-timestamp moment)))
                  (implanted (mom-permanence moment))
-                 (presence (prm--print-presence (mom-focus moment) implanted))
-                 (item (list tab-name frame buffer real sub))
-                 (line (vector prm--empty presence name mem-pp ts)))
 
-            (push name buffer-names)
+                 (pp-buffer-name (prm--print-buffer buffer))
+                 (pp-ts (prm--print-timestamp (mom-timestamp moment)))
+                 (pp-presence (prm--print-presence (mom-focus moment) implanted))
+
+                 (item (list tab-name frame buffer real sub))
+                 (line (vector prm--empty pp-presence pp-buffer-name mem-pp pp-ts)))
+
+            (push pp-buffer-name buffer-names)
 
             (push (list item line) entries)))))
 
@@ -123,7 +126,7 @@ If NO-OTHER-TAB is t, raise an error if that would be necessary."
 
 ;;; -- Utility
 
-(defun prm--tab (memory)
+(defun prm--tab-and-frame (memory)
   "Get tab and frame for MEMORY."
   (if-let* ((tab (partial-recall--tab memory)))
 
@@ -136,7 +139,7 @@ If NO-OTHER-TAB is t, raise an error if that would be necessary."
 
 (defun prm--frame (memory)
   "Get frame for MEMORY."
-  (when-let ((result (prm--tab memory)))
+  (when-let ((result (prm--tab-and-frame memory)))
 
     (nth 1 result)))
 
@@ -145,14 +148,21 @@ If NO-OTHER-TAB is t, raise an error if that would be necessary."
 
 This will also consider other frames. If INDICATE-FOREIGN-FRAME
 is t, the name will be propertized."
-  (if-let ((result (prm--tab memory)))
+  (or (if-let ((result (prm--tab-and-frame memory)))
 
-    (cl-destructuring-bind (tab _frame foreign) result
+          (cl-destructuring-bind (tab _frame foreign) result
 
-      (if (and foreign indicate-foreign-frame)
-          (propertize (alist-get 'name tab) 'face 'shadow)
-        (alist-get 'name tab)))
-    "?"))
+            (if (and foreign indicate-foreign-frame)
+                (propertize (alist-get 'name tab) 'face 'shadow)
+              (alist-get 'name tab)))
+        prm--missing)))
+
+;;; -- Printing
+
+(defun prm--print-buffer (buffer)
+  "Print BUFFER."
+  (or (buffer-name buffer)
+      prm--missing))
 
 (defun prm--print-timestamp (timestamp)
   "Format TIMESTAMP."
@@ -199,7 +209,7 @@ If the moment is IMPLANTED, signal that."
         (format "%s (+%d)" tab-name (- actual-size orig-size))
       tab-name)))
 
-;; Mode
+;;; -- Mode
 
 (defvar-keymap prm-mode-map
   :doc "Local keymap for `partial-recall-menu-mode' buffers."
@@ -218,7 +228,7 @@ If the moment is IMPLANTED, signal that."
   :interactive nil
   (add-hook 'tabulated-list-revert-hook 'prm--revert nil t))
 
-;; API
+;;; -- API
 
 (defun partial-recall-menu-toggle-subconscious ()
   "Toggle the inclusion of the subconscious."

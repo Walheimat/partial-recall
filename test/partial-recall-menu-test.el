@@ -275,13 +275,13 @@
       (partial-recall-menu)
       (bydi-was-called-with display-buffer 'list))))
 
-(ert-deftest prm--tab ()
+(ert-deftest prm--tab-and-frame ()
   :tags '(menu)
 
   (bydi ((:mock partial-recall--tab :return "tab"))
 
     (should (equal (list "tab" (selected-frame) nil)
-                   (partial-recall-menu--tab 'memory))))
+                   (partial-recall-menu--tab-and-frame 'memory))))
 
   (bydi ((:mock
           partial-recall--tab
@@ -290,22 +290,33 @@
          (:mock filtered-frame-list :return '("first" "second")))
 
     (should (equal (list "tab" "second" t)
-                   (partial-recall-menu--tab 'memory)))))
+                   (partial-recall-menu--tab-and-frame 'memory)))))
 
 (ert-deftest prm--frame ()
   :tags '(menu)
 
-  (bydi ((:mock partial-recall-menu--tab :return (list 'tab 'frame nil)))
+  (bydi ((:mock partial-recall-menu--tab-and-frame :return (list 'tab 'frame nil)))
 
     (should (eq 'frame (partial-recall-menu--frame 'memory)))))
 
 (ert-deftest prm--tab-name ()
   :tags '(menu)
 
-  (let ((foreign t))
+  (let* ((foreign t)
+         (result (list '((name . "name")) 'frame foreign)))
 
-    (bydi ((:mock partial-recall-menu--tab :return (list '((name . "name")) 'frame foreign)))
-      (should (string= "name" (partial-recall-menu--tab-name 'memory t))))))
+    (bydi ((:mock partial-recall-menu--tab-and-frame :return result))
+      (should (string= "name" (partial-recall-menu--tab-name 'memory t)))
+
+      (setq result nil)
+
+      (should (string= partial-recall-menu--missing (partial-recall-menu--tab-name 'memory t))))))
+
+(ert-deftest prm--print-buffer ()
+  :tags '(menu)
+
+  (bydi ((:ignore buffer-name))
+    (should (string= partial-recall-menu--missing (partial-recall-menu--print-buffer (current-buffer))))))
 
 ;;; partial-recall-menu-test.el ends here
 
