@@ -15,19 +15,19 @@
 (require 'subr-x)
 (require 'partial-recall)
 
-(defvar prm--buffer "*Partial Recall Menu*")
-(defvar prm--empty " ")
-(defvar prm--null "-")
-(defvar prm--present "*")
-(defvar prm--missing "?")
-(defvar prm--persistence-blocks ["▂" "▄" "▆" "█"])
-(defvar prm--persistence-indicator "░")
-(defvar prm--persistence-ratios '(0.25 0.5 0.75 1))
-(defvar prm--excess-time (* 60 60 12))
+(defvar partial-recall-menu--buffer "*Partial Recall Menu*")
+(defvar partial-recall-menu--empty " ")
+(defvar partial-recall-menu--null "-")
+(defvar partial-recall-menu--present "*")
+(defvar partial-recall-menu--missing "?")
+(defvar partial-recall-menu--persistence-blocks ["▂" "▄" "▆" "█"])
+(defvar partial-recall-menu--persistence-indicator "░")
+(defvar partial-recall-menu--persistence-ratios '(0.25 0.5 0.75 1))
+(defvar partial-recall-menu--excess-time (* 60 60 12))
 
-(defvar-local prm--subconscious nil)
+(defvar-local partial-recall-menu--subconscious nil)
 
-(defun prm--format (buffers tabs)
+(defun partial-recall-menu--format (buffers tabs)
   "Get format using BUFFERS and TABS."
   (let* ((buffers-sorted (sort (mapcar #'length buffers) #'>))
          (longest-buffer (max (or (car-safe buffers-sorted) 6)))
@@ -41,7 +41,7 @@
      `("Tab" ,longest-tab t)
      '("Timestamp" 9 t))))
 
-(defun prm--revert (&optional include-subconscious)
+(defun partial-recall-menu--revert (&optional include-subconscious)
   "Revert the buffer menu.
 
 The menu will not include the subconscious unless
@@ -49,57 +49,57 @@ INCLUDE-SUBCONSCIOUS is t."
   (let* ((entries nil)
          (buffer-names nil)
          (tab-names nil)
-         (memories (pr--memories (not (or include-subconscious
-                                          prm--subconscious)))))
+         (memories (partial-recall--memories (not (or include-subconscious
+                                          partial-recall-menu--subconscious)))))
 
     (dolist (memory memories)
 
-      (let* ((real (eq memory (pr--reality)))
-             (sub (pr--subconscious-p memory))
-             (tab-name (prm--tab-name memory))
-             (frame (prm--frame memory))
-             (mem-pp (prm--print-memory memory)))
+      (let* ((real (eq memory (partial-recall--reality)))
+             (sub (partial-recall--subconscious-p memory))
+             (tab-name (partial-recall-menu--tab-name memory))
+             (frame (partial-recall-menu--frame memory))
+             (partial-recall--memory-pp (partial-recall-menu--print-memory memory)))
 
         (unless (eq memory (partial-recall--reality))
           (push tab-name tab-names))
 
-        (dolist (moment (ring-elements (mem-ring memory)))
+        (dolist (moment (ring-elements (partial-recall--memory-ring memory)))
 
-          (let* ((buffer (mom-buffer moment))
-                 (implanted (mom-permanence moment))
+          (let* ((buffer (partial-recall--moment-buffer moment))
+                 (implanted (partial-recall--moment-permanence moment))
 
-                 (pp-buffer-name (prm--print-buffer buffer))
-                 (pp-ts (prm--print-timestamp (mom-timestamp moment)))
-                 (pp-presence (prm--print-presence (mom-focus moment) implanted))
+                 (pp-buffer-name (partial-recall-menu--print-buffer buffer))
+                 (pp-ts (partial-recall-menu--print-timestamp (partial-recall--moment-timestamp moment)))
+                 (pp-presence (partial-recall-menu--print-presence (partial-recall--moment-focus moment) implanted))
 
                  (item (list tab-name frame buffer real sub))
-                 (line (vector prm--empty pp-presence pp-buffer-name mem-pp pp-ts)))
+                 (line (vector partial-recall-menu--empty pp-presence pp-buffer-name partial-recall--memory-pp pp-ts)))
 
             (push pp-buffer-name buffer-names)
 
             (push (list item line) entries)))))
 
     (when include-subconscious
-      (setq prm--subconscious t))
+      (setq partial-recall-menu--subconscious t))
 
-    (setq tabulated-list-format (prm--format buffer-names tab-names)
+    (setq tabulated-list-format (partial-recall-menu--format buffer-names tab-names)
           tabulated-list-entries (nreverse entries)))
 
   (tabulated-list-init-header))
 
-(defun prm--list (&optional include-subconscious)
+(defun partial-recall-menu--list (&optional include-subconscious)
   "List the buffers.
 
 Includes subconscious buffers if INCLUDE-SUBCONSCIOUS is t."
-  (let ((buffer (get-buffer-create prm--buffer)))
+  (let ((buffer (get-buffer-create partial-recall-menu--buffer)))
 
     (with-current-buffer buffer
-      (prm-mode)
-      (prm--revert include-subconscious)
+      (partial-recall-menu-mode)
+      (partial-recall-menu--revert include-subconscious)
       (tabulated-list-print))
     buffer))
 
-(defun prm--id ()
+(defun partial-recall-menu--id ()
   "Get current ID object."
   (let ((id (tabulated-list-get-id)))
 
@@ -107,17 +107,17 @@ Includes subconscious buffers if INCLUDE-SUBCONSCIOUS is t."
         (error "Nothing on this line")
       id)))
 
-(defmacro prm--with-props (args &rest body)
+(defmacro partial-recall-menu--with-props (args &rest body)
   "Execute BODY with properties bound to ARGS."
   (declare (indent defun))
-  `(cl-destructuring-bind ,args (prm--id)
+  `(cl-destructuring-bind ,args (partial-recall-menu--id)
      ,@body))
 
-(defun prm--display ()
+(defun partial-recall-menu--display ()
   "Switch using FUN.
 
 If NO-OTHER-TAB is t, raise an error if that would be necessary."
-  (prm--with-props (tab frame buffer real _sub)
+  (partial-recall-menu--with-props (tab frame buffer real _sub)
     (with-selected-frame frame
       (unless real
         (tab-bar-switch-to-tab tab))
@@ -126,84 +126,84 @@ If NO-OTHER-TAB is t, raise an error if that would be necessary."
 
 ;;; -- Utility
 
-(defun prm--tab-and-frame (memory)
+(defun partial-recall-menu--tab-and-frame (memory)
   "Get tab and frame for MEMORY."
   (if-let* ((tab (partial-recall--tab memory)))
 
       (list tab (selected-frame) nil)
 
-    (when-let* ((info (pr--from-other-frame memory))
+    (when-let* ((info (partial-recall--from-other-frame memory))
                 (tab (plist-get info :tab))
                 (frame (plist-get info :frame)))
       (list tab frame t))))
 
-(defun prm--frame (memory)
+(defun partial-recall-menu--frame (memory)
   "Get frame for MEMORY."
-  (when-let ((result (prm--tab-and-frame memory)))
+  (when-let ((result (partial-recall-menu--tab-and-frame memory)))
 
     (nth 1 result)))
 
-(defun prm--tab-name (memory &optional indicate-foreign-frame)
+(defun partial-recall-menu--tab-name (memory &optional indicate-foreign-frame)
   "Get tab name for MEMORY.
 
 This will also consider other frames. If INDICATE-FOREIGN-FRAME
 is t, the name will be propertized."
-  (or (if-let ((result (prm--tab-and-frame memory)))
+  (or (if-let ((result (partial-recall-menu--tab-and-frame memory)))
 
           (cl-destructuring-bind (tab _frame foreign) result
 
             (if (and foreign indicate-foreign-frame)
                 (propertize (alist-get 'name tab) 'face 'shadow)
               (alist-get 'name tab)))
-        prm--missing)))
+        partial-recall-menu--missing)))
 
 ;;; -- Printing
 
-(defun prm--print-buffer (buffer)
+(defun partial-recall-menu--print-buffer (buffer)
   "Print BUFFER."
   (or (buffer-name buffer)
-      prm--missing))
+      partial-recall-menu--missing))
 
-(defun prm--print-timestamp (timestamp)
+(defun partial-recall-menu--print-timestamp (timestamp)
   "Format TIMESTAMP."
-  (if (< prm--excess-time
+  (if (< partial-recall-menu--excess-time
          (- (floor (time-to-seconds))
             timestamp))
       (format-time-string "   %d/%m" (seconds-to-time timestamp))
     (format-time-string "%H:%M:%S" (seconds-to-time timestamp))))
 
-(defun prm--print-presence (focus implanted)
+(defun partial-recall-menu--print-presence (focus implanted)
   "Format presence using FOCUS.
 
 If the moment is IMPLANTED, signal that."
   (let* ((threshold partial-recall-auto-implant-threshold)
          (index 0)
-         (max-index (1- (length prm--persistence-ratios)))
+         (max-index (1- (length partial-recall-menu--persistence-ratios)))
          (text (if (zerop focus)
                    (if implanted
-                       prm--persistence-indicator
-                     prm--empty)
-                 (while (and (> focus (* threshold (nth index prm--persistence-ratios)))
+                       partial-recall-menu--persistence-indicator
+                     partial-recall-menu--empty)
+                 (while (and (> focus (* threshold (nth index partial-recall-menu--persistence-ratios)))
                              (< index max-index))
                    (setq index (1+ index)))
 
-                 (aref prm--persistence-blocks index)))
+                 (aref partial-recall-menu--persistence-blocks index)))
          (face (if implanted 'success 'shadow))
          (help (format "Focus: %s, Implanted: %s" focus implanted)))
 
     (propertize text 'face face 'help-echo help)))
 
-(defun prm--print-memory (memory)
+(defun partial-recall-menu--print-memory (memory)
   "Format MEMORY."
-  (let ((orig-size (mem-orig-size memory))
-        (actual-size (ring-size (mem-ring memory)))
+  (let ((orig-size (partial-recall--memory-orig-size memory))
+        (actual-size (ring-size (partial-recall--memory-ring memory)))
         (tab-name (cond
-                   ((pr--reality-p memory)
-                    prm--present)
-                   ((pr--subconscious-p memory)
-                    prm--null)
+                   ((partial-recall--reality-p memory)
+                    partial-recall-menu--present)
+                   ((partial-recall--subconscious-p memory)
+                    partial-recall-menu--null)
                    (t
-                    (prm--tab-name memory t)))))
+                    (partial-recall-menu--tab-name memory t)))))
 
     (if (not (eq orig-size actual-size))
         (format "%s (+%d)" tab-name (- actual-size orig-size))
@@ -211,22 +211,22 @@ If the moment is IMPLANTED, signal that."
 
 ;;; -- Mode
 
-(defvar-keymap prm-mode-map
+(defvar-keymap partial-recall-menu-mode-map
   :doc "Local keymap for `partial-recall-menu-mode' buffers."
-  "RET" #'prm-display-buffer
-  "e" #'prm-display-buffer
-  "s" #'prm-toggle-subconscious
+  "RET" #'partial-recall-menu-display-buffer
+  "e" #'partial-recall-menu-display-buffer
+  "s" #'partial-recall-menu-toggle-subconscious
 
-  "c" #'prm-reclaim-buffer
-  "r" #'prm-reinforce-buffer
-  "f" #'prm-forget-buffer
-  "i" #'prm-implant-buffer
-  "x" #'prm-execute
-  "u" #'prm-unmark)
+  "c" #'partial-recall-menu-reclaim-buffer
+  "r" #'partial-recall-menu-reinforce-buffer
+  "f" #'partial-recall-menu-forget-buffer
+  "i" #'partial-recall-menu-implant-buffer
+  "x" #'partial-recall-menu-execute
+  "u" #'partial-recall-menu-unmark)
 
-(define-derived-mode prm-mode tabulated-list-mode "Partial Recall Menu"
+(define-derived-mode partial-recall-menu-mode tabulated-list-mode "Partial Recall Menu"
   :interactive nil
-  (add-hook 'tabulated-list-revert-hook 'prm--revert nil t))
+  (add-hook 'tabulated-list-revert-hook 'partial-recall-menu--revert nil t))
 
 ;;; -- API
 
@@ -234,7 +234,7 @@ If the moment is IMPLANTED, signal that."
   "Toggle the inclusion of the subconscious."
   (interactive)
 
-  (setq prm--subconscious (not prm--subconscious))
+  (setq partial-recall-menu--subconscious (not partial-recall-menu--subconscious))
   (tabulated-list-revert))
 
 (defun partial-recall-menu-execute ()
@@ -257,25 +257,25 @@ If the moment is IMPLANTED, signal that."
                   (sub (nth 4 id)))
 
               (when (and (not needs-update)
-                         (not (equal action prm--empty)))
+                         (not (equal action partial-recall-menu--empty)))
                 (setq needs-update t))
 
               (cond ((equal action "C")
                      (if sub
-                         (pr--lift buffer)
-                       (pr--reclaim buffer t))
-                     (tabulated-list-set-col 0 prm--empty t))
+                         (partial-recall--lift buffer)
+                       (partial-recall--reclaim buffer t))
+                     (tabulated-list-set-col 0 partial-recall-menu--empty t))
                     ((equal action "F")
-                     (pr--forget buffer t))
+                     (partial-recall--forget buffer t))
                     ((equal action "R")
-                     (pr--reinforce buffer)
-                     (tabulated-list-set-col 0 prm--empty t))
+                     (partial-recall--reinforce buffer)
+                     (tabulated-list-set-col 0 partial-recall-menu--empty t))
                     ((equal action "I")
-                     (pr--implant buffer)
-                     (tabulated-list-set-col 0 prm--empty t))
+                     (partial-recall--implant buffer)
+                     (tabulated-list-set-col 0 partial-recall-menu--empty t))
                     ((equal action "X")
-                     (pr--implant buffer t)
-                     (tabulated-list-set-col 0 prm--empty t))
+                     (partial-recall--implant buffer t)
+                     (tabulated-list-set-col 0 partial-recall-menu--empty t))
                     (t nil))
 
               (forward-line 1)))))
@@ -289,13 +289,13 @@ If the moment is IMPLANTED, signal that."
 If OTHER-WINDOW is t, do that."
   (interactive nil partial-recall-menu-mode)
 
-  (prm--display))
+  (partial-recall-menu--display))
 
 (defun partial-recall-menu-reclaim-buffer ()
   "Reclaim buffer."
   (interactive nil partial-recall-menu-mode)
 
-  (prm--with-props (_tab _frame _buffer real _sub)
+  (partial-recall-menu--with-props (_tab _frame _buffer real _sub)
     (if real
         (user-error "Buffer is part of reality")
       (tabulated-list-set-col 0 "C" t)
@@ -305,7 +305,7 @@ If OTHER-WINDOW is t, do that."
   "Reinforce buffer."
   (interactive nil partial-recall-menu-mode)
 
-  (prm--with-props (_tab _frame _buffer real sub)
+  (partial-recall-menu--with-props (_tab _frame _buffer real sub)
     (cond
      (sub
       (user-error "Can't reinforce subconscious buffer"))
@@ -319,7 +319,7 @@ If OTHER-WINDOW is t, do that."
   "Forget the buffer."
   (interactive nil partial-recall-menu-mode)
 
-  (prm--with-props (_tab _frame _buffer _real _sub)
+  (partial-recall-menu--with-props (_tab _frame _buffer _real _sub)
     (tabulated-list-set-col 0 "F" t)
     (forward-line 1)))
 
@@ -329,7 +329,7 @@ If OTHER-WINDOW is t, do that."
 If EXCISE is t, do that instead."
   (interactive "P" partial-recall-menu-mode)
 
-  (prm--with-props (_tab _frame _buffer _real sub)
+  (partial-recall-menu--with-props (_tab _frame _buffer _real sub)
     (if sub
         (user-error "Can't implant subconscious buffer")
       (tabulated-list-set-col 0 (if excise "X" "I") t)
@@ -354,15 +354,8 @@ If INCLUDE-SUBCONSCIOUS is t, the list will include those
 buffers."
   (interactive "P")
 
-  (display-buffer (prm--list include-subconscious)))
+  (display-buffer (partial-recall-menu--list include-subconscious)))
 
 (provide 'partial-recall-menu)
 
 ;;; partial-recall-menu.el ends here
-
-;; Local Variables:
-;; read-symbol-shorthands: (("prm-" . "partial-recall-menu-")
-;;                          ("pr-" . "partial-recall-")
-;;                          ("mom-" . "partial-recall--moment-")
-;;                          ("mem-" . "partial-recall--memory-"))
-;; End:

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- `partial-recall-menu` no longer uses `read-symbol-shorthands`.
+
 ### Fixed
 
 - Buffers not having a name no longer breaks `partial-recall-menu`.
