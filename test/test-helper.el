@@ -10,6 +10,8 @@
 (require 'bydi-ci)
 (require 'bydi-report)
 
+(setq byte-compile-warnings '(not not-unused))
+
 ;; Helpers
 
 (defvar test-tab '(current-tab (name . "test-tab") (explicit-name . t) (pr . "test-hash")))
@@ -56,6 +58,7 @@ true, a second memory is created. If WAVERS is t,
 (bydi-ci-setup-paths)
 (bydi-report-setup-undercover (list "*.el"))
 (bydi-report-setup-ert-runner)
+(bydi-report-setup-ert :increase-print-depth t)
 
 ;;; test-helper.el ends here
 
