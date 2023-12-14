@@ -20,6 +20,7 @@
 ;;;###autoload
 (defvar partial-recall-x-consult-buffer-source
   (list :name "Partial Recall"
+        :hidden t
         :narrow ?r
         :category 'buffer
         :state #'consult--buffer-state
