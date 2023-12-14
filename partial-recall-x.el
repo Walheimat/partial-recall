@@ -21,7 +21,7 @@
 (defvar partial-recall-x-consult-buffer-source
   (list :name "Partial Recall"
         :hidden t
-        :narrow ?r
+        :narrow ?u
         :category 'buffer
         :state #'consult--buffer-state
         :history 'buffer-name-history
