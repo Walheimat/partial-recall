@@ -7,8 +7,7 @@
 ;;; Code:
 
 (require 'bydi)
-(require 'bydi-ci)
-(require 'bydi-report)
+(require 'dinghy-rope)
 
 (setq byte-compile-warnings '(not not-unused))
 
@@ -55,10 +54,10 @@ true, a second memory is created. If WAVERS is t,
 
 ;; Setup
 
-(bydi-ci-setup-paths)
-(bydi-report-setup-undercover (list "*.el"))
-(bydi-report-setup-ert-runner)
-(bydi-report-setup-ert :increase-print-depth t)
+(dinghy-rope-setup-paths)
+(dinghy-rope-setup-undercover (list "*.el"))
+(dinghy-rope-setup-ert-runner)
+(dinghy-rope-setup-ert :increase-print-depth t)
 
 ;;; test-helper.el ends here
 
