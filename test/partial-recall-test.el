@@ -972,54 +972,62 @@
 ;;; -- Completion
 
 (ert-deftest pr--complete-dream ()
-  (bydi-with-mock ((:mock completing-read :return "second")
-                   (:ignore partial-recall--memory-buffer-p)
-                   (:mock partial-recall--mapped-buffers :return '("first" "second" "third"))
-                   (:mock buffer-name :with bydi-rf))
-    (should (string= "second" (partial-recall--complete-dream "Some prompt: ")))))
+  :tags '(completion)
+
+  (bydi-with-mock (partial-recall--complete-buffer
+                   (:always partial-recall--mapped-buffer-p)
+                   (:ignore partial-recall--memory-buffer-p))
+
+    (should (funcall (nth 1 (partial-recall--complete-dream "Some prompt: ")) `("buffer" . ,(current-buffer))))))
 
 (ert-deftest pr--complete-dream--initial-input ()
-  (bydi-with-mock (completing-read
+  :tags '(completion)
+
+  (bydi-with-mock (partial-recall--complete-buffer
                    (:ignore partial-recall--memory-buffer-p)
                    (:mock partial-recall--mapped-buffers :return '(third))
                    (:mock current-buffer :return 'third)
                    (:mock buffer-name :with bydi-rf))
     (partial-recall--complete-dream "Some prompt: ")
-    (bydi-was-called-with completing-read '(... third))))
+    (bydi-was-called-with partial-recall--complete-buffer '(... third))))
 
 (ert-deftest pr--complete-reality ()
-  (bydi-with-mock ((:mock completing-read :return "second")
-                   (:always partial-recall--memory-buffer-p)
-                   (:mock partial-recall--mapped-buffers :return '("first" "second" "third"))
-                   (:mock buffer-name :with bydi-rf))
-    (should (string= "second" (partial-recall--complete-reality "Some prompt: ")))))
+  :tags '(completion)
+
+  (bydi ((:always partial-recall--memory-buffer-p)
+         partial-recall--complete-buffer)
+
+    (should (funcall (nth 1 (partial-recall--complete-reality "Some prompt: ")) `(current . ,(current-buffer))))))
 
 (ert-deftest pr--complete-reality--initial-input ()
-  (bydi (completing-read
+  :tags '(completion)
+
+  (bydi (partial-recall--complete-buffer
          (:always partial-recall--memory-buffer-p)
-         (:mock partial-recall--mapped-buffers :return '(first second third))
-         (:mock buffer-name :with bydi-rf)
-         (:mock current-buffer :return 'second))
+         (:mock partial-recall--mapped-buffers :return '(first second third)))
 
     (partial-recall--complete-reality "Some prompt: ")
 
-    (bydi-was-called-with completing-read '(... second))))
+    (bydi-was-called-with partial-recall--complete-buffer (list '... (buffer-name (current-buffer))))))
 
 (ert-deftest pr--complete-subconscious ()
+  :tags '(completion)
+
   (let* ((partial-recall--table (make-hash-table))
          (buf (generate-new-buffer " *temp*" t))
-         (name (buffer-name buf))
          (sub (partial-recall--subconscious)))
 
     (ring-insert (partial-recall--memory-ring sub)
                  (partial-recall--moment-create buf))
 
-    (bydi-with-mock ((:mock completing-read :return name))
+    (bydi partial-recall--complete-buffer
 
-      (should (equal buf (partial-recall--complete-subconscious "Some prompt: "))))))
+      (should (funcall
+               (nth 1 (partial-recall--complete-subconscious "Some prompt: "))
+               `(buf . ,buf))))))
 
 (ert-deftest pr--complete-subconscious--initial-input ()
-  :tags '(needs-history)
+  :tags '(needs-history completion)
 
   (with-tab-history :pre t
     (let ((another (generate-new-buffer " *temp*" t)))
@@ -1030,28 +1038,29 @@
       (with-current-buffer another
         (rename-buffer "another-one")
 
-        (bydi (completing-read)
+        (bydi (partial-recall--complete-buffer)
           (partial-recall--complete-subconscious "Some prompt: ")
 
-          (bydi-was-called-with completing-read `(... "another-one")))))))
+          (bydi-was-called-with partial-recall--complete-buffer `(... "another-one")))))))
 
 (ert-deftest pr--complete-any ()
-  (bydi (completing-read
-         (:mock buffer-list :return '(a b c d))
-         (:mock buffer-name :with bydi-rf)
-         (:mock partial-recall--meaningful-buffer-p :with (lambda (it) (memq it '(b))))
-         (:mock partial-recall--mapped-buffers :return '(a c))
+  :tags '(completion)
+
+  (bydi (partial-recall--complete-buffer
+         (:mock partial-recall--meaningful-buffer-p :with (lambda (x) (memq x '(b))))
          (:mock partial-recall--mapped-buffer-p :with (lambda (it &rest _) (memq it '(a c)))))
 
-    (partial-recall--complete-any "Some prompt: ")
+    (should (funcall
+             (nth 1 (partial-recall--complete-any "Some prompt: "))
+             '(b . b)))
 
-    (bydi-was-called-with completing-read '(... "Some prompt: " ((b . b))))
-
-    (partial-recall--complete-any "Some prompt: " t)
-
-    (bydi-was-called-with completing-read `(... ((b . b) (d . d)) ... ,(current-buffer)))))
+    (should (funcall
+             (nth 1 (partial-recall--complete-any "Some prompt: " t))
+             '(a . a)))))
 
 (ert-deftest pr--complete-memory ()
+  :tags '(completion)
+
   (bydi (completing-read
          (:mock partial-recall--memories :return '(a b c))
          (:mock partial-recall--name :with bydi-rf))
@@ -1059,6 +1068,15 @@
     (partial-recall--complete-memory "Some prompt: ")
 
     (bydi-was-called-with completing-read '(... ((a . a) (b . b) (c . c))))))
+
+(ert-deftest pr--complete-buffer ()
+  :tags '(completion)
+
+  (bydi ((:watch minibuffer-completion-table))
+    (ert-simulate-keys '(?\C-m)
+      (partial-recall--complete-buffer "Some prompt: " #'ignore nil))
+
+    (bydi-was-set minibuffer-completion-table)))
 
 ;;; -- Lighter
 

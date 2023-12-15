@@ -16,6 +16,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   "neglects" the buffer; it only does so when called with a prefix
   argument.
 
+### Fixed
+
+- All completion for buffers now uses `read-buffer` and sets
+  completion table (meaning sorting works).
+
 ## [v0.8.5]
 
 ### Changed

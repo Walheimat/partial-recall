@@ -1261,63 +1261,65 @@ Message will be formatted with ARGS."
 
 (defun partial-recall--complete-dream (prompt)
   "Complete dream buffer using PROMPT."
-  (let* ((buffers (partial-recall--mapped-buffers))
-         (other-buffers (seq-filter (lambda (it) (not (partial-recall--memory-buffer-p it))) buffers))
+  (let* ((predicate (lambda (it) (and-let* ((buffer (cdr it))
+                                       ((partial-recall--mapped-buffer-p buffer))
+                                       ((not (partial-recall--memory-buffer-p buffer)))))))
          (current (current-buffer))
-         (initial (when (memq current other-buffers)
+         (initial (unless (partial-recall--memory-buffer-p current)
                     (buffer-name current))))
 
-    (partial-recall--complete-buffer prompt other-buffers initial)))
+    (partial-recall--complete-buffer prompt predicate initial)))
 
 (defun partial-recall--complete-reality (prompt &optional no-preselect)
   "Complete reality buffer using PROMPT.
 
 If NO-PRESELECT is t, no initial input is set."
-  (let* ((mapped (partial-recall--mapped-buffers))
-         (buffers (seq-filter #'partial-recall--memory-buffer-p mapped))
+  (let* ((predicate (lambda (it) (partial-recall--memory-buffer-p (cdr it))))
          (current (current-buffer))
-         (initial (when (and (not no-preselect) (memq current buffers))
+         (initial (when (and (not no-preselect) (partial-recall--memory-buffer-p current))
                     (buffer-name current))))
 
-    (partial-recall--complete-buffer prompt buffers initial)))
+    (partial-recall--complete-buffer prompt predicate initial)))
 
 (defun partial-recall--complete-subconscious (prompt)
   "Complete subconscious buffer using PROMPT."
   (let* ((memory (partial-recall--subconscious))
-         (ring (partial-recall--memory-ring memory))
-         (moments (ring-elements ring))
-         (buffers (mapcar #'partial-recall--moment-buffer moments))
+         (predicate (lambda (it) (partial-recall--memory-buffer-p (cdr it) memory)))
          (current (current-buffer))
-         (initial (when (memq current buffers)
+         (initial (when (partial-recall--memory-buffer-p current memory)
                     (buffer-name current))))
 
-    (partial-recall--complete-buffer prompt buffers initial)))
+    (partial-recall--complete-buffer prompt predicate initial)))
 
 (defun partial-recall--complete-any (prompt &optional allow-meaningless)
   "Complete any buffer using PROMPT.
 
 Mapped buffers and non-file buffers (unless ALLOW-MEANINGLESS is t)
 are not considered."
-  (let* ((buffers (if allow-meaningless
-                      (buffer-list)
-                    (seq-filter #'partial-recall--meaningful-buffer-p (buffer-list))))
-         (candidates (seq-filter (lambda (it) (not (partial-recall--mapped-buffer-p it t))) buffers))
+  (let* ((predicate (if allow-meaningless
+                        #'always
+                      (lambda (it) (partial-recall--meaningful-buffer-p (cdr it)))))
          (current (current-buffer))
          (initial (unless (or (partial-recall--mapped-buffer-p current t)
                               (and (not (partial-recall--meaningful-buffer-p current))
                                    (not allow-meaningless)))
-                    (buffer-name (current-buffer)))))
+                    (buffer-name current))))
 
-    (partial-recall--complete-buffer prompt candidates initial)))
+    (partial-recall--complete-buffer prompt predicate initial)))
 
-(defun partial-recall--complete-buffer (prompt buffers initial)
-  "Complete BUFFERS with INITIAL input.
+(defun partial-recall--complete-buffer (prompt predicate &optional initial)
+  "Complete BUFFERS with PREDICATE.
 
-Completion is done using `completing-read' with PROMPT."
-  (let* ((collection (mapcar (lambda (it) (cons (buffer-name it) it)) buffers))
-         (selection (completing-read prompt collection nil t initial)))
+Optionally provide INITIAL input.
 
-    (cdr-safe (assoc selection collection))))
+Completion is done using `read-buffer' with PROMPT after setting
+up completion table."
+  (let* ((rbts-completion-table (internal-complete-buffer-except)))
+
+    (minibuffer-with-setup-hook
+        (lambda () (setq-local minibuffer-completion-table rbts-completion-table))
+
+      (read-buffer prompt initial t predicate))))
 
 (defun partial-recall--complete-memory (prompt &optional include-subconscious)
   "Complete memory using PROMPT.
