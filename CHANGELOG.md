@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Buffer source `partial-recall-x-consult-buffer-source` now sets
   `:hidden t` to avoid duplicate results during `consult-buffer`. It
   uses `u` for narrowing now.
+- Command `partial-recall-switch-to-buffer` no longer automatically
+  "neglects" the buffer; it only does so when called with a prefix
+  argument.
 
 ## [v0.8.5]
 

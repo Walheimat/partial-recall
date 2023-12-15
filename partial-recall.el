@@ -1533,14 +1533,17 @@ widened to all buffers."
   (partial-recall--switch-to-and-neglect buffer))
 
 ;;;###autoload
-(defun partial-recall-switch-to-buffer (buffer)
+(defun partial-recall-switch-to-buffer (buffer &optional arg)
   "Switch to BUFFER.
 
 The selection is limited to buffers belonging to the current
-memory."
-  (interactive (list (partial-recall--complete-reality "Switch to moment: " t)))
+memory.
 
-  (partial-recall--switch-to-and-neglect buffer))
+ARG is passed to `partial-recall--switch-to-buffer-function'."
+  (interactive (list (partial-recall--complete-reality "Switch to moment: " t)
+                     current-prefix-arg))
+
+  (funcall partial-recall--switch-to-buffer-function buffer arg))
 
 ;;;###autoload
 (defun partial-recall-reclaim (buffer)

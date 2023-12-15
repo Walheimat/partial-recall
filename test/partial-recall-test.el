@@ -1264,12 +1264,14 @@
            partial-recall--meld
            partial-recall--flush
            partial-recall--forget-some
+           switch-to-buffer
            (:mock partial-recall--previous-buffer :return 'buffer)
            (:mock partial-recall--next-buffer :return 'buffer))
 
       (call-interactively 'partial-recall-reclaim)
       (call-interactively 'partial-recall-forget)
       (call-interactively 'partial-recall-switch-to-buffer)
+      (funcall-interactively 'partial-recall-switch-to-buffer 'buffer t)
       (call-interactively 'partial-recall-implant)
       (call-interactively 'partial-recall-lift)
       (call-interactively 'partial-recall-remember)
@@ -1291,7 +1293,8 @@
       (bydi-was-called partial-recall--next-buffer)
       (bydi-was-called partial-recall--previous-buffer)
       (bydi-was-called partial-recall--forget-some)
-      (bydi-was-called-n-times partial-recall--switch-to-and-neglect 6)
+      (bydi-was-called-n-times partial-recall--switch-to-and-neglect 5)
+      (bydi-was-called-n-times switch-to-buffer 2)
       (bydi-was-called-n-times partial-recall--complete-memory 2))
 
     (kill-buffer buffer)))
