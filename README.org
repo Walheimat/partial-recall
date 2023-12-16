@@ -33,8 +33,8 @@ with =make package-install= after initializing the submodule =dinghy=.
 
 *** Memories and moments
 
-The association buffer=>tab is done using two structures: memories and
-moments.
+The association buffer → tab is done using two structures: memories
+and moments.
 
 A memory is a ring of moments and a key used for look-up. The size of
 the ring is determined by =partial-recall-memory-size=.
@@ -164,19 +164,7 @@ taken into account.
   (with-eval-after-load 'consult
     (add-to-list
      'consult-buffer-sources
-     'partial-recall--consult-buffer-source))
-
-  ;; If you use `marginalia', you can annotate the buffer-based commands.
-  (with-eval-after-load 'marginalia
-    (setq marginalia-command-categories
-          (append
-           marginalia-command-categories
-           '((partial-recall-forget . buffer)
-             (partial-recall-implant . buffer)
-             (partial-recall-lift . buffer)
-             (partial-recall-reclaim . buffer)
-             (partial-recall-remember . buffer)
-             (partial-recall-switch-to-buffer . buffer)))
+     'partial-recall-x-consult-buffer-source))
 
   :bind-keymap
   (("C-c b" . partial-recall-command-map)))
