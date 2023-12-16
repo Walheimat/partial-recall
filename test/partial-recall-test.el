@@ -307,6 +307,17 @@
 
     (should-not partial-recall--before-minibuffer)))
 
+(ert-deftest pr--after-register-val-jump-to ()
+  (bydi (partial-recall--maybe-switch-memory)
+
+    (should-not (partial-recall--after-register-val-jump-to nil))
+    (bydi-was-not-called partial-recall--maybe-switch-memory)
+
+    (let ((conf (current-window-configuration)))
+
+      (should (partial-recall--after-register-val-jump-to (list conf (point-marker))))
+      (bydi-was-called partial-recall--maybe-switch-memory))))
+
 ;;; -- Actions
 
 (ert-deftest pr-remember--remembers ()
@@ -1236,7 +1247,7 @@
 
       (bydi-was-called-with run-with-timer '(1 60 partial-recall--concentrate))
       (bydi-was-called partial-recall--queue-fix-up)
-      (bydi-was-called-n-times advice-add 3)
+      (bydi-was-called-n-times advice-add 4)
       (bydi-was-called-n-times add-hook 7)
       (bydi-was-called tab-bar-mode))))
 
@@ -1250,7 +1261,7 @@
     (partial-recall-mode--teardown)
 
     (bydi-was-called cancel-timer)
-    (bydi-was-called-n-times advice-remove 3)
+    (bydi-was-called-n-times advice-remove 4)
     (bydi-was-called-n-times remove-hook 7)))
 
 ;;; -- API

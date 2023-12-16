@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Jumping to a register with a window configuration is now handled for
+  auto-switching.
+
 ### Changed
 
 - Buffer source `partial-recall-x-consult-buffer-source` now sets

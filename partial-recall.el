@@ -583,6 +583,8 @@ focus is intensified, otherwise concentration breaks."
 
     (setq partial-recall--last-focus (partial-recall--moment-from-buffer (current-buffer)))))
 
+;;; -- Advice
+
 (defun partial-recall--before-switch-to-buffer (buffer &optional norecord &rest _)
   "Maybe switch memories before scheduling BUFFER.
 
@@ -642,6 +644,14 @@ Don't do anything if NORECORD is t."
 (defun partial-recall--on-minibuffer-exit ()
   "Delete the recorded buffer."
   (setq partial-recall--before-minibuffer nil))
+
+(defun partial-recall--after-register-val-jump-to (value &rest _args)
+  "Maybe switch memory after jumping to VALUE."
+  (cond
+   ((window-configuration-p (car-safe value))
+    (when-let* ((marker (cadr value))
+                (buffer (marker-buffer marker)))
+      (partial-recall--maybe-switch-memory buffer)))))
 
 ;;; -- Actions
 
@@ -1486,6 +1496,9 @@ is shown."
   (advice-add
    partial-recall--pop-to-buffer-function :after
    #'partial-recall--after-pop-to-buffer)
+  (advice-add
+   'register-val-jump-to :before
+   #'partial-recall--after-register-val-jump-to)
 
   (add-hook 'minibuffer-setup-hook #'partial-recall--on-minibuffer-setup)
   (add-hook 'minibuffer-exit-hook #'partial-recall--on-minibuffer-exit)
@@ -1508,6 +1521,9 @@ is shown."
   (advice-remove
    partial-recall--pop-to-buffer-function
    #'partial-recall--after-pop-to-buffer)
+  (advice-remove
+   'register-val-jump-to
+   #'partial-recall--after-register-val-jump-to)
 
   (remove-hook 'minibuffer-setup-hook #'partial-recall--on-minibuffer-setup)
   (remove-hook 'minibuffer-exit-hook #'partial-recall--on-minibuffer-exit)
