@@ -651,7 +651,8 @@ Don't do anything if NORECORD is t."
    ((window-configuration-p (car-safe value))
     (when-let* ((marker (cadr value))
                 (buffer (marker-buffer marker)))
-      (partial-recall--maybe-switch-memory buffer)))))
+
+      (partial-recall--maybe-switch-memory buffer t)))))
 
 ;;; -- Actions
 
@@ -993,17 +994,20 @@ This is true if COUNT exceeds `partial-recall-auto-implant-threshold'."
 
     (partial-recall--implant (partial-recall--moment-buffer moment))))
 
-(defun partial-recall--maybe-switch-memory (&optional buffer)
+(defun partial-recall--maybe-switch-memory (&optional buffer unscheduled)
   "Maybe switch to BUFFER's memory.
 
-Memories in the subconscious are not considered."
+Memories in the subconscious are not considered.
+
+If UNSCHEDULED is t don't account for reclaiming."
   (and-let* (partial-recall-auto-switch
              (buffer (or buffer (current-buffer)))
              ((partial-recall--mapped-buffer-p buffer))
              ((not (partial-recall--memory-buffer-p buffer)))
              (moment (partial-recall--moment-from-buffer buffer))
-             ((not (partial-recall--exceeds-p moment (- partial-recall-reclaim-min-age
-                                                        partial-recall-handle-delay))))
+             ((or unscheduled
+                  (not (partial-recall--exceeds-p moment (- partial-recall-reclaim-min-age
+                                                            partial-recall-handle-delay)))))
              (owner (partial-recall--buffer-owner buffer))
              ((pcase partial-recall-auto-switch
                 ('prompt
