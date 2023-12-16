@@ -588,7 +588,7 @@ focus is intensified, otherwise concentration breaks."
 
 Don't do anything if NORECORD is t."
   (unless norecord
-    (partial-recall--maybe-switch-memory buffer)))
+    (partial-recall--maybe-switch-memory (get-buffer buffer))))
 
 (defun partial-recall--after-switch-to-buffer (buffer &optional norecord &rest _)
   "Schedule the BUFFER that was switched to.
@@ -983,26 +983,26 @@ This is true if COUNT exceeds `partial-recall-auto-implant-threshold'."
 
     (partial-recall--implant (partial-recall--moment-buffer moment))))
 
-(defun partial-recall--maybe-switch-memory (buffer)
+(defun partial-recall--maybe-switch-memory (&optional buffer)
   "Maybe switch to BUFFER's memory.
 
 Memories in the subconscious are not considered."
-  (with-current-buffer buffer
-    (and-let* ((buffer (current-buffer))
-               ((partial-recall--mapped-buffer-p buffer))
-               ((not (partial-recall--memory-buffer-p buffer)))
-               (moment (partial-recall--moment-from-buffer buffer))
-               ((not (partial-recall--exceeds-p moment (- partial-recall-reclaim-min-age
-                                                          partial-recall-handle-delay))))
-               (owner (partial-recall--buffer-owner buffer))
-               ((pcase partial-recall-auto-switch
-                  ('prompt
-                   (yes-or-no-p (format "Switch to %s?" (partial-recall--repr owner))))
-                  ('t t)
-                  (_ nil)))
-               (tab (partial-recall--tab-name owner)))
+  (and-let* (partial-recall-auto-switch
+             (buffer (or buffer (current-buffer)))
+             ((partial-recall--mapped-buffer-p buffer))
+             ((not (partial-recall--memory-buffer-p buffer)))
+             (moment (partial-recall--moment-from-buffer buffer))
+             ((not (partial-recall--exceeds-p moment (- partial-recall-reclaim-min-age
+                                                        partial-recall-handle-delay))))
+             (owner (partial-recall--buffer-owner buffer))
+             ((pcase partial-recall-auto-switch
+                ('prompt
+                 (yes-or-no-p (format "Switch to %s?" (partial-recall--repr owner))))
+                ('t t)
+                (_ nil))))
 
-      (tab-bar-switch-to-tab tab))))
+    (with-current-buffer buffer
+      (tab-bar-switch-to-tab (partial-recall--tab-name owner)))))
 
 (defun partial-recall--switch-to-and-neglect (buffer)
   "Switch to BUFFER and make sure it is neglected.

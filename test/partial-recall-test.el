@@ -679,7 +679,7 @@
 
         (ring-insert (partial-recall--memory-ring second-memory) moment)
 
-        (should-not (partial-recall--maybe-switch-memory (current-buffer)))
+        (should-not (partial-recall--maybe-switch-memory))
 
         (bydi (tab-bar-switch-to-tab
                (:mock partial-recall--tab-name :return "test")
