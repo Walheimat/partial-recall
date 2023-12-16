@@ -1270,16 +1270,18 @@ Message will be formatted with ARGS."
 
     (partial-recall--complete-buffer prompt predicate initial)))
 
-(defun partial-recall--complete-reality (prompt &optional no-preselect)
+(defun partial-recall--complete-reality (prompt &optional no-preselect exclude-current)
   "Complete reality buffer using PROMPT.
 
-If NO-PRESELECT is t, no initial input is set."
+If NO-PRESELECT is t, no initial input is set.
+
+If EXCLUDE-CURRENT is t, don't include the current buffer."
   (let* ((predicate (lambda (it) (partial-recall--memory-buffer-p (cdr it))))
          (current (current-buffer))
          (initial (when (and (not no-preselect) (partial-recall--memory-buffer-p current))
                     (buffer-name current))))
 
-    (partial-recall--complete-buffer prompt predicate initial)))
+    (partial-recall--complete-buffer prompt predicate initial exclude-current)))
 
 (defun partial-recall--complete-subconscious (prompt)
   "Complete subconscious buffer using PROMPT."
@@ -1307,14 +1309,22 @@ are not considered."
 
     (partial-recall--complete-buffer prompt predicate initial)))
 
-(defun partial-recall--complete-buffer (prompt predicate &optional initial)
+(defun partial-recall--complete-buffer (prompt predicate &optional initial exclude-current)
   "Complete BUFFERS with PREDICATE.
 
 Optionally provide INITIAL input.
 
 Completion is done using `read-buffer' with PROMPT after setting
-up completion table."
-  (let* ((rbts-completion-table (internal-complete-buffer-except)))
+up completion table.
+
+If EXCLUDE-CURRENT is t, don't include the current buffer."
+  (let* ((rbts-completion-table (if exclude-current
+                                    (internal-complete-buffer-except)
+                                  (apply-partially
+                                   #'completion-table-with-predicate
+                                   #'internal-complete-buffer
+                                   #'always
+                                   nil))))
 
     (minibuffer-with-setup-hook
         (lambda () (setq-local minibuffer-completion-table rbts-completion-table))
@@ -1542,7 +1552,7 @@ The selection is limited to buffers belonging to the current
 memory.
 
 ARG is passed to `partial-recall--switch-to-buffer-function'."
-  (interactive (list (partial-recall--complete-reality "Switch to moment: " t)
+  (interactive (list (partial-recall--complete-reality "Switch to moment: " t t)
                      current-prefix-arg))
 
   (funcall partial-recall--switch-to-buffer-function buffer arg))

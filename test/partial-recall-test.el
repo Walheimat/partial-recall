@@ -1072,11 +1072,20 @@
 (ert-deftest pr--complete-buffer ()
   :tags '(completion)
 
-  (bydi ((:watch minibuffer-completion-table))
+  (bydi ((:watch minibuffer-completion-table)
+         (:spy internal-complete-buffer-except))
+
     (ert-simulate-keys '(?\C-m)
       (partial-recall--complete-buffer "Some prompt: " #'ignore nil))
 
-    (bydi-was-set minibuffer-completion-table)))
+    (bydi-was-set minibuffer-completion-table)
+    (bydi-was-not-called internal-complete-buffer-except)
+
+    (ert-simulate-keys '(?\C-m)
+      (partial-recall--complete-buffer "Some prompt: " #'ignore nil t))
+
+    (bydi-was-set minibuffer-completion-table)
+    (bydi-was-called internal-complete-buffer-except)))
 
 ;;; -- Lighter
 
