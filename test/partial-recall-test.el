@@ -211,6 +211,8 @@
 
     (should (string= "Testing" (partial-recall--explain-omission)))))
 
+;;; -- Reactions
+
 (ert-deftest pr--after-switch-to-buffer--schedules ()
   (bydi (partial-recall--schedule-buffer)
 
@@ -317,6 +319,14 @@
 
       (should (partial-recall--after-register-val-jump-to (list conf (point-marker))))
       (bydi-was-called partial-recall--maybe-switch-memory))))
+
+(ert-deftest pr--after-winner ()
+  (bydi ((:ignore partial-recall--memory-buffer-p)
+         partial-recall--maybe-switch-memory)
+
+    (partial-recall--after-winner)
+
+    (bydi-was-called partial-recall--maybe-switch-memory)))
 
 ;;; -- Actions
 
@@ -1247,7 +1257,7 @@
 
       (bydi-was-called-with run-with-timer '(1 60 partial-recall--concentrate))
       (bydi-was-called partial-recall--queue-fix-up)
-      (bydi-was-called-n-times advice-add 4)
+      (bydi-was-called-n-times advice-add 6)
       (bydi-was-called-n-times add-hook 7)
       (bydi-was-called tab-bar-mode))))
 
@@ -1261,7 +1271,7 @@
     (partial-recall-mode--teardown)
 
     (bydi-was-called cancel-timer)
-    (bydi-was-called-n-times advice-remove 4)
+    (bydi-was-called-n-times advice-remove 6)
     (bydi-was-called-n-times remove-hook 7)))
 
 ;;; -- API

@@ -583,7 +583,7 @@ focus is intensified, otherwise concentration breaks."
 
     (setq partial-recall--last-focus (partial-recall--moment-from-buffer (current-buffer)))))
 
-;;; -- Advice
+;;; -- Reactions
 
 (defun partial-recall--before-switch-to-buffer (buffer &optional norecord &rest _)
   "Maybe switch memories before scheduling BUFFER.
@@ -653,6 +653,15 @@ Don't do anything if NORECORD is t."
                 (buffer (marker-buffer marker)))
 
       (partial-recall--maybe-switch-memory buffer t)))))
+
+(defun partial-recall--after-winner (&rest _)
+  "Maybe switch memory after `winner-undo' or `winner-redo'."
+  (when-let* ((foreign (seq-find
+                        (lambda (it)
+                          (not (partial-recall--memory-buffer-p (window-buffer it))))
+                        (window-list))))
+
+    (partial-recall--maybe-switch-memory (window-buffer foreign) t)))
 
 ;;; -- Actions
 
@@ -1503,6 +1512,12 @@ is shown."
   (advice-add
    'register-val-jump-to :before
    #'partial-recall--after-register-val-jump-to)
+  (advice-add
+   'winner-undo :after
+   #'partial-recall--after-winner)
+  (advice-add
+   'winner-redo :after
+   #'partial-recall--after-winner)
 
   (add-hook 'minibuffer-setup-hook #'partial-recall--on-minibuffer-setup)
   (add-hook 'minibuffer-exit-hook #'partial-recall--on-minibuffer-exit)
@@ -1528,6 +1543,12 @@ is shown."
   (advice-remove
    'register-val-jump-to
    #'partial-recall--after-register-val-jump-to)
+  (advice-remove
+   'winner-undo
+   #'partial-recall--after-winner)
+  (advice-remove
+   'winner-redo
+   #'partial-recall--after-winner)
 
   (remove-hook 'minibuffer-setup-hook #'partial-recall--on-minibuffer-setup)
   (remove-hook 'minibuffer-exit-hook #'partial-recall--on-minibuffer-exit)

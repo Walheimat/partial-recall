@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Jumping to a register with a window configuration is now handled for
   auto-switching.
+- Changing window configurations with `winner` may switch memories.
 
 ### Changed
 
@@ -24,7 +25,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - All completion for buffers now uses `read-buffer` and sets
-  completion table (meaning sorting works).
+  completion table (meaning sorting works and you don't need to set up
+  `marginalia` for this package).
 
 ## [v0.8.5]
 
