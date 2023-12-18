@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Jumping to a register with a window configuration is now handled for
   auto-switching.
 - Changing window configurations with `winner` may switch memories.
+- Command `partial-recall-reject` to push moments from the current
+  memory to another.
 
 ### Changed
 

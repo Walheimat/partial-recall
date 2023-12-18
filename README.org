@@ -77,6 +77,9 @@ it is a ring of moments and can only hold a limited amount. If
 subconscious are killed. Closing a tab means forgetting all of the
 associated memory's moments.
 
+You may also push buffers from the current memory to another using
+=partial-recall-reject=.
+
 *** Permanence
 
 Moments normally age out of its memory unless their buffers are
@@ -186,3 +189,4 @@ probably want to bind the following commands:
 - =partial-recall-previous=
 - =partial-recall-forget-some=
 - =partial-recall-explain-omission=
+- =partial-recall-reject=

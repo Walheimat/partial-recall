@@ -585,6 +585,27 @@
           (kill-buffer another-temp)
           (kill-buffer yet-another-temp))))))
 
+(ert-deftest partial-recall--reject ()
+  (with-tab-history :pre t :second t
+    (should-error (partial-recall--reject (current-buffer) (partial-recall--reality)))
+
+    (let* ((another (generate-new-buffer " *temp*" t))
+           (moment (partial-recall--moment-create another)))
+
+      (ring-insert (partial-recall--memory-ring second-memory) moment)
+
+      (should-error (partial-recall--reject another second-memory))
+
+      (kill-buffer another))
+
+    (bydi (partial-recall--swap
+           partial-recall--clean-up-buffer)
+
+      (partial-recall-reject (current-buffer) second-memory)
+
+      (bydi-was-called partial-recall--swap)
+      (bydi-was-called partial-recall--clean-up-buffer))))
+
 (ert-deftest partial-recall--suppress--remembers-unique ()
   :tags '(needs-history)
 
@@ -1312,6 +1333,7 @@
            partial-recall--meld
            partial-recall--flush
            partial-recall--forget-some
+           partial-recall--reject
            switch-to-buffer
            (:mock partial-recall--previous-buffer :return 'buffer)
            (:mock partial-recall--next-buffer :return 'buffer))
@@ -1328,11 +1350,10 @@
       (call-interactively 'partial-recall-next)
       (call-interactively 'partial-recall-previous)
       (call-interactively 'partial-recall-forget-some)
+      (call-interactively 'partial-recall-reject)
 
       (bydi-was-called partial-recall--reclaim)
       (bydi-was-called partial-recall--forget)
-      (bydi-was-called partial-recall--complete-dream)
-      (bydi-was-called partial-recall--complete-reality)
       (bydi-was-called partial-recall--implant)
       (bydi-was-called partial-recall--lift)
       (bydi-was-called partial-recall--remember)
@@ -1341,9 +1362,13 @@
       (bydi-was-called partial-recall--next-buffer)
       (bydi-was-called partial-recall--previous-buffer)
       (bydi-was-called partial-recall--forget-some)
+      (bydi-was-called partial-recall--reject)
+
+      (bydi-was-called-n-times partial-recall--complete-reality 4)
       (bydi-was-called-n-times partial-recall--switch-to-and-neglect 5)
       (bydi-was-called-n-times switch-to-buffer 2)
-      (bydi-was-called-n-times partial-recall--complete-memory 2))
+      (bydi-was-called-n-times partial-recall--complete-dream 1)
+      (bydi-was-called-n-times partial-recall--complete-memory 3))
 
     (kill-buffer buffer)))
 

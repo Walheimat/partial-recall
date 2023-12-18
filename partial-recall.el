@@ -205,6 +205,7 @@ considered memorable."
     (define-key map (kbd "f") 'partial-recall-forget)
     (define-key map (kbd "k") 'partial-recall-forget-some)
     (define-key map (kbd "i") 'partial-recall-implant)
+    (define-key map (kbd "j") 'partial-recall-reject)
     (define-key map (kbd "m") 'partial-recall-menu)
     (define-key map (kbd "n") 'partial-recall-next)
     (define-key map (kbd "p") 'partial-recall-previous)
@@ -759,6 +760,22 @@ is t, the forgotten moment goes into the subconscious."
           (partial-recall--forget buffer t))
 
         (setq moments (cdr moments))))))
+
+(defun partial-recall--reject (buffer memory)
+  "Reject BUFFER and push it to MEMORY."
+  (let ((reality (partial-recall--reality)))
+
+    (when (equal memory reality)
+      (user-error "The current reality can't be the target of the rejected buffer"))
+
+    (when (not (equal (partial-recall--buffer-owner buffer)
+                      reality))
+      (user-error "The buffer to reject does not belong to the current reality"))
+
+    (when-let ((moment (partial-recall--moment-from-buffer buffer)))
+
+      (partial-recall--swap reality memory moment)
+      (partial-recall--clean-up-buffer buffer))))
 
 (defun partial-recall--implant (&optional buffer excise)
   "Make BUFFER's moment permanent.
@@ -1611,6 +1628,17 @@ switched to."
               (buffer (partial-recall--moment-buffer reclaimed)))
 
     (partial-recall--switch-to-and-neglect buffer)))
+
+;;;###autoload
+(defun partial-recall-reject (buffer memory)
+  "Reject BUFFER and push it to MEMORY.
+
+The selection is limited to buffers belonging to the current
+memory."
+  (interactive (list (partial-recall--complete-reality "Refuse moment: ")
+                     (partial-recall--complete-memory "Target memory: ")))
+
+  (partial-recall--reject buffer memory))
 
 ;;;###autoload
 (defun partial-recall-forget (buffer)
