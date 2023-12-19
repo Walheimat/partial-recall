@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changing window configurations with `winner` may switch memories.
 - Command `partial-recall-reject` to push moments from the current
   memory to another.
+- `partial-recall-intensities` governing by how much a moment's focus
+  increases. Swapping now also has an effect on focus. The user may
+  also give `suppress` an intensity.
 
 ### Changed
 
@@ -23,6 +26,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Command `partial-recall-switch-to-buffer` no longer automatically
   "neglects" the buffer; it only does so when called with a prefix
   argument.
+- Value of `partial-recall-auto-implant-threshold` was doubled to
+  account for actions giving more focus.
 
 ### Fixed
 

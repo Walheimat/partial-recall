@@ -92,7 +92,7 @@ This is will implant buffers that have met
   :type 'boolean
   :group 'partial-recall)
 
-(defcustom partial-recall-auto-implant-threshold 5
+(defcustom partial-recall-auto-implant-threshold 10
   "Minimum of focus increases before auto-implanting."
   :type 'integer
   :group 'partial-recall)
@@ -172,6 +172,11 @@ the current prefix argument.
 If any such function does return a truthy value, the moment is
 considered memorable."
   :type '(repeat function)
+  :group 'partial-recall)
+
+(defcustom partial-recall-intensities '((swap . 1) (reinsert . 2) (concentrate . 3))
+  "The amount of focus gained from actions swap, reinsert and focus."
+  :type '(alist :key-type symbol :value-type integer)
   :group 'partial-recall)
 
 ;;; -- Internal variables
@@ -443,13 +448,13 @@ If EXCLUDE-SUBCONSCIOUS is t, it is excluded."
 
   moment)
 
-(defun partial-recall--increase-focus (moment)
-  "Increment the focus for MOMENT.
+(defun partial-recall--increase-focus (moment amount)
+  "Increment the focus for MOMENT by AMOUNT.
 
 Permanent moments do not gain additional focus."
   (and-let* (((not (partial-recall--moment-permanence moment)))
              (count (partial-recall--moment-focus moment))
-             (updated-count (1+ count)))
+             (updated-count (+ count amount)))
 
     (partial-recall--maybe-implant-moment moment updated-count)
 
@@ -457,17 +462,22 @@ Permanent moments do not gain additional focus."
 
     moment))
 
-(defun partial-recall--intensify (moment &optional reset)
+(defun partial-recall--intensify (moment &optional reset context)
   "Intensify MOMENT.
 
 This will update its timestamp and increment its focus.
 
+If CONTEXT has a value in `partial-recall-intensities', increase
+by that amount.
+
 If RESET is t, reset the focus instead and remove permanence."
-  (if reset
-      (progn
-        (partial-recall--reset-count moment)
-        (partial-recall--moment-set-permanence moment nil))
-    (partial-recall--increase-focus moment))
+  (when reset
+      (partial-recall--reset-count moment)
+      (partial-recall--moment-set-permanence moment nil))
+
+  (let ((contextual (alist-get context partial-recall-intensities)))
+
+    (partial-recall--increase-focus moment (or contextual 0)))
 
   (partial-recall--moment-update-timestamp moment))
 
@@ -577,7 +587,7 @@ focus is intensified, otherwise concentration breaks."
   (if (partial-recall--can-hold-concentration-p)
       (progn
         (partial-recall--debug "Concentration held on '%s'" partial-recall--last-focus)
-        (partial-recall--intensify partial-recall--last-focus))
+        (partial-recall--intensify partial-recall--last-focus nil 'concentrate))
 
     (when partial-recall--last-focus
       (partial-recall--debug "Concentration on '%s' broke" partial-recall--last-focus))
@@ -815,7 +825,7 @@ If EXCISE is t, remove permanence instead."
 
     (partial-recall--debug "Suppressing '%s'" moment)
 
-    (partial-recall--intensify moment t)
+    (partial-recall--intensify moment t 'suppress)
 
     (partial-recall--insert ring moment)))
 
@@ -859,7 +869,7 @@ If RESET is t, reset the swapped moment."
     (partial-recall--probe-memory a)
     (partial-recall--probe-memory b)
 
-    (partial-recall--intensify moment reset)
+    (partial-recall--intensify moment reset 'swap)
 
     (partial-recall--insert b-ring removed)))
 
@@ -873,7 +883,7 @@ This removes, inserts and extends. The moment is refreshed."
 
     (partial-recall--debug "Re-inserting '%s' in '%s'" moment memory)
 
-    (partial-recall--intensify moment)
+    (partial-recall--intensify moment nil 'reinsert)
 
     (ring-remove+insert+extend ring moment t)))
 

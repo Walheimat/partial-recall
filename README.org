@@ -92,6 +92,10 @@ by which a moment is made permanent:
    focus reached =partial-recall-auto-implant-threshold=.
 3. The moment has been concentrated upon to reach that same threshold.
 
+Different actions affect moments differently. Concentration, explained
+below, allots the biggest amount of focus. The values are governed by
+=partial-recall-intensities=.
+
 The reverse of implanting is "excising" which =partial-recall-implant=
 will do if called with =C-u=. Permanent buffers can still be forgotten
 manually.

@@ -42,7 +42,7 @@
         (partial-recall--remember another-temp)
         (partial-recall--reinforce (current-buffer))
 
-        (should (eq 1 (partial-recall--focus)))
+        (should (eq (alist-get 'reinsert partial-recall-intensities) (partial-recall--focus)))
         (kill-buffer another-temp)))))
 
 (ert-deftest pr--name ()
@@ -688,7 +688,8 @@
   :tags '(needs-history)
 
   (let ((partial-recall-auto-implant t)
-        (partial-recall-auto-implant-threshold 1))
+        (partial-recall-auto-implant-threshold 1)
+        (partial-recall-intensities '((reinsert . 1))))
     (with-tab-history :pre t
 
       (bydi ((:spy partial-recall--maybe-implant-moment)
