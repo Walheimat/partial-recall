@@ -138,6 +138,11 @@ following:
 (put 'my/partial-recall-trait 'partial-recall-non-meaningful-explainer "I have my reasons")
 #+end_src
 
+There are also =partial-recall-memorable-traits=. These are functions
+called when the user invokes =partial-recall-flush= to clear up the
+current memory. The default function checks whether a moment was
+either implanted, has gained any focus or is relatively young.
+
 ** Configuration
 
 =partial-recall= will turn on =tab-bar-mode= if it isn't already turned
