@@ -50,7 +50,7 @@
   (with-tab-history
     (let ((reality (partial-recall--reality)))
 
-      (bydi ((:sometimes partial-recall--subconscious-p))
+      (bydi ((:sometimes partial-recall--subconsciousp))
 
         (should (string= partial-recall--subconscious-key (partial-recall--name reality)))
 

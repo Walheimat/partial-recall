@@ -359,7 +359,7 @@ Searches all memories unless MEMORY is provided."
 
 (defun partial-recall--name (memory)
   "Get the name of MEMORY."
-  (if (partial-recall--subconscious-p memory)
+  (if (partial-recall--subconsciousp memory)
       partial-recall--subconscious-key
     (partial-recall--tab-name-all-frames memory)))
 
@@ -400,7 +400,7 @@ If EXCLUDE-SUBCONSCIOUS is t, it is excluded."
   (let ((memories (hash-table-values partial-recall--table)))
 
     (if exclude-subconscious
-        (seq-filter (lambda (it) (not (partial-recall--subconscious-p it))) memories)
+        (seq-filter (lambda (it) (not (partial-recall--subconsciousp it))) memories)
       memories)))
 
 (defun partial-recall--memory-by-key (key)
@@ -716,7 +716,7 @@ threshold wasn't passed."
             ((or force
                  (and
                   (not (partial-recall--moment-permanence moment))
-                  (partial-recall--exceeds-p moment partial-recall-reclaim-min-age)))))
+                  (partial-recall--exceedsp moment partial-recall-reclaim-min-age)))))
 
       (progn
         (partial-recall--in-other-frame owner
@@ -1042,7 +1042,7 @@ If UNSCHEDULED is t don't account for reclaiming."
              ((not (partial-recall--memory-buffer-p buffer)))
              (moment (partial-recall--moment-from-buffer buffer))
              ((or unscheduled
-                  (not (partial-recall--exceeds-p moment (- partial-recall-reclaim-min-age
+                  (not (partial-recall--exceedsp moment (- partial-recall-reclaim-min-age
                                                             partial-recall-handle-delay)))))
              (owner (partial-recall--buffer-owner buffer))
              ((pcase partial-recall-auto-switch
@@ -1162,7 +1162,7 @@ INCLUDE-SUBCONSCIOUS is t."
 
     (memq buffer buffers)))
 
-(defun partial-recall--reality-p (memory)
+(defun partial-recall--realityp (memory)
   "Check if MEMORY is the reality."
   (eq (partial-recall--reality) memory))
 
@@ -1183,11 +1183,11 @@ the max age."
 
     (not (ring-empty-p moments))))
 
-(defun partial-recall--subconscious-p (memory)
+(defun partial-recall--subconsciousp (memory)
   "Check if MEMORY is the subconscious."
   (string= partial-recall--subconscious-key (partial-recall--memory-key memory)))
 
-(defun partial-recall--exceeds-p (moment threshold)
+(defun partial-recall--exceedsp (moment threshold)
   "Check if MOMENT's age exceeds THRESHOLD."
   (< threshold
      (- (floor (time-to-seconds))

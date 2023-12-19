@@ -156,7 +156,7 @@
     (with-tab-history :pre t
       (should (string= "1" (partial-recall-menu--print-memory (partial-recall--reality))))
       (should (string= "0" (partial-recall-menu--print-memory (partial-recall--subconscious))))
-      (bydi ((:ignore partial-recall--reality-p))
+      (bydi ((:ignore partial-recall--realityp))
         (should (string= "test-tab" (partial-recall-menu--print-memory (partial-recall--reality))))
 
         (ring-resize (partial-recall--memory-ring (partial-recall--reality)) 11)
