@@ -202,3 +202,18 @@ probably want to bind the following commands:
 - =partial-recall-forget-some=
 - =partial-recall-explain-omission=
 - =partial-recall-reject=
+
+** Using the menu
+
+You can act on multiple moments simultaneously using
+=partial-recall-menu=. It will pop open a buffer menu where you can
+reclaim (for the current memory), reinforce, forget and implant (or
+excise) using =r=, =f=, =i= (or =C-u i=), followed by =x= to execute
+all commands. You can unmark with =u=, display a moment with =e= or
+=RET=.
+
+This can be useful if you want to work on a smaller subset of the
+current moments in a new memory.
+
+If you want to include the subconscious, call =partial-recall-menu=
+with =C-u= or type =s= in the buffer.
