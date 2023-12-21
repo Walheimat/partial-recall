@@ -7,7 +7,7 @@
 
 ;;; Commentary:
 
-;; A buffer menu for `partial-recall' buffers.
+;; A buffer menu for `partial-recall' moments.
 
 ;;; Code:
 
@@ -217,10 +217,10 @@ If the moment is IMPLANTED, signal that."
   "e" #'partial-recall-menu-display-buffer
   "s" #'partial-recall-menu-toggle-subconscious
 
-  "c" #'partial-recall-menu-reclaim-buffer
-  "r" #'partial-recall-menu-reinforce-buffer
-  "f" #'partial-recall-menu-forget-buffer
-  "i" #'partial-recall-menu-implant-buffer
+  "c" #'partial-recall-menu-reclaim
+  "r" #'partial-recall-menu-reinforce
+  "f" #'partial-recall-menu-forget
+  "i" #'partial-recall-menu-implant
   "x" #'partial-recall-menu-execute
   "u" #'partial-recall-menu-unmark)
 
@@ -291,7 +291,7 @@ If OTHER-WINDOW is t, do that."
 
   (partial-recall-menu--display))
 
-(defun partial-recall-menu-reclaim-buffer ()
+(defun partial-recall-menu-reclaim ()
   "Reclaim buffer."
   (interactive nil partial-recall-menu-mode)
 
@@ -301,7 +301,7 @@ If OTHER-WINDOW is t, do that."
       (tabulated-list-set-col 0 "C" t)
       (forward-line 1))))
 
-(defun partial-recall-menu-reinforce-buffer ()
+(defun partial-recall-menu-reinforce ()
   "Reinforce buffer."
   (interactive nil partial-recall-menu-mode)
 
@@ -315,7 +315,7 @@ If OTHER-WINDOW is t, do that."
       (tabulated-list-set-col 0 "R" t)
       (forward-line 1)))))
 
-(defun partial-recall-menu-forget-buffer ()
+(defun partial-recall-menu-forget ()
   "Forget the buffer."
   (interactive nil partial-recall-menu-mode)
 
@@ -323,7 +323,7 @@ If OTHER-WINDOW is t, do that."
     (tabulated-list-set-col 0 "F" t)
     (forward-line 1)))
 
-(defun partial-recall-menu-implant-buffer (&optional excise)
+(defun partial-recall-menu-implant (&optional excise)
   "Implant the buffer.
 
 If EXCISE is t, do that instead."

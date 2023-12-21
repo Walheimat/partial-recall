@@ -258,23 +258,23 @@
       (partial-recall-menu-display-buffer)
       (bydi-was-called partial-recall-menu--display)
 
-      (partial-recall-menu-reclaim-buffer)
+      (partial-recall-menu-reclaim)
       (bydi-was-called-with tabulated-list-set-col '(... "C"))
       (setq real t)
-      (should-error (partial-recall-menu-reclaim-buffer))
+      (should-error (partial-recall-menu-reclaim))
 
-      (partial-recall-menu-reinforce-buffer)
+      (partial-recall-menu-reinforce)
       (bydi-was-called-with tabulated-list-set-col '(... "R"))
       (setq real nil)
-      (should-error (partial-recall-menu-reinforce-buffer))
+      (should-error (partial-recall-menu-reinforce))
 
-      (partial-recall-menu-forget-buffer)
+      (partial-recall-menu-forget)
       (bydi-was-called-with tabulated-list-set-col '(..."F"))
 
-      (partial-recall-menu-implant-buffer)
+      (partial-recall-menu-implant)
       (bydi-was-called-with tabulated-list-set-col '(..."I"))
 
-      (funcall-interactively 'partial-recall-menu-implant-buffer t)
+      (funcall-interactively 'partial-recall-menu-implant t)
       (bydi-was-called-with tabulated-list-set-col '(..."X"))
 
       (partial-recall-menu)
