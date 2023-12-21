@@ -62,8 +62,7 @@ Handling a buffer will do one of two things:
 2. An existing moment is "recollected", which in turn means one of two
    things:
    1. If it belongs to another memory, it may be "reclaimed" depending
-      on =partial-recall-reclaim= and
-      =partial-recall-reclaim-min-age=.
+      on =partial-recall-short-term=.
    2. If it belongs to the current memory, it is "reinforced", that
       is, pushed to the top of the ring again.
 
@@ -73,7 +72,7 @@ them. This removal is called "forgetting". You may also call
 =partial-recall-forget= (or =partial-recall-forget-some=) manually (or
 kill the buffer). Memories will grow instead of forgetting the oldest
 moment if it is still relatively young. This is determined by
-=partial-recall-max-age=.
+=partial-recall-intermediate-term=.
 
 Forgotten buffers are not immediately lost, they are put in a special
 memory called the "subconscious" from which they can be "lifted" using
@@ -95,7 +94,7 @@ by which a moment is made permanent:
 
 1. The user calls =partial-recall-implant= and selects its buffer.
 2. The moment has been revisited and re-inserted so often that its
-   focus reached =partial-recall-auto-implant-threshold=.
+   focus reached =partial-recall-auto-implant=.
 3. The moment has been concentrated upon to reach that same threshold.
 
 Different actions affect moments differently. Concentration, explained
@@ -120,7 +119,7 @@ meaningful buffer.
 
 =partial-recall= only "remembers" buffers that are "meaningful". This
 is governed by a list of predicates listed in
-=partial-recall-meaningul-traits=. They all must return =t= to mark a
+=partial-recall-meaningful-traits=. They all must return =t= to mark a
 meaningful buffer. If you set it to ='(always)= all buffers would be
 considered meaningful.
 
@@ -160,16 +159,14 @@ taken into account.
   :custom
   (partial-recall-handle-delay 4) ;; The delay before a buffer is handled (remembered or re-inforced).
   (partial-recall-buffer-limit 10) ;; The number of buffers in the ring.
-  (partial-recall-max-age 1200) ;; The age (in seconds) that will allow the ring to grow.
-  (partial-recall-reclaim-min-age 600) ;; The age (in seconds) that will allow reclaiming.
+  (partial-recall-short-term 600) ;; The age (in seconds) that will allow reclaiming.
+  (partial-recall-intermediate-term 1200) ;; The age (in seconds) that will allow the ring to grow.
   (partial-recall-repress t) ;; Whether forgotten buffers should (eventually) be killed.
-  (partial-recall-auto-implant t) ;; Whether moments should get implanted after meeting a threshold.
-  (partial-recall-auto-implant-threshold 4) ;; That very threshold.
+  (partial-recall-auto-implant 4) ;; Amount of focus needed before auto-implanting.
   (partial-recall-auto-switch t) ;; Whether to switch to a moment's tab automatically.
   (partial-recall-mode-lighter " pr") ;; What you will in the mode-line.
   (partial-recall-record-triggers '(consult-buffer)) ;; Commands that might obscure buffers before they are handled.
-  (partial-recall-log nil) ;; Whether to log actions.
-  (partial-recall-log-level 1) ;; Info log level (0 is debug).
+  (partial-recall-log nil) ;; Whether to log actions. Set to 1 for info logs and 0 for debug logs.
   (partial-recall-log-prefix "PR") ;; Message prefix for log messages.
   (partial-recall-filter '("COMMIT_EDITMSG")) ;; Regexes of names that should be ignored.
   (partial-recall-meaningful-traits '(buffer-file-name partial-recall--not-in-view-mode-p)) ;; List of functions that determine eligible buffers.
