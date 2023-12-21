@@ -29,6 +29,12 @@ If you're on Emacs >29, I recommend using =package-vc-install=.
 Alternatively, provided you have Cask, you can install the package
 with =make package-install= after initializing the submodule =dinghy=.
 
+#+begin_src
+git clone --recurse-submodules https://github.com/Walheimat/partial-recall.git
+cd partial-recall/
+make package install
+#+end_src
+
 ** Concepts
 
 *** Memories and moments
