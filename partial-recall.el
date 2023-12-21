@@ -229,7 +229,7 @@ considered memorable."
   "p" 'partial-recall-previous)
 
 (defface partial-recall-emphasis
-  '((t (:inherit (success))))
+  '((t (:inherit (mode-line-emphasis))))
   "Face used for emphasis."
   :group 'partial-recall)
 
