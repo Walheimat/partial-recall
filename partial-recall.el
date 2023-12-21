@@ -84,17 +84,12 @@ These are buffers that are removed from the subconscious."
   :type 'boolean
   :group 'partial-recall)
 
-(defcustom partial-recall-auto-implant t
-  "Whether to automatically implant buffers.
+(defcustom partial-recall-auto-implant 10
+  "The amount of focus before auto-implanting a moment.
 
-This is will implant buffers that have met
-`partial-recall-auto-implant-threshold'."
-  :type 'boolean
-  :group 'partial-recall)
-
-(defcustom partial-recall-auto-implant-threshold 10
-  "Minimum of focus increases before auto-implanting."
-  :type 'integer
+If this is nil, never auto-implant."
+  :type '(choice (const :tag "Don't auto-implant" nil)
+                 (integer :tag "Minimum focus before auto-implanting"))
   :group 'partial-recall)
 
 (defcustom partial-recall-auto-switch t
@@ -1023,10 +1018,10 @@ beyond the memory's limit."
 (defun partial-recall--maybe-implant-moment (moment count)
   "Check if MOMENT should be implanted automatically.
 
-This is true if COUNT exceeds `partial-recall-auto-implant-threshold'."
-  (when (and partial-recall-auto-implant
+This is true if COUNT exceeds `partial-recall-auto-implant'."
+  (when (and (numberp partial-recall-auto-implant)
              (not (partial-recall--moment-permanence moment))
-             (> count partial-recall-auto-implant-threshold))
+             (> count partial-recall-auto-implant))
 
     (partial-recall--implant (partial-recall--moment-buffer moment))))
 

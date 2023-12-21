@@ -175,8 +175,8 @@ is t, the name will be propertized."
   "Format presence using FOCUS.
 
 If the moment is IMPLANTED, signal that."
-  (let* ((threshold partial-recall-auto-implant-threshold)
-         (text (or (partial-recall-graph focus threshold)
+  (let* ((text (or (and (numberp partial-recall-auto-implant)
+                        (partial-recall-graph focus partial-recall-auto-implant))
                    (if implanted
                        partial-recall-menu--persistence-indicator
                      partial-recall-menu--empty)))

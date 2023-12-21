@@ -135,7 +135,7 @@
         (partial-recall-graph--blocks ["a" "b" "c" "d"])
         (partial-recall-menu--persistence-indicator "f")
         (partial-recall-graph--ratios '(0.25 0.5 0.75 1))
-        (partial-recall-auto-implant-threshold 4))
+        (partial-recall-auto-implant 4))
 
     (should (string= "f" (partial-recall-menu--print-presence 0 t)))
     (should (string= "e" (partial-recall-menu--print-presence 0 nil)))

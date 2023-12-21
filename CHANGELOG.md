@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The lighter now shows the memory level using a box.
 - Logging variables have been merged into `partial-recall-log` that
   can be either `nil`, `1`, or `0`.
+- Auto-implanting variables have been merged into
+  `partial-recall-auto-implant`, that is either `nil` or the focus
+  value.
 
 ## [v0.8.6]
 
