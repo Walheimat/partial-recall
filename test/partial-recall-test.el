@@ -950,12 +950,11 @@
 
 (ert-deftest pr--log ()
   (let ((partial-recall-log nil)
-        (partial-recall-log-level 1)
         (partial-recall-log-prefix nil))
 
     (should-not (partial-recall--log "test: %s %s" "one" "two"))
 
-    (setq partial-recall-log t)
+    (setq partial-recall-log 1)
 
     (shut-up
       (ert-with-message-capture messages
@@ -963,7 +962,7 @@
 
         (partial-recall--debug "test: %s" "three")
 
-        (setq partial-recall-log-level 0)
+        (setq partial-recall-log 0)
 
         (partial-recall--debug "test: %s" "four")
 
@@ -978,8 +977,7 @@
 
       (let* ((buffer (get-buffer-create "test-repr"))
              (moment (partial-recall--moment-create buffer))
-             (partial-recall-log t)
-             (partial-recall-log-level 0)
+             (partial-recall-log 0)
              (partial-recall-log-prefix "Test"))
 
         (shut-up

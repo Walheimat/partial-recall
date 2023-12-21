@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - The lighter now shows the memory level using a box.
+- Logging variables have been merged into `partial-recall-log` that
+  can be either `nil`, `1`, or `0`.
 
 ## [v0.8.6]
 

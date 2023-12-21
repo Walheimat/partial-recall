@@ -126,13 +126,12 @@ This is will implant buffers that have met
   :group 'partial-recall)
 
 (defcustom partial-recall-log nil
-  "Whether to log actions."
-  :type 'boolean
-  :group 'partial-recall)
+  "Whether to log.
 
-(defcustom partial-recall-log-level 1
-  "The degree to which actions are logged."
-  :type '(choice (const :tag "Info" 1)
+This is either nil meaning no logging, or 1 for info logging and
+1 for info logging."
+  :type '(choice (const :tag "No logging" nil)
+                 (const :tag "Info" 1)
                  (const :tag "Debug" 0))
   :group 'partial-recall)
 
@@ -1294,7 +1293,8 @@ Message will be formatted with ARGS."
 
 (defun partial-recall--debug (fmt &rest args)
   "Use ARGS to format FMT if debug is enabled."
-  (when (< partial-recall-log-level 1)
+  (when (and (numberp partial-recall-log)
+             (< partial-recall-log 1))
     (apply 'partial-recall--log fmt args)))
 
 (defun partial-recall--message (fmt &rest args)
