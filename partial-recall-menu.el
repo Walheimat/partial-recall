@@ -20,9 +20,8 @@
 (defvar partial-recall-menu--null "-")
 (defvar partial-recall-menu--present "*")
 (defvar partial-recall-menu--missing "?")
-(defvar partial-recall-menu--persistence-blocks ["▂" "▄" "▆" "█"])
 (defvar partial-recall-menu--persistence-indicator "░")
-(defvar partial-recall-menu--persistence-ratios '(0.25 0.5 0.75 1))
+
 (defvar partial-recall-menu--excess-time (* 60 60 12))
 
 (defvar-local partial-recall-menu--subconscious nil)
@@ -177,17 +176,10 @@ is t, the name will be propertized."
 
 If the moment is IMPLANTED, signal that."
   (let* ((threshold partial-recall-auto-implant-threshold)
-         (index 0)
-         (max-index (1- (length partial-recall-menu--persistence-ratios)))
-         (text (if (zerop focus)
+         (text (or (partial-recall-graph focus threshold)
                    (if implanted
                        partial-recall-menu--persistence-indicator
-                     partial-recall-menu--empty)
-                 (while (and (> focus (* threshold (nth index partial-recall-menu--persistence-ratios)))
-                             (< index max-index))
-                   (setq index (1+ index)))
-
-                 (aref partial-recall-menu--persistence-blocks index)))
+                     partial-recall-menu--empty)))
          (face (if implanted 'success 'shadow))
          (help (format "Focus: %s, Implanted: %s" focus implanted)))
 

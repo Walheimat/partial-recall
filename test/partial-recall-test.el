@@ -1212,10 +1212,11 @@
 
     (with-tab-history :pre t :probes t
       (bydi (partial-recall--maybe-reinsert-implanted
-             partial-recall--maybe-suppress-oldest-moment)
+             partial-recall--maybe-suppress-oldest-moment
+             (:mock partial-recall-graph :return "|"))
 
         (should (equal
-                 '(:propertize "."
+                 '(:propertize "|"
                                face partial-recall-deemphasized
                                help-echo "Memory contains 1 moment(s)")
                  (partial-recall--lighter-memory))))
@@ -1226,7 +1227,7 @@
 
         (should (equal
                  '(:propertize "+"
-                               face partial-recall-deemphasized
+                               face partial-recall-emphasis
                                help-echo "Memory has grown to +1")
                  (partial-recall--lighter-memory)))))))
 

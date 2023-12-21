@@ -108,6 +108,7 @@ This is will implant buffers that have met
                                     partial-recall-lighter-title
                                     "["
                                     partial-recall-lighter-moment
+                                    "/"
                                     partial-recall-lighter-memory
                                     "]")
   "The lighter as a list of mode line constructs."
@@ -1258,6 +1259,23 @@ its explainer (property
 
     explainer))
 
+(defvar partial-recall-graph--blocks ["▂" "▄" "▆" "█"])
+(defvar partial-recall-graph--ratios '(0.25 0.5 0.75 1))
+
+(defun partial-recall-graph (val max)
+  "Graph VAL.
+
+Selects a symbol based on VAL's relation to MAX."
+  (let ((index 0)
+        (max-index (1- (length partial-recall-graph--blocks))))
+
+    (unless (zerop val)
+      (while (and (> val (* max (nth index partial-recall-graph--ratios)))
+                  (< index max-index))
+        (setq index (1+ index)))
+
+      (aref partial-recall-graph--blocks index))))
+
 ;;; -- Printing
 
 (defun partial-recall--warn (message &rest args)
@@ -1491,13 +1509,11 @@ is shown."
 
     (if (> size orig-size)
         `(:propertize "+"
-                      face partial-recall-deemphasized
+                      face partial-recall-emphasis
                       help-echo ,(format "Memory has grown to +%d" (- size orig-size)))
-      (if (zerop length)
-          ""
-        `(:propertize "."
-                      face partial-recall-deemphasized
-                      help-echo ,(format "Memory contains %d moment(s)" length))))))
+      `(:propertize ,(or (partial-recall-graph length size) "-")
+                    face partial-recall-deemphasized
+                    help-echo ,(format "Memory contains %d moment(s)" length)))))
 
 (defvar partial-recall-lighter-title '(:eval (partial-recall--lighter-title)))
 (defvar partial-recall-lighter-moment '(:eval (partial-recall--lighter-moment)))
