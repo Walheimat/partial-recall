@@ -1152,21 +1152,29 @@
                                  help-echo "Moment is implanted")
                    (partial-recall--lighter-moment)))
 
-    (bydi ((:ignore partial-recall--moment-from-buffer)
-           (:mock partial-recall--explain-omission :return "testing")
-           (:sometimes partial-recall--meaningful-buffer-p))
+    (let ((explanation "testing"))
+      (bydi ((:ignore partial-recall--moment-from-buffer)
+             (:mock partial-recall--explain-omission :return explanation)
+             (:sometimes partial-recall--meaningful-buffer-p))
 
-      (should (equal '(:propertize "?"
-                                   face partial-recall-deemphasized
-                                   help-echo "Considering")
-                     (partial-recall--lighter-moment)))
+        (should (equal '(:propertize "?"
+                                     face partial-recall-deemphasized
+                                     help-echo "Considering")
+                       (partial-recall--lighter-moment)))
 
-      (bydi-toggle-sometimes)
+        (bydi-toggle-sometimes)
 
-      (should (equal '(:propertize "!"
-                                   face partial-recall-deemphasized
-                                   help-echo  "Not meaningful: testing")
-                     (partial-recall--lighter-moment))))))
+        (should (equal '(:propertize "!"
+                                     face partial-recall-emphasis
+                                     help-echo  "Not meaningful: testing")
+                       (partial-recall--lighter-moment)))
+
+        (setq explanation nil)
+
+        (should (equal '(:propertize "!"
+                                     face partial-recall-deemphasized
+                                     help-echo  "Not meaningful")
+                       (partial-recall--lighter-moment)))))))
 
 (ert-deftest partial-recall--lighter-menu ()
   (defvar partial-recall-command-map)

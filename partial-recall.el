@@ -1470,9 +1470,12 @@ This will show a propertized asterisk if the moment is permanent."
         '(:propertize "?"
                       face partial-recall-deemphasized
                       help-echo "Considering")
-      `(:propertize "!"
-                    face partial-recall-deemphasized
-                    help-echo ,(format "Not meaningful: %s" (partial-recall--explain-omission))))))
+      (let* ((explanation (partial-recall--explain-omission))
+             (face (if explanation 'partial-recall-emphasis 'partial-recall-deemphasized))
+             (echo (if explanation (format "Not meaningful: %s" explanation) "Not meaningful")))
+        `(:propertize "!"
+                      face ,face
+                      help-echo ,echo)))))
 
 (defun partial-recall--lighter-memory ()
   "Show memory information.
