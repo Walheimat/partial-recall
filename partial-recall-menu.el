@@ -238,13 +238,13 @@ If the moment is IMPLANTED, signal that."
   (tabulated-list-revert))
 
 (defun partial-recall-menu-execute ()
-  "Forget, steal and implant buffers."
+  "Execute actions of marked moments."
   (interactive nil partial-recall-menu-mode)
 
-  (save-excursion
-    (goto-char (point-min))
+  (let ((needs-update nil))
 
-    (let ((needs-update nil))
+    (save-excursion
+      (goto-char (point-min))
 
       (while (not (eobp))
         (let ((id (tabulated-list-get-id))
@@ -252,6 +252,7 @@ If the moment is IMPLANTED, signal that."
 
           (if (null entry)
               (forward-line 1)
+
             (let ((action (aref entry 0))
                   (buffer (nth 2 id))
                   (sub (nth 4 id)))
@@ -260,28 +261,37 @@ If the moment is IMPLANTED, signal that."
                          (not (equal action partial-recall-menu--empty)))
                 (setq needs-update t))
 
-              (cond ((equal action "C")
+              (cond (;; Reclaim or lift.
+                     (equal action "C")
                      (if sub
                          (partial-recall--lift buffer)
                        (partial-recall--reclaim buffer t))
                      (tabulated-list-set-col 0 partial-recall-menu--empty t))
+
+                    ;; Forget.
                     ((equal action "F")
                      (partial-recall--forget buffer t))
+
+                    ;; Reinforce.
                     ((equal action "R")
                      (partial-recall--reinforce buffer)
                      (tabulated-list-set-col 0 partial-recall-menu--empty t))
+
+                    ;; Implant.
                     ((equal action "I")
                      (partial-recall--implant buffer)
                      (tabulated-list-set-col 0 partial-recall-menu--empty t))
+
+                    ;; Excise.
                     ((equal action "X")
                      (partial-recall--implant buffer t)
                      (tabulated-list-set-col 0 partial-recall-menu--empty t))
                     (t nil))
 
-              (forward-line 1)))))
+              (forward-line 1))))))
 
-      (when needs-update
-        (tabulated-list-revert)))))
+    (when needs-update
+      (tabulated-list-revert))))
 
 (defun partial-recall-menu-display-buffer ()
   "Switch to buffer.
