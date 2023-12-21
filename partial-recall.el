@@ -57,24 +57,28 @@ quick succession. See `partial-recall-max-age'."
   :type 'integer
   :group 'partial-recall)
 
-(defcustom partial-recall-max-age (* 20 60)
-  "Threshold in seconds that will allow a memory to grow.
+(defcustom partial-recall-short-term (* 10 60)
+  "Age in seconds that denotes a relatively recent moment.
 
-If the oldest moment is younger than the threshold, the limit is
-increased and the buffer will remain."
-  :type 'integer
+This threshold is used in two places: (1) Whether a moment can be
+automatically reclaimed and (2) whether to automatically switch
+memories and (3) whether a moment should be flushed. See
+`partial-recall--reclaim', `partial-recall--maybe-switch-memory'
+and `partial-recall--gracedp'.
+
+Can be set to nil to disable its use."
+  :type '(choice (integer :tag "Number of seconds")
+                 (const :tag "Don't use" nil))
   :group 'partial-recall)
 
-(defcustom partial-recall-reclaim t
-  "Whether to automatically reclaim buffers from other memories."
-  :type 'boolean
-  :group 'partial-recall)
+(defcustom partial-recall-intermediate-term (* 20 60)
+  "Age in seconds that denotes a relatively ingrained moment.
 
-(defcustom partial-recall-reclaim-min-age (* 10 60)
-  "Threshold in seconds that when exceeded allows reclaiming.
-
-Has no effect if function `partial-recall-reclaim' is nil."
-  :type 'integer
+If the oldest moment is younger than this, the limit is increased
+and the buffer will remain. See
+`partial-recall--should-extend-memory-p'."
+  :type '(choice (integer :tag "Number of seconds")
+                 (const :tag "Don't use" nil))
   :group 'partial-recall)
 
 (defcustom partial-recall-repress t
@@ -711,7 +715,8 @@ threshold wasn't passed."
             ((or force
                  (and
                   (not (partial-recall--moment-permanence moment))
-                  (partial-recall--exceedsp moment partial-recall-reclaim-min-age)))))
+                  (numberp partial-recall-short-term)
+                  (partial-recall--exceedsp moment partial-recall-short-term)))))
 
       (progn
         (partial-recall--in-other-frame owner
@@ -844,7 +849,7 @@ current reality are reinforced. Those of other memories
 are (potentially) reclaimed."
   (if (partial-recall--memory-buffer-p buffer)
       (partial-recall--reinforce buffer)
-    (when partial-recall-reclaim
+    (when (numberp partial-recall-short-term)
       (partial-recall--reclaim buffer))))
 
 (defun partial-recall--swap (a b moment &optional reset)
@@ -1037,8 +1042,9 @@ If UNSCHEDULED is t don't account for reclaiming."
              ((not (partial-recall--memory-buffer-p buffer)))
              (moment (partial-recall--moment-from-buffer buffer))
              ((or unscheduled
-                  (not (partial-recall--exceedsp moment (- partial-recall-reclaim-min-age
-                                                            partial-recall-handle-delay)))))
+                  (and (numberp partial-recall-short-term)
+                       (not (partial-recall--exceedsp moment (- partial-recall-short-term
+                                                                partial-recall-handle-delay))))))
              (owner (partial-recall--buffer-owner buffer))
              ((pcase partial-recall-auto-switch
                 ('prompt
@@ -1099,7 +1105,8 @@ once or a moment that couldn't be reclaimed.
 If ARG is t, the current moment is considered graced as well."
   (or (partial-recall--moment-permanence moment)
       (> 0 (partial-recall--moment-focus moment))
-      (partial-recall--falls-below-p moment partial-recall-reclaim-min-age)
+      (and (numberp partial-recall-short-term)
+           (partial-recall--falls-below-p moment partial-recall-short-term))
       (and arg
            (eq (current-buffer) (partial-recall--moment-buffer moment)))))
 
@@ -1166,10 +1173,11 @@ INCLUDE-SUBCONSCIOUS is t."
 
 This is the case if the oldest ring element is still younger than
 the max age."
-  (when-let* ((ring (partial-recall--memory-ring memory))
-              (to-remove (partial-recall--ring-oldest ring)))
+  (and-let* ((ring (partial-recall--memory-ring memory))
+             (to-remove (partial-recall--ring-oldest ring))
+             ((numberp partial-recall-intermediate-term)))
 
-    (partial-recall--falls-below-p to-remove partial-recall-max-age)))
+    (partial-recall--falls-below-p to-remove partial-recall-intermediate-term)))
 
 (defun partial-recall--has-buffers-p (&optional memory)
   "Check if the MEMORY has buffers."

@@ -436,14 +436,14 @@
     (bydi-was-called partial-recall--reinforce)
     (bydi-toggle-sometimes)
 
-    (let ((partial-recall-reclaim t))
+    (let ((partial-recall-short-term -1))
 
       (partial-recall--recollect (current-buffer))
       (bydi-was-called partial-recall--reclaim)
 
       (bydi-clear-mocks)
 
-      (setq partial-recall-reclaim nil)
+      (setq partial-recall-short-term nil)
       (partial-recall--recollect (current-buffer))
       (bydi-was-not-called partial-recall--reclaim))))
 
@@ -478,7 +478,7 @@
   :tags '(needs-history)
 
   (let ((seconds '(10 12))
-        (partial-recall-reclaim-min-age -1)
+        (partial-recall-short-term -1)
         (mock-reality (partial-recall--memory-create "other-key")))
 
     (with-tab-history
@@ -564,7 +564,7 @@
   (let ((partial-recall-memory-size 2)
         (another-temp (generate-new-buffer " *temp*" t))
         (yet-another-temp (generate-new-buffer " *temp*" t))
-        (partial-recall-reclaim-min-age -1))
+        (partial-recall-short-term -1))
 
     (bydi (partial-recall--suppress
            partial-recall--maybe-reinsert-implanted)
@@ -796,7 +796,7 @@
   (with-tab-history :pre t
     (let ((another (generate-new-buffer " *temp*" t))
           (ring (partial-recall--memory-ring (partial-recall--reality)))
-          (partial-recall-reclaim-min-age -1))
+          (partial-recall-short-term -1))
 
       (partial-recall--remember another)
 
@@ -877,7 +877,7 @@
 
   (let ((seconds '(10 11 12))
         (partial-recall-memory-size 1)
-        (partial-recall-max-age 2))
+        (partial-recall-intermediate-term 2))
 
     (with-tab-history
       (bydi ((:mock time-to-seconds :with (lambda (&rest _) (pop seconds))))

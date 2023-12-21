@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Auto-implanting variables have been merged into
   `partial-recall-auto-implant`, that is either `nil` or the focus
   value.
+- Thresholds were renamed to
+  `partial-recall-{max-age=>intermediate-term}` and
+  `partial-recall-{reclaim-min-age=>short-term}`. They can both be set
+  to nil to disable their usage. `partial-recall-reclaim` was removed.
 
 ## [v0.8.6]
 
