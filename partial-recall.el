@@ -471,8 +471,8 @@ by that amount.
 
 If RESET is t, reset the focus instead and remove permanence."
   (when reset
-      (partial-recall--reset-count moment)
-      (partial-recall--moment-set-permanence moment nil))
+    (partial-recall--reset-count moment)
+    (partial-recall--moment-set-permanence moment nil))
 
   (let ((contextual (alist-get context partial-recall-intensities)))
 
@@ -1459,7 +1459,7 @@ The title has a menu."
 
   (let* ((map (make-sparse-keymap))
          (rename (lambda (sym) (substring (symbol-name sym)
-                                     (1+ (length "partial-recall")))))
+                                          (1+ (length "partial-recall")))))
          (bind (lambda (_event func)
                  (define-key-after map
                    (vector func)

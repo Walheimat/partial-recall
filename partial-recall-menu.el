@@ -49,7 +49,7 @@ INCLUDE-SUBCONSCIOUS is t."
          (buffer-names nil)
          (tab-names nil)
          (memories (partial-recall--memories (not (or include-subconscious
-                                          partial-recall-menu--subconscious)))))
+                                                      partial-recall-menu--subconscious)))))
 
     (dolist (memory memories)
 
@@ -121,7 +121,7 @@ If NO-OTHER-TAB is t, raise an error if that would be necessary."
       (unless real
         (tab-bar-switch-to-tab tab))
 
-     (display-buffer-use-some-window buffer nil))))
+      (display-buffer-use-some-window buffer nil))))
 
 ;;; -- Utility
 
