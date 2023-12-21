@@ -72,7 +72,11 @@ INCLUDE-SUBCONSCIOUS is t."
                  (pp-presence (partial-recall-menu--print-presence (partial-recall--moment-focus moment) implanted))
 
                  (item (list tab-name frame buffer real sub))
-                 (line (vector partial-recall-menu--empty pp-presence pp-buffer-name partial-recall--memory-pp pp-ts)))
+                 (line (vector partial-recall-menu--empty
+                               pp-presence
+                               pp-buffer-name
+                               partial-recall--memory-pp
+                               pp-ts)))
 
             (push pp-buffer-name buffer-names)
 
@@ -113,10 +117,14 @@ Includes subconscious buffers if INCLUDE-SUBCONSCIOUS is t."
      ,@body))
 
 (defun partial-recall-menu--display ()
-  "Switch using FUN.
+  "Display the entry.
 
-If NO-OTHER-TAB is t, raise an error if that would be necessary."
-  (partial-recall-menu--with-props (tab frame buffer real _sub)
+Raises and error if the entry belongs to the subconscious."
+  (partial-recall-menu--with-props (tab frame buffer real sub)
+
+    (when sub
+      (user-error "Cannot display subconscious moment"))
+
     (with-selected-frame frame
       (unless real
         (tab-bar-switch-to-tab tab))

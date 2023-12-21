@@ -89,8 +89,9 @@
 (ert-deftest prm--display ()
   :tags '(menu)
 
-  (let ((real nil))
-    (bydi ((:mock partial-recall-menu--id :return (list "tab" (selected-frame) 'buffer real 'sub))
+  (let ((real nil)
+        (sub nil))
+    (bydi ((:mock partial-recall-menu--id :return (list "tab" (selected-frame) 'buffer real sub))
            tab-bar-switch-to-tab
            display-buffer-use-some-window)
 
@@ -104,7 +105,11 @@
 
       (partial-recall-menu--display)
       (bydi-was-not-called tab-bar-switch-tab)
-      (bydi-was-called display-buffer-use-some-window))))
+      (bydi-was-called display-buffer-use-some-window)
+
+      (setq sub 'sub)
+
+      (should-error (partial-recall-menu--display)))))
 
 ;; Utility
 
