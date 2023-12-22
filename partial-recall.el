@@ -205,6 +205,7 @@ considered memorable."
   (let ((map (make-sparse-keymap)))
 
     (define-key map (kbd "b") 'partial-recall-switch-to-buffer)
+    (define-key map (kbd "4") 'partial-recall-switch-to-other-buffer)
     (define-key map (kbd "c") 'partial-recall-reclaim)
     (define-key map (kbd "f") 'partial-recall-forget)
     (define-key map (kbd "k") 'partial-recall-forget-some)
@@ -1663,6 +1664,19 @@ ARG is passed to `partial-recall--switch-to-buffer-function'."
                      current-prefix-arg))
 
   (funcall partial-recall--switch-to-buffer-function buffer arg))
+
+;;;###autoload
+(defun partial-recall-switch-to-buffer-other-window (buffer &optional arg)
+  "Switch to BUFFER in another window.
+
+ARG is passed to `partial-recall--pop-to-buffer-function' as the
+second argument (should be NORECORD) The first argument is t."
+  (interactive (list (partial-recall--complete-reality "Switch to moment: " t t)
+                     current-prefix-arg))
+
+  (let ((pop-up-windows t))
+
+    (funcall partial-recall--pop-to-buffer-function buffer t arg)))
 
 ;;;###autoload
 (defun partial-recall-reclaim (buffer)

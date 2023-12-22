@@ -195,6 +195,7 @@ probably want to bind the following commands:
 - =partial-recall-reclaim=
 - =partial-recall-remember=
 - =partial-recall-switch-to-buffer=
+- =partial-recall-switch-to-other-buffer=
 - =partial-recall-meld=
 - =partial-recall-flush=
 - =partial-recall-next=

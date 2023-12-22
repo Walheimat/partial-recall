@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Command `partial-recall-switch-to-other-buffer`, bound to `4` in the
+  command map.
+
 ### Changed
 
 - The lighter now shows the memory level using a box.
