@@ -71,6 +71,28 @@
 
     (should (gethash partial-recall--subconscious-key partial-recall--table))))
 
+(ert-deftest pr--moment-set-permanence ()
+  (ert-with-test-buffer (:name "permanence hook" )
+    (let ((moment (partial-recall--moment-create (current-buffer))))
+
+      (add-hook 'partial-recall-permanence-change-hook
+                (lambda (m p)
+                  (should p)
+                  (should (equal moment m)))
+                nil t)
+
+      (partial-recall--moment-set-permanence moment t))))
+
+(ert-deftest pr--insert ()
+  (ert-with-test-buffer (:name "insert hook")
+    (add-hook 'partial-recall-after-insert-hook
+              (lambda (it) (should (equal 'item it)))
+              nil t)
+
+    (let ((ring (make-ring 1)))
+
+      (partial-recall--insert ring 'item))))
+
 ;;; -- Handlers
 
 (ert-deftest pr--schedule-buffer--cancels-running-timer ()
@@ -842,6 +864,19 @@
 
       (should (equal (partial-recall--next-buffer) another))
       (should (equal (partial-recall--previous-buffer) another)))))
+
+(ert-deftest partial-recall--probe-memory--runs-hooks ()
+  (bydi (partial-recall--maybe-resize-memory
+         partial-recall--maybe-extend-memory
+         partial-recall--maybe-reinsert-implanted
+         partial-recall--maybe-suppress-oldest-moment)
+
+    (ert-with-test-buffer (:name "memory hook")
+      (add-hook 'partial-recall-probe-hook (lambda (memory)
+                                             (should (equal 'memory memory)))
+                nil t)
+
+      (partial-recall--probe-memory 'memory))))
 
 ;;; -- Conditionals
 

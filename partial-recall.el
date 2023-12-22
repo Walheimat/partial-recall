@@ -245,13 +245,22 @@ considered memorable."
 ;;; -- Hooks
 
 (defvar partial-recall-probe-hook nil
-  "Functions called after a memory was probed.")
+  "Functions called after a memory was probed.
+
+Each function will be called with the probed memory as its only
+argument.")
 
 (defvar partial-recall-permanence-change-hook nil
-  "Functions called after a moment's permanence has changed.")
+  "Functions called after a moment's permanence has changed.
+
+Each function will be called with the moment and its new
+permanence value as arguments.")
 
 (defvar partial-recall-after-insert-hook nil
-  "Functions called after a moment was inserted.")
+  "Functions called after a moment was inserted.
+
+Each function will be called with the inserted moment as its only
+argument..")
 
 ;;; -- Structures
 
@@ -437,7 +446,7 @@ If EXCLUDE-SUBCONSCIOUS is t, it is excluded."
   (with-current-buffer (partial-recall--moment-buffer moment)
     (setq-local partial-recall--implanted permanence))
 
-  (run-hooks 'partial-recall-permanence-change-hook)
+  (run-hook-with-args 'partial-recall-permanence-change-hook moment permanence)
 
   moment)
 
@@ -500,7 +509,7 @@ If RESET is t, reset the focus instead and remove permanence."
 If EXTEND is t, also extend."
   (ring-insert+extend ring item extend)
 
-  (run-hooks 'partial-recall-after-insert-hook)
+  (run-hook-with-args 'partial-recall-after-insert-hook item)
 
   item)
 
@@ -967,7 +976,7 @@ as well as resize and extend the memory if necessary."
   (partial-recall--maybe-reinsert-implanted memory)
   (partial-recall--maybe-suppress-oldest-moment memory)
 
-  (run-hooks 'partial-recall-probe-hook))
+  (run-hook-with-args 'partial-recall-probe-hook memory))
 
 (defun partial-recall--maybe-reinsert-implanted (memory)
   "Maybe reinforce oldest moments in MEMORY.
