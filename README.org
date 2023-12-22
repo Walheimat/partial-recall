@@ -217,3 +217,12 @@ current moments in a new memory.
 
 If you want to include the subconscious, call =partial-recall-menu=
 with =C-u= or type =s= in the buffer.
+
+** Hooks
+
+You currently can hook into the following three actions:
+
+- After a memory was probed (which passes the memory)
+- After a moment's permanence has changed (which passes moment and
+  permanence)
+- After a moment was inserted (passing the inserted moment).

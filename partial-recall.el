@@ -260,7 +260,7 @@ permanence value as arguments.")
   "Functions called after a moment was inserted.
 
 Each function will be called with the inserted moment as its only
-argument..")
+argument.")
 
 ;;; -- Structures
 
