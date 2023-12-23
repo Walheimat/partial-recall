@@ -200,7 +200,7 @@ considered memorable."
   (let ((map (make-sparse-keymap)))
 
     (define-key map (kbd "b") 'partial-recall-switch-to-buffer)
-    (define-key map (kbd "4") 'partial-recall-switch-to-other-buffer)
+    (define-key map (kbd "4") 'partial-recall-switch-to-buffer-other-window)
     (define-key map (kbd "c") 'partial-recall-reclaim)
     (define-key map (kbd "f") 'partial-recall-forget)
     (define-key map (kbd "k") 'partial-recall-forget-some)
