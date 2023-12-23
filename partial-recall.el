@@ -598,6 +598,18 @@ focus is intensified, otherwise concentration breaks."
 
     (setq partial-recall--last-focus (partial-recall--moment-from-buffer (current-buffer)))))
 
+(defun partial-recall--shift-concentration (name)
+  "Re-concentrate after switching to NAME."
+  (when partial-recall--concentration-timer
+    (cancel-timer partial-recall--concentration-timer))
+
+  (partial-recall--debug "Shifting concentration towards %s" name)
+
+  (setq partial-recall--concentration-timer (run-with-timer
+                                             partial-recall-handle-delay
+                                             partial-recall--concentration-repeat
+                                             #'partial-recall--concentrate)))
+
 ;;; -- Reactions
 
 (defun partial-recall--before-switch-to-buffer (buffer &optional norecord &rest _)
@@ -626,7 +638,9 @@ Don't do anything if NORECORD is t."
   (let ((key (partial-recall--create-key tab))
         (state (cdr tab)))
 
-    (setcdr tab (push (cons 'pr key) state))))
+    (setcdr tab (push (cons 'pr key) state))
+
+    (partial-recall--shift-concentration (alist-get 'name tab))))
 
 (defun partial-recall--on-close (tab only)
   "Remove TAB from table if it is not the ONLY one."
@@ -1558,6 +1572,7 @@ is shown."
 
       (unless (partial-recall--key original)
         (partial-recall--on-create original))
+
     (partial-recall--warn "Might have failed to set up original tab")))
 
 (defun partial-recall--queue-fix-up (&rest _r)
@@ -1570,11 +1585,6 @@ is shown."
     (tab-bar-mode 1))
 
   (partial-recall--queue-fix-up)
-
-  (setq partial-recall--concentration-timer (run-with-timer
-                                             1
-                                             partial-recall--concentration-repeat
-                                             #'partial-recall--concentrate))
 
   (advice-add
    partial-recall--switch-to-buffer-function :before
@@ -1594,6 +1604,9 @@ is shown."
   (advice-add
    'winner-redo :after
    #'partial-recall--after-winner)
+  (advice-add
+   'tab-bar-switch-to-tab :after
+   #'partial-recall--shift-concentration)
 
   (add-hook 'minibuffer-setup-hook #'partial-recall--on-minibuffer-setup)
   (add-hook 'minibuffer-exit-hook #'partial-recall--on-minibuffer-exit)
@@ -1625,6 +1638,9 @@ is shown."
   (advice-remove
    'winner-redo
    #'partial-recall--after-winner)
+  (advice-remove
+   'tab-bar-switch-to-tab
+   #'partial-recall--shift-concentration)
 
   (remove-hook 'minibuffer-setup-hook #'partial-recall--on-minibuffer-setup)
   (remove-hook 'minibuffer-exit-hook #'partial-recall--on-minibuffer-exit)

@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Command `partial-recall-switch-to-buffer-other-window`, bound to `4`
   in the command map.
+- Switching tabs now restarts concentration.
 
 ### Changed
 

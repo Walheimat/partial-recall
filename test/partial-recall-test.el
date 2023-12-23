@@ -220,6 +220,25 @@
           (setq partial-recall--last-focus moment)
           (should-not (partial-recall--can-hold-concentration-p)))))))
 
+(ert-deftest pr--reconcentrate ()
+
+  (let ((partial-recall--concentration-timer nil)
+        (partial-recall-handle-delay 1))
+    (bydi (cancel-timer
+           run-with-timer)
+
+      (partial-recall--shift-concentration "test")
+
+      (bydi-was-not-called cancel-timer)
+
+      (bydi-was-called-with run-with-timer '(1 ...))
+
+      (setq partial-recall--concentration-timer 'timer)
+
+      (partial-recall--shift-concentration "test")
+
+      (bydi-was-called cancel-timer))))
+
 (ert-deftest pr--explain-omission-internal ()
   :tags '(meaningful)
 
@@ -267,13 +286,16 @@
       (bydi-was-called-with partial-recall--schedule-buffer (current-buffer)))))
 
 (ert-deftest pr--on-create--sets-cdr ()
-  (bydi ((:mock partial-recall--create-key :return "test"))
+  (bydi ((:mock partial-recall--create-key :return "test")
+         partial-recall--shift-concentration)
 
     (let ((tab '(current-tab (name . "test-tab") (explicit-name))))
 
       (partial-recall--on-create tab)
 
-      (should (string= "test" (alist-get 'pr tab))))))
+      (should (string= "test" (alist-get 'pr tab)))
+
+      (bydi-was-called-with partial-recall--shift-concentration "test-tab"))))
 
 (ert-deftest pr--on-close ()
   :tags '(needs-history)
@@ -1315,9 +1337,8 @@
 
       (partial-recall-mode--setup)
 
-      (bydi-was-called-with run-with-timer '(1 60 partial-recall--concentrate))
       (bydi-was-called partial-recall--queue-fix-up)
-      (bydi-was-called-n-times advice-add 6)
+      (bydi-was-called-n-times advice-add 7)
       (bydi-was-called-n-times add-hook 7)
       (bydi-was-called tab-bar-mode))))
 
@@ -1331,7 +1352,7 @@
     (partial-recall-mode--teardown)
 
     (bydi-was-called cancel-timer)
-    (bydi-was-called-n-times advice-remove 6)
+    (bydi-was-called-n-times advice-remove 7)
     (bydi-was-called-n-times remove-hook 7)))
 
 ;;; -- API
