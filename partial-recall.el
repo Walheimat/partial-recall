@@ -57,26 +57,21 @@ quick succession. See `partial-recall-max-age'."
   :type 'integer
   :group 'partial-recall)
 
-(defcustom partial-recall-short-term (* 10 60)
-  "Age in seconds that denotes a relatively recent moment.
+(defcustom partial-recall-intermediate-term (* 20 60)
+  "Age in seconds that denotes an intermediate-term moment.
 
-This threshold is used in two places: (1) Whether a moment can be
-automatically reclaimed and (2) whether to automatically switch
-memories and (3) whether a moment should be flushed. See
-`partial-recall--reclaim', `partial-recall--maybe-switch-memory'
-and `partial-recall--gracedp'.
+This is a threshold after and before which a moment is handled
+differently.
+
+This threshold is used in three places: (1) Moments at or above
+this threshold can be reclaimed automatically. (2) Moments below
+this value will not be flushed. (3) Moments below this threshold
+will be switched to automatically.
+
+See `partial-recall--reclaim',
+`partial-recall--maybe-switch-memory', `partial-recall--gracedp'.
 
 Can be set to nil to disable its use."
-  :type '(choice (integer :tag "Number of seconds")
-                 (const :tag "Don't use" nil))
-  :group 'partial-recall)
-
-(defcustom partial-recall-intermediate-term (* 20 60)
-  "Age in seconds that denotes a relatively ingrained moment.
-
-If the oldest moment is younger than this, the limit is increased
-and the buffer will remain. See
-`partial-recall--should-extend-memory-p'."
   :type '(choice (integer :tag "Number of seconds")
                  (const :tag "Don't use" nil))
   :group 'partial-recall)
@@ -725,8 +720,7 @@ threshold wasn't passed."
             ((or force
                  (and
                   (not (partial-recall--moment-permanence moment))
-                  (numberp partial-recall-short-term)
-                  (partial-recall--exceedsp moment partial-recall-short-term)))))
+                  (partial-recall--intermediate-term-p moment)))))
 
       (progn
         (partial-recall--in-other-frame owner
@@ -859,8 +853,7 @@ current reality are reinforced. Those of other memories
 are (potentially) reclaimed."
   (if (partial-recall--memory-buffer-p buffer)
       (partial-recall--reinforce buffer)
-    (when (numberp partial-recall-short-term)
-      (partial-recall--reclaim buffer))))
+    (partial-recall--reclaim buffer)))
 
 (defun partial-recall--swap (a b moment &optional reset)
   "Swap MOMENT from memory A to B.
@@ -1052,9 +1045,7 @@ If UNSCHEDULED is t don't account for reclaiming."
              ((not (partial-recall--memory-buffer-p buffer)))
              (moment (partial-recall--moment-from-buffer buffer))
              ((or unscheduled
-                  (and (numberp partial-recall-short-term)
-                       (not (partial-recall--exceedsp moment (- partial-recall-short-term
-                                                                partial-recall-handle-delay))))))
+                  (partial-recall--short-term-p moment t)))
              (owner (partial-recall--buffer-owner buffer))
              ((pcase partial-recall-auto-switch
                 ('prompt
@@ -1110,13 +1101,12 @@ This means the buffer won't be scheduled for handling."
   "Check if MOMENT was graced.
 
 This is either a permanent moment, a moment that has been focused
-once or a moment that couldn't be reclaimed.
+once or a short-term moment.
 
 If ARG is t, the current moment is considered graced as well."
   (or (partial-recall--moment-permanence moment)
       (> 0 (partial-recall--moment-focus moment))
-      (and (numberp partial-recall-short-term)
-           (partial-recall--falls-below-p moment partial-recall-short-term))
+      (partial-recall--short-term-p moment)
       (and arg
            (eq (current-buffer) (partial-recall--moment-buffer moment)))))
 
@@ -1181,13 +1171,11 @@ INCLUDE-SUBCONSCIOUS is t."
 (defun partial-recall--should-extend-memory-p (memory)
   "Check if MEMORY should extend its ring size.
 
-This is the case if the oldest ring element is still younger than
-the max age."
+This is the case if the oldest ring element is still a short-term
+moment."
   (and-let* ((ring (partial-recall--memory-ring memory))
              (to-remove (partial-recall--ring-oldest ring))
-             ((numberp partial-recall-intermediate-term)))
-
-    (partial-recall--falls-below-p to-remove partial-recall-intermediate-term)))
+             ((partial-recall--short-term-p to-remove)))))
 
 (defun partial-recall--has-buffers-p (&optional memory)
   "Check if the MEMORY has buffers."
@@ -1200,17 +1188,38 @@ the max age."
   "Check if MEMORY is the subconscious."
   (string= partial-recall--subconscious-key (partial-recall--memory-key memory)))
 
-(defun partial-recall--exceedsp (moment threshold)
-  "Check if MOMENT's age exceeds THRESHOLD."
-  (< threshold
-     (- (floor (time-to-seconds))
-        (partial-recall--moment-timestamp moment))))
+(defun partial-recall--equals-or-exceeds-p (moment threshold)
+  "Check if MOMENT's age equals or exceeds THRESHOLD.
 
-(defun partial-recall--falls-below-p (moment threshold)
-  "Check if MOMENT's age falls below THRESHOLD."
-  (> threshold
-     (- (floor (time-to-seconds))
-        (partial-recall--moment-timestamp moment))))
+If SUB is a number, subtract it from threshold."
+  (let ((ts (- (floor (time-to-seconds))
+               (partial-recall--moment-timestamp moment))))
+
+    (<= threshold ts)))
+
+(defun partial-recall--falls-below-p (moment threshold &optional sub)
+  "Check if MOMENT's age falls below THRESHOLD.
+
+If SUB is a number, subtract it from the timestamp."
+  (let ((ts (- (floor (time-to-seconds))
+               (or sub 0)
+               (partial-recall--moment-timestamp moment))))
+
+    (> threshold ts)))
+
+(defun partial-recall--short-term-p (moment &optional consider-delay)
+  "Check if MOMENT is short-term.
+
+If CONSIDER-DELAY is t, consider handling delay."
+  (let ((sub (if consider-delay partial-recall-handle-delay 0)))
+
+    (and (numberp partial-recall-intermediate-term)
+         (partial-recall--falls-below-p moment partial-recall-intermediate-term sub))))
+
+(defun partial-recall--intermediate-term-p (moment)
+  "Check if MOMENT is intermediate."
+  (and (numberp partial-recall-intermediate-term)
+       (partial-recall--equals-or-exceeds-p moment partial-recall-intermediate-term)))
 
 (defun partial-recall--new-buffer-p (buffer)
   "Check if BUFFER is actually new."

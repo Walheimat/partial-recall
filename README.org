@@ -62,7 +62,7 @@ Handling a buffer will do one of two things:
 2. An existing moment is "recollected", which in turn means one of two
    things:
    1. If it belongs to another memory, it may be "reclaimed" depending
-      on =partial-recall-short-term=.
+      on =partial-recall-intermediate-term=.
    2. If it belongs to the current memory, it is "reinforced", that
       is, pushed to the top of the ring again.
 
@@ -159,8 +159,7 @@ taken into account.
   :custom
   (partial-recall-handle-delay 4) ;; The delay before a buffer is handled (remembered or re-inforced).
   (partial-recall-buffer-limit 10) ;; The number of buffers in the ring.
-  (partial-recall-short-term 600) ;; The age (in seconds) that will allow reclaiming.
-  (partial-recall-intermediate-term 1200) ;; The age (in seconds) that will allow the ring to grow.
+  (partial-recall-intermediate-term 1200) ;; The age (in seconds) that, when exceeded, will allow reclaiming.
   (partial-recall-repress t) ;; Whether forgotten buffers should (eventually) be killed.
   (partial-recall-auto-implant 4) ;; Amount of focus needed before auto-implanting.
   (partial-recall-auto-switch t) ;; Whether to switch to a moment's tab automatically.

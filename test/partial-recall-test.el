@@ -452,22 +452,17 @@
 (ert-deftest pr-recollect--reinforces-reality-or-reclaims ()
   (bydi ((:sometimes partial-recall--memory-buffer-p)
          partial-recall--reinforce
-         partial-recall--reclaim)
+         partial-recall--reclaim
+         (:othertimes partial-recall--short-term-p))
+
     (partial-recall--recollect (current-buffer))
 
     (bydi-was-called partial-recall--reinforce)
+
     (bydi-toggle-sometimes)
 
-    (let ((partial-recall-short-term -1))
-
-      (partial-recall--recollect (current-buffer))
-      (bydi-was-called partial-recall--reclaim)
-
-      (bydi-clear-mocks)
-
-      (setq partial-recall-short-term nil)
-      (partial-recall--recollect (current-buffer))
-      (bydi-was-not-called partial-recall--reclaim))))
+    (partial-recall--recollect (current-buffer))
+    (bydi-was-called partial-recall--reclaim)))
 
 (ert-deftest pr-reinforce--reinforces-old-buffers ()
   :tags '(needs-history)
@@ -500,7 +495,7 @@
   :tags '(needs-history)
 
   (let ((seconds '(10 12))
-        (partial-recall-short-term -1)
+        (partial-recall-intermediate-term -1)
         (mock-reality (partial-recall--memory-create "other-key")))
 
     (with-tab-history
@@ -585,11 +580,11 @@
 
   (let ((partial-recall-memory-size 2)
         (another-temp (generate-new-buffer " *temp*" t))
-        (yet-another-temp (generate-new-buffer " *temp*" t))
-        (partial-recall-short-term -1))
+        (yet-another-temp (generate-new-buffer " *temp*" t)))
 
     (bydi (partial-recall--suppress
-           partial-recall--maybe-reinsert-implanted)
+           partial-recall--maybe-reinsert-implanted
+           (:sometimes partial-recall--short-term-p))
       (with-tab-history :pre t :probes t
         (let ((ring (partial-recall--memory-ring (partial-recall--reality))))
 
@@ -598,6 +593,8 @@
 
           (should (eq (ring-size ring) 3))
           (should (eq (ring-length ring) 3))
+
+          (bydi-toggle-sometimes)
 
           (partial-recall--flush (partial-recall--reality))
 
@@ -818,7 +815,7 @@
   (with-tab-history :pre t
     (let ((another (generate-new-buffer " *temp*" t))
           (ring (partial-recall--memory-ring (partial-recall--reality)))
-          (partial-recall-short-term -1))
+          (partial-recall-intermediate-term -1))
 
       (partial-recall--remember another)
 

@@ -20,10 +20,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Auto-implanting variables have been merged into
   `partial-recall-auto-implant`, that is either `nil` or the focus
   value.
-- Thresholds were renamed to
-  `partial-recall-{max-age=>intermediate-term}` and
-  `partial-recall-{reclaim-min-age=>short-term}`. They can both be set
-  to nil to disable their usage. `partial-recall-reclaim` was removed.
+- Thresholds were reduced to single
+  `partial-recall-intermediate-term`. It can be set to an integer or
+  nil to disable its use. Moment that fall below or exceed this
+  threshold are handled differently (switched to or reclaimed).
 - Hooks `partial-recall-{probe,permanence-change,after-insert}-hook`
   now use `run-hook-with-args` and pass sensible arguments to their
   functions (the memory, the moment and permanence and the moment
