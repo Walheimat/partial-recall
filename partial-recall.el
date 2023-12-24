@@ -98,17 +98,6 @@ If this is nil, never auto-implant."
                  (const :tag "Prompt first" prompt))
   :group 'partial-recall)
 
-(defcustom partial-recall-lighter '(" "
-                                    partial-recall-lighter-title
-                                    "["
-                                    partial-recall-lighter-moment
-                                    "/"
-                                    partial-recall-lighter-memory
-                                    "]")
-  "The lighter as a list of mode line constructs."
-  :type '(repeat (choice string symbol))
-  :group 'partial-recall)
-
 (defcustom partial-recall-lighter-prefix "pr"
   "The prefix used in `partial-recall-lighter'."
   :type 'string
@@ -1457,28 +1446,33 @@ t."
 
 ;;; -- Lighter
 
-(defvar partial-recall--lighter-map
+(defvar partial-recall-lighter '(" "
+                                 (:eval partial-recall-lighter--title)
+                                 "["
+                                 (:eval (partial-recall-lighter--moment))
+                                 "/"
+                                 (:eval (partial-recall-lighter--memory))
+                                 "]")
+  "The lighter as a list of mode line constructs.")
+
+(put 'partial-recall-lighter 'risky-local-variable t)
+
+(defvar partial-recall-lighter--map
   (let ((map (make-sparse-keymap)))
 
-    (define-key map [mode-line mouse-1] 'partial-recall--lighter-toggle)
-    (define-key map [mode-line mouse-3] 'partial-recall--lighter-menu)
+    (define-key map [mode-line mouse-1] 'partial-recall-lighter--toggle)
+    (define-key map [mode-line mouse-3] 'partial-recall-lighter--menu)
 
     map))
 
-(defvar partial-recall--lighter-title
+(defvar partial-recall-lighter--title
   `(:propertize partial-recall-lighter-prefix
                 face partial-recall-deemphasized
                 mouse-face mode-line-highlight
                 help-echo "Partial Recall\nmouse-1: Implant/Excise\nmouse-3: Menu"
-                local-map ,partial-recall--lighter-map))
+                local-map ,partial-recall-lighter--map))
 
-(defun partial-recall--lighter-title ()
-  "Show the title.
-
-The title has a menu."
-  partial-recall--lighter-title)
-
-(defun partial-recall--lighter-toggle ()
+(defun partial-recall-lighter--toggle ()
   "Implant or excise the current buffer."
   (interactive)
 
@@ -1487,7 +1481,7 @@ The title has a menu."
 
     (partial-recall-implant (current-buffer) (partial-recall--moment-permanence moment))))
 
-(defun partial-recall--lighter-menu ()
+(defun partial-recall-lighter--menu ()
   "Show a menu.."
   (interactive)
 
@@ -1507,7 +1501,7 @@ The title has a menu."
         (popup-menu map)
       (quit nil))))
 
-(defun partial-recall--lighter-moment ()
+(defun partial-recall-lighter--moment ()
   "Show moment information.
 
 This will show a propertized asterisk if the moment is permanent."
@@ -1532,7 +1526,7 @@ This will show a propertized asterisk if the moment is permanent."
                       face ,face
                       help-echo ,echo)))))
 
-(defun partial-recall--lighter-memory ()
+(defun partial-recall-lighter--memory ()
   "Show memory information.
 
 This will normally show the current number of items in the
@@ -1551,17 +1545,6 @@ is shown."
       `(:propertize ,(or (partial-recall-graph length size) "-")
                     face partial-recall-deemphasized
                     help-echo ,(format "Memory contains %d moment(s)" length)))))
-
-(defvar partial-recall-lighter-title '(:eval (partial-recall--lighter-title)))
-(defvar partial-recall-lighter-moment '(:eval (partial-recall--lighter-moment)))
-(defvar partial-recall-lighter-memory '(:eval (partial-recall--lighter-memory)))
-
-;; If the variables are not considered risky, the mode line constructs
-;; they contain are not evaluated.
-(put 'partial-recall-lighter 'risky-local-variable t)
-(put 'partial-recall-lighter-title 'risky-local-variable t)
-(put 'partial-recall-lighter-moment 'risky-local-variable t)
-(put 'partial-recall-lighter-memory 'risky-local-variable t)
 
 ;;; -- Setup
 

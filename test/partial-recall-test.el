@@ -1183,10 +1183,7 @@
 
 ;;; -- Lighter
 
-(ert-deftest pr--lighter-title ()
-  (should (equal (partial-recall--lighter-title) partial-recall--lighter-title)))
-
-(ert-deftest pr--lighter-moment ()
+(ert-deftest pr-lighter-moment ()
   :tags '(needs-history)
 
   (with-tab-history :pre t :wavers t
@@ -1194,14 +1191,14 @@
              '(:propertize "-"
                            face partial-recall-deemphasized
                            help-echo "Moment is fleeting")
-             (partial-recall--lighter-moment)))
+             (partial-recall-lighter--moment)))
 
     (partial-recall--implant)
 
     (should (equal '(:propertize "*"
                                  face partial-recall-contrast
                                  help-echo "Moment is implanted")
-                   (partial-recall--lighter-moment)))
+                   (partial-recall-lighter--moment)))
 
     (let ((explanation "testing"))
       (bydi ((:ignore partial-recall--moment-from-buffer)
@@ -1211,23 +1208,23 @@
         (should (equal '(:propertize "?"
                                      face partial-recall-deemphasized
                                      help-echo "Considering")
-                       (partial-recall--lighter-moment)))
+                       (partial-recall-lighter--moment)))
 
         (bydi-toggle-sometimes)
 
         (should (equal '(:propertize "!"
                                      face partial-recall-emphasis
                                      help-echo  "Not meaningful: testing")
-                       (partial-recall--lighter-moment)))
+                       (partial-recall-lighter--moment)))
 
         (setq explanation nil)
 
         (should (equal '(:propertize "!"
                                      face partial-recall-deemphasized
                                      help-echo  "Not meaningful")
-                       (partial-recall--lighter-moment)))))))
+                       (partial-recall-lighter--moment)))))))
 
-(ert-deftest partial-recall--lighter-menu ()
+(ert-deftest partial-recall-lighter--menu ()
   (defvar partial-recall-command-map)
 
   (let ((partial-recall-command-map (make-sparse-keymap)))
@@ -1238,25 +1235,25 @@
     (define-key partial-recall-command-map (kbd "t") 'partial-recall-test)
 
     (bydi (popup-menu)
-      (partial-recall--lighter-menu)
+      (partial-recall-lighter--menu)
       (bydi-was-called popup-menu))))
 
-(ert-deftest partial-recall--lighter-toggle ()
+(ert-deftest partial-recall-lighter--toggle ()
   :tags '(needs-history)
 
   (with-tab-history :pre t
 
     (bydi ((:spy partial-recall-implant))
 
-      (partial-recall--lighter-toggle)
+      (partial-recall-lighter--toggle)
 
       (bydi-was-called-with partial-recall-implant '(... nil))
 
-      (partial-recall--lighter-toggle)
+      (partial-recall-lighter--toggle)
 
       (bydi-was-called-with partial-recall-implant '(... t)))))
 
-(ert-deftest pr--lighter-memory ()
+(ert-deftest pr-lighter-memory ()
   :tags '(needs-history)
 
   (let ((partial-recall-memory-size 1))
@@ -1270,7 +1267,7 @@
                  '(:propertize "|"
                                face partial-recall-deemphasized
                                help-echo "Memory contains 1 moment(s)")
-                 (partial-recall--lighter-memory))))
+                 (partial-recall-lighter--memory))))
 
       (let ((another-temp (generate-new-buffer " *temp*" t)))
 
@@ -1280,7 +1277,7 @@
                  '(:propertize "+"
                                face partial-recall-emphasis
                                help-echo "Memory has grown to +1")
-                 (partial-recall--lighter-memory)))))))
+                 (partial-recall-lighter--memory)))))))
 
 ;;; -- Setup
 
