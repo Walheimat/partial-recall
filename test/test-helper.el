@@ -45,7 +45,7 @@ true, a second memory is created. If WAVERS is t,
 
        ,(when second
           '(progn
-             (setq second-memory (partial-recall--memory-create second-memory-key))
+             (setq second-memory (partial-recall-memory--create second-memory-key))
              (puthash second-memory-key second-memory partial-recall--table)))
 
        (unwind-protect

@@ -48,7 +48,7 @@ INCLUDE-SUBCONSCIOUS is t."
   (let* ((entries nil)
          (buffer-names nil)
          (tab-names nil)
-         (memories (partial-recall--memories (not (or include-subconscious
+         (memories (partial-recall-memories (not (or include-subconscious
                                                       partial-recall-menu--subconscious)))))
 
     (dolist (memory memories)
@@ -57,25 +57,25 @@ INCLUDE-SUBCONSCIOUS is t."
              (sub (partial-recall--subconsciousp memory))
              (tab-name (partial-recall-menu--tab-name memory))
              (frame (partial-recall-menu--frame memory))
-             (partial-recall--memory-pp (partial-recall-menu--print-memory memory)))
+             (partial-recall-memory--pp (partial-recall-menu--print-memory memory)))
 
         (unless (eq memory (partial-recall--reality))
           (push tab-name tab-names))
 
-        (dolist (moment (ring-elements (partial-recall--memory-ring memory)))
+        (dolist (moment (ring-elements (partial-recall-memory--ring memory)))
 
-          (let* ((buffer (partial-recall--moment-buffer moment))
-                 (implanted (partial-recall--moment-permanence moment))
+          (let* ((buffer (partial-recall-moment--buffer moment))
+                 (implanted (partial-recall-moment--permanence moment))
 
                  (pp-buffer-name (partial-recall-menu--print-buffer buffer))
-                 (pp-ts (partial-recall-menu--print-timestamp (partial-recall--moment-timestamp moment)))
-                 (pp-presence (partial-recall-menu--print-presence (partial-recall--moment-focus moment) implanted))
+                 (pp-ts (partial-recall-menu--print-timestamp (partial-recall-moment--timestamp moment)))
+                 (pp-presence (partial-recall-menu--print-presence (partial-recall-moment--focus moment) implanted))
 
                  (item (list tab-name frame buffer real sub))
                  (line (vector partial-recall-menu--empty
                                pp-presence
                                pp-buffer-name
-                               partial-recall--memory-pp
+                               partial-recall-memory--pp
                                pp-ts)))
 
             (push pp-buffer-name buffer-names)
@@ -135,11 +135,11 @@ Raises and error if the entry belongs to the subconscious."
 
 (defun partial-recall-menu--tab-and-frame (memory)
   "Get tab and frame for MEMORY."
-  (if-let* ((tab (partial-recall--tab memory)))
+  (if-let* ((tab (partial-recall--find-tab-from-memory memory)))
 
       (list tab (selected-frame) nil)
 
-    (when-let* ((info (partial-recall--from-other-frame memory))
+    (when-let* ((info (partial-recall-memory--find-in-other-frame memory))
                 (tab (plist-get info :tab))
                 (frame (plist-get info :frame)))
       (list tab frame t))))
@@ -195,8 +195,8 @@ If the moment is IMPLANTED, signal that."
 
 (defun partial-recall-menu--print-memory (memory)
   "Format MEMORY."
-  (let ((orig-size (partial-recall--memory-orig-size memory))
-        (actual-size (ring-size (partial-recall--memory-ring memory)))
+  (let ((orig-size (partial-recall-memory--orig-size memory))
+        (actual-size (ring-size (partial-recall-memory--ring memory)))
         (tab-name (cond
                    ((partial-recall--realityp memory)
                     partial-recall-menu--present)

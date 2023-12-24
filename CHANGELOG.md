@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Many private functions (and underlying structures) were renamed.
+
 ### Added
 
 - Display of additional moment and memory info can now be toggled by

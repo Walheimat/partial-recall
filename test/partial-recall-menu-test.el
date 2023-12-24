@@ -37,8 +37,8 @@
     (with-tab-history :pre t :second t
 
       (ring-insert
-       (partial-recall--memory-ring second-memory)
-       (partial-recall--moment-from-buffer (current-buffer)))
+       (partial-recall-memory--ring second-memory)
+       (partial-recall--find-owning-moment (current-buffer)))
 
       (partial-recall-menu--revert)
 
@@ -164,7 +164,7 @@
       (bydi ((:ignore partial-recall--realityp))
         (should (string= "test-tab" (partial-recall-menu--print-memory (partial-recall--reality))))
 
-        (ring-resize (partial-recall--memory-ring (partial-recall--reality)) 11)
+        (ring-resize (partial-recall-memory--ring (partial-recall--reality)) 11)
 
         (should (string= "test-tab (+1)" (partial-recall-menu--print-memory (partial-recall--reality))))))))
 
@@ -283,13 +283,13 @@
 (ert-deftest prm--tab-and-frame ()
   :tags '(menu)
 
-  (bydi ((:mock partial-recall--tab :return "tab"))
+  (bydi ((:mock partial-recall--find-tab-from-memory :return "tab"))
 
     (should (equal (list "tab" (selected-frame) nil)
                    (partial-recall-menu--tab-and-frame 'memory))))
 
   (bydi ((:mock
-          partial-recall--tab
+          partial-recall--find-tab-from-memory
           :with
           (lambda (mem &optional fr) (when (string= fr "second") "tab")))
          (:mock filtered-frame-list :return '("first" "second")))

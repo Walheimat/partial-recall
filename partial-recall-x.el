@@ -28,7 +28,7 @@
         :require-match t
         :items
         #'(lambda () (consult--buffer-query :sort 'visibility
-                                       :predicate #'partial-recall--memory-buffer-p
+                                       :predicate #'partial-recall--buffer-in-memory-p
                                        :as #'buffer-name)))
   "Buffers that are recalled from the current tab.")
 
@@ -42,11 +42,11 @@ and `:implanted'."
 
   (let* ((buffer (or buffer (current-buffer)))
          (specs (list :meaningful (partial-recall--meaningful-buffer-p buffer)
-                      :real (not (null (partial-recall--memory-buffer-p buffer)))
+                      :real (not (null (partial-recall--buffer-in-memory-p buffer)))
                       :implanted (buffer-local-value 'partial-recall--implanted buffer))))
 
     (if (called-interactively-p 'any)
-        (partial-recall--message "Buffer '%s' has specs '%s'" buffer specs)
+        (partial-recall-message "Buffer '%s' has specs '%s'" buffer specs)
       specs)))
 
 (defun partial-recall-x-memory-specs (&optional memory)
@@ -57,12 +57,12 @@ The specs are a plist of attributes `:size' and `:capacity' and
   (interactive)
 
   (let* ((memory (or memory (partial-recall--reality)))
-         (specs (list :size (ring-length (partial-recall--memory-ring memory))
-                      :capacity (ring-size (partial-recall--memory-ring memory))
-                      :original-capacity (partial-recall--memory-orig-size memory))))
+         (specs (list :size (ring-length (partial-recall-memory--ring memory))
+                      :capacity (ring-size (partial-recall-memory--ring memory))
+                      :original-capacity (partial-recall-memory--orig-size memory))))
 
     (if (called-interactively-p 'any)
-        (partial-recall--message "Memory '%s' has specs '%s'" memory specs)
+        (partial-recall-message "Memory '%s' has specs '%s'" memory specs)
       specs)))
 
 (provide 'partial-recall-x)
