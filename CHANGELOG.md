@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Display of additional moment and memory info can now be toggled by
+  customizing `partial-recall-lighter-show-info`.
+
+### Removed
+
+- Variable `partial-recall-lighter` is no longer customizable. See
+  above.
+
 ## [v0.9.0]
 
 ### Added

@@ -103,6 +103,11 @@ If this is nil, never auto-implant."
   :type 'string
   :group 'partial-recall)
 
+(defcustom partial-recall-lighter-show-info t
+  "Whether to show information about memory and moment in lighter."
+  :type 'boolean
+  :group 'partial-recall)
+
 (defcustom partial-recall-record-triggers '(consult-buffer)
   "Commands that should trigger recording the buffer."
   :type '(repeat symbol)
@@ -1448,12 +1453,16 @@ t."
 
 (defvar partial-recall-lighter '(" "
                                  (:eval partial-recall-lighter--title)
-                                 "["
-                                 (:eval (partial-recall-lighter--moment))
-                                 "/"
-                                 (:eval (partial-recall-lighter--memory))
-                                 "]")
-  "The lighter as a list of mode line constructs.")
+                                 (partial-recall-lighter-show-info
+                                  ( "["
+                                    (:eval (partial-recall-lighter--moment))
+                                    "/"
+                                    (:eval (partial-recall-lighter--memory))
+                                    "]")))
+  "The lighter as a list of mode line constructs.
+
+Shows additional moment and memory info if
+`partial-recall-lighter-show-info' is t.")
 
 (put 'partial-recall-lighter 'risky-local-variable t)
 
