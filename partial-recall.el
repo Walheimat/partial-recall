@@ -123,9 +123,10 @@ If this is nil, never auto-implant."
   "Whether to log.
 
 This is either nil meaning no logging, or 1 for info logging and
-1 for info logging."
+0 for debug logging. Any other symbol also means info logging."
   :type '(choice (const :tag "No logging" nil)
                  (const :tag "Info" 1)
+                 (symbol :tag "Info")
                  (const :tag "Debug" 0))
   :group 'partial-recall)
 
