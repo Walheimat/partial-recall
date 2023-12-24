@@ -45,33 +45,36 @@
   :group 'partial-recall)
 
 (defcustom partial-recall-handle-delay 3
-  "The delay in seconds after which a buffer will be handled."
+  "The delay in seconds after which a buffer will be handled.
+
+It should give you ample time to switch to another buffer before
+handling. The underlying time is reset on every switch.
+
+Buffers visited with a no-record flag aren't handled."
   :type 'integer
   :group 'partial-recall)
 
 (defcustom partial-recall-memory-size 10
-  "The amount of buffers to recall.
+  "The amount of buffers to recall per tab.
 
-This limit of a memory may increase if buffers are remembered in
-quick succession. See `partial-recall-max-age'."
+This limit may temporarily increase if buffers are remembered in
+quick succession. See `partial-recall-intermediate-term'."
   :type 'integer
   :group 'partial-recall)
 
 (defcustom partial-recall-intermediate-term (* 20 60)
-  "Age in seconds that denotes an intermediate-term moment.
-
-This is a threshold after and before which a moment is handled
-differently.
+  "Threshold after which moments are handled differently.
 
 This threshold is used in three places: (1) Moments at or above
 this threshold can be reclaimed automatically. (2) Moments below
 this value will not be flushed. (3) Moments below this threshold
-will be switched to automatically.
+will entail switching to their tab if
+`partial-recall-auto-switch' is t.
 
-See `partial-recall--reclaim',
-`partial-recall--maybe-switch-memory', `partial-recall--gracedp'.
+See `partial-recall--reclaim', `partial-recall--gracedp' and
+ `partial-recall--maybe-switch-memory'.
 
-Can be set to nil to disable its use."
+Can be set to nil to disable this behavior."
   :type '(choice (integer :tag "Number of seconds")
                  (const :tag "Don't use" nil))
   :group 'partial-recall)
@@ -79,14 +82,18 @@ Can be set to nil to disable its use."
 (defcustom partial-recall-repress t
   "Whether `partial-recall-suppress' may kill buffers.
 
-These are buffers that are removed from the subconscious."
+When buffers leave a memory they are first moved to the
+subconscious. Buffers moving out of the subconscious when it
+overflows are killed using `kill-buffer' if they may be
+repressed."
   :type 'boolean
   :group 'partial-recall)
 
 (defcustom partial-recall-auto-implant 10
   "The amount of focus before auto-implanting a moment.
 
-If this is nil, never auto-implant."
+If this is nil, never auto-implant. The focus is increased by
+`partial-recall--concentrate'."
   :type '(choice (const :tag "Don't auto-implant" nil)
                  (integer :tag "Minimum focus before auto-implanting"))
   :group 'partial-recall)
@@ -109,7 +116,11 @@ If this is nil, never auto-implant."
   :group 'partial-recall)
 
 (defcustom partial-recall-record-triggers '(consult-buffer)
-  "Commands that should trigger recording the buffer."
+  "Commands that should trigger recording the buffer.
+
+It will allow the buffer visited before these commands to be
+considered visible. This is relevant for
+`partial-recall--concentrate' which increases a moment's focus."
   :type '(repeat symbol)
   :group 'partial-recall)
 
@@ -131,7 +142,9 @@ This is either nil meaning no logging, or 1 for info logging and
   :group 'partial-recall)
 
 (defcustom partial-recall-filter '("COMMIT_EDITMSG" "git-rebase-todo")
-  "Names of buffers that should be ignored."
+  "Names of buffers that should be ignored.
+
+See trait `partial-recall--not-filtered-p'."
   :type '(repeat regexp)
   :group 'partial-recall)
 
@@ -146,11 +159,10 @@ maximum arity, they will be called with `current-buffer' as the
 first argument, otherwise they are called with no argument.
 
 If any such function does not return a truthy value, the buffer
-is not considered meaningful."
+is not considered meaningful, meaning a buffer needs to satisfy
+all predicates."
   :type '(repeat function)
   :group 'partial-recall)
-
-(make-obsolete-variable 'partial-recall-traits 'partial-recall-meaningful-traits "0.8.2")
 
 (defcustom partial-recall-memorable-traits '(partial-recall--gracedp)
   "List of functions that determine a memorable moment.
@@ -159,12 +171,14 @@ These functions are called with moments up for suppression and
 the current prefix argument.
 
 If any such function does return a truthy value, the moment is
-considered memorable."
+considered memorable. See `partial-recall--flush'."
   :type '(repeat function)
   :group 'partial-recall)
 
 (defcustom partial-recall-intensities '((swap . 1) (reinsert . 2) (concentrate . 3))
-  "The amount of focus gained from actions swap, reinsert and focus."
+  "The amount of focus gained from actions.
+
+See `partial-recall--intensify' and its callers."
   :type '(alist :key-type symbol :value-type integer)
   :group 'partial-recall)
 
