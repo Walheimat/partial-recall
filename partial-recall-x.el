@@ -46,7 +46,8 @@ and `:implanted'."
                       :implanted (buffer-local-value 'partial-recall--implanted buffer))))
 
     (if (called-interactively-p 'any)
-        (partial-recall-message "Buffer '%s' has specs '%s'" buffer specs)
+        (let ((partial-recall-log t))
+          (partial-recall-log "Buffer '%s' has specs '%s'" buffer specs))
       specs)))
 
 (defun partial-recall-x-memory-specs (&optional memory)
@@ -62,7 +63,8 @@ The specs are a plist of attributes `:size' and `:capacity' and
                       :original-capacity (partial-recall-memory--orig-size memory))))
 
     (if (called-interactively-p 'any)
-        (partial-recall-message "Memory '%s' has specs '%s'" memory specs)
+        (let ((partial-recall-log t))
+          (partial-recall-log "Memory '%s' has specs '%s'" memory specs))
       specs)))
 
 (provide 'partial-recall-x)
