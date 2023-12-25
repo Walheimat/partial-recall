@@ -292,13 +292,13 @@ focus is distinct from `buffer-display-count'."
                (:constructor partial-recall-memory--create
                              (key
                               &aux
-                              (ring (make-ring partial-recall-memory-size))
+                              (moments (make-ring partial-recall-memory-size))
                               (orig-size partial-recall-memory-size))))
   "A memory of partial recall.
 
 A memory is a key that connects it to the hash table, a ring of
 moments and the size it had upon construction."
-  key ring orig-size)
+  key moments orig-size)
 
 ;;; -- Memories
 
@@ -314,7 +314,7 @@ If EXCLUDE-SUBCONSCIOUS is t, it is excluded."
 
 (defun partial-recall-memory--owns-buffer-p (memory buffer)
   "Check if MEMORY owns BUFFER."
-  (let ((moments (partial-recall-memory--ring memory)))
+  (let ((moments (partial-recall-memory--moments memory)))
 
     (catch 'found
       (dotimes (ind (ring-length moments))
@@ -323,7 +323,7 @@ If EXCLUDE-SUBCONSCIOUS is t, it is excluded."
 
 (defun partial-recall-memory--remove-buffer (buffer memory)
   "Remove BUFFER from MEMORY and return it."
-  (when-let* ((moments (partial-recall-memory--ring memory))
+  (when-let* ((moments (partial-recall-memory--moments memory))
               (index (partial-recall-memory--owns-buffer-p memory buffer))
               (removed (ring-remove moments index)))
 
@@ -343,7 +343,7 @@ If EXCLUDE-SUBCONSCIOUS is t, it is excluded."
 (defun partial-recall-memory--has-buffers-p (&optional memory)
   "Check if the MEMORY has buffers."
   (when-let* ((memory (or memory (partial-recall--reality)))
-              (moments (partial-recall-memory--ring memory)))
+              (moments (partial-recall-memory--moments memory)))
 
     (not (ring-empty-p moments))))
 
@@ -352,7 +352,7 @@ If EXCLUDE-SUBCONSCIOUS is t, it is excluded."
 
 This is the case if the oldest ring element is still a short-term
 moment."
-  (and-let* ((ring (partial-recall-memory--ring memory))
+  (and-let* ((ring (partial-recall-memory--moments memory))
              (to-remove (partial-recall--ring-oldest ring))
              ((partial-recall--short-term-p to-remove)))))
 
@@ -389,7 +389,7 @@ INCLUDE-SUBCONSCIOUS is t."
            using (hash-values memory)
            unless (and (not include-subconscious)
                        (string= k partial-recall--subconscious-key))
-           append (ring-elements (partial-recall-memory--ring memory))))
+           append (ring-elements (partial-recall-memory--moments memory))))
 
 (defun partial-recall-moment--set-permanence (moment permanence)
   "Set MOMENT PERMANENCE."
@@ -526,7 +526,7 @@ Searches all memories unless MEMORY is provided."
                           (let ((memories (partial-recall-memories))
                                 (find-memory (apply-partially #'partial-recall--buffer-in-memory-p buffer)))
                             (seq-find find-memory memories))))
-              (ring (partial-recall-memory--ring memory))
+              (ring (partial-recall-memory--moments memory))
               (index (partial-recall-memory--owns-buffer-p memory buffer)))
 
     (ring-ref ring index)))
@@ -769,7 +769,7 @@ Don't do anything if NORECORD is t."
              (tab-key (partial-recall--key tab))
              (table partial-recall--table)
              (memory (gethash tab-key table))
-             (moments (partial-recall-memory--ring memory)))
+             (moments (partial-recall-memory--moments memory)))
 
     (dolist (it (ring-elements moments))
       (partial-recall--clean-up-buffer (partial-recall-moment--buffer it))
@@ -822,7 +822,7 @@ This will either create a new moment for the buffer or reclaim
 one from the subconscious, assuming no such moment is already
 part of the current reality."
   (and-let* ((memory (partial-recall--reality))
-             (ring (partial-recall-memory--ring memory))
+             (ring (partial-recall-memory--moments memory))
              ((not (partial-recall-memory--owns-buffer-p memory buffer))))
 
     (partial-recall--probe-memory memory)
@@ -952,7 +952,7 @@ If EXCISE is t, remove permanence instead."
              (memory (partial-recall--subconscious))
              ((not (partial-recall--buffer-in-memory-p buffer memory)))
              ((partial-recall--meaningful-buffer-p buffer))
-             (ring (partial-recall-memory--ring memory)))
+             (ring (partial-recall-memory--moments memory)))
 
     (when (partial-recall-memory--at-capacity-p memory)
       (let* ((removed (ring-remove ring))
@@ -997,8 +997,8 @@ Both memories will be probed. Memory A after the moment was
 removed, memory B before it is inserted.
 
 If RESET is t, reset the swapped moment."
-  (and-let* ((a-ring (partial-recall-memory--ring a))
-             (b-ring (partial-recall-memory--ring b))
+  (and-let* ((a-ring (partial-recall-memory--moments a))
+             (b-ring (partial-recall-memory--moments b))
              (index (ring-member a-ring moment))
              (removed (ring-remove a-ring index)))
 
@@ -1015,7 +1015,7 @@ If RESET is t, reset the swapped moment."
   "Reinsert MOMENT into MEMORY.
 
 This removes, inserts and extends. The moment is refreshed."
-  (and-let* ((ring (partial-recall-memory--ring memory))
+  (and-let* ((ring (partial-recall-memory--moments memory))
              ((ring-member ring moment))
              (buffer (partial-recall-moment--buffer moment)))
 
@@ -1034,8 +1034,8 @@ If CLOSE is t, the tab of B is closed."
   (when (eq a b)
     (user-error "Can't shift moments from identical memories"))
 
-  (let ((moments-a (partial-recall-memory--ring a))
-        (moments-b (partial-recall-memory--ring b)))
+  (let ((moments-a (partial-recall-memory--moments a))
+        (moments-b (partial-recall-memory--moments b)))
 
     (while (not (ring-empty-p moments-a))
       (let ((moment (ring-remove moments-a)))
@@ -1051,7 +1051,7 @@ If MEMORY is not provided, flush the reality.
 
 This will call all functions of `partial-recall-memorable-traits'
 to check if the moment should be kept, passing moment and ARG."
-  (let* ((ring (partial-recall-memory--ring memory))
+  (let* ((ring (partial-recall-memory--moments memory))
          (count 0))
 
     (dolist (moment (ring-elements ring))
@@ -1114,7 +1114,7 @@ as well as resize and extend the memory if necessary."
 
 This will loop over the moments in reverse and makes sure to
 re-insert any implanted one."
-  (and-let* ((ring (partial-recall-memory--ring memory))
+  (and-let* ((ring (partial-recall-memory--moments memory))
              (oldest (partial-recall--ring-oldest ring)))
 
     (let ((checked nil))
@@ -1128,9 +1128,9 @@ re-insert any implanted one."
 
 (defun partial-recall--maybe-resize-memory (memory)
   "Maybe resize MEMORY if it has grown but could shrink."
-  (let ((ring (partial-recall-memory--ring memory))
+  (let ((ring (partial-recall-memory--moments memory))
         (orig (partial-recall-memory--orig-size memory))
-        (curr (ring-size (partial-recall-memory--ring memory))))
+        (curr (ring-size (partial-recall-memory--moments memory))))
 
     (when (and (not (partial-recall-memory--at-capacity-p memory))
                (> curr orig))
@@ -1146,11 +1146,11 @@ See `partial-recall-memory--should-extend-p'."
              (partial-recall-memory--should-extend-p memory))
     (partial-recall-debug "Extending '%s'" memory)
 
-    (ring-extend (partial-recall-memory--ring memory) 1)))
+    (ring-extend (partial-recall-memory--moments memory) 1)))
 
 (defun partial-recall-memory--at-capacity-p (memory)
   "Check if MEMORY is at capacity."
-  (when-let ((ring (partial-recall-memory--ring memory)))
+  (when-let ((ring (partial-recall-memory--moments memory)))
 
     (= (ring-length ring) (ring-size ring))))
 
@@ -1160,7 +1160,7 @@ See `partial-recall-memory--should-extend-p'."
 This will be any moment that would be removed anyway by insertion
 beyond the memory's limit."
   (and-let* (((partial-recall-memory--at-capacity-p memory))
-             (ring (partial-recall-memory--ring memory))
+             (ring (partial-recall-memory--moments memory))
              ((not (zerop (ring-length ring))))
              (removed (ring-remove ring)))
 
@@ -1212,7 +1212,7 @@ This means the buffer won't be scheduled for handling."
   "Get the previous moment."
   (when-let* ((memory (partial-recall--reality))
               (current (partial-recall--find-owning-moment (current-buffer) memory))
-              (previous (ring-previous (partial-recall-memory--ring memory) current)))
+              (previous (ring-previous (partial-recall-memory--moments memory) current)))
 
     (partial-recall-moment--buffer previous)))
 
@@ -1220,7 +1220,7 @@ This means the buffer won't be scheduled for handling."
   "Get the next moment."
   (when-let* ((memory (partial-recall--reality))
               (current (partial-recall--find-owning-moment (current-buffer) memory))
-              (next (ring-next (partial-recall-memory--ring memory) current)))
+              (next (ring-next (partial-recall-memory--moments memory) current)))
 
     (partial-recall-moment--buffer next)))
 
@@ -1398,7 +1398,7 @@ Message will be formatted with ARGS."
         (format-time-string "%H:%M:%S" (seconds-to-time ts)))))
 
     ('partial-recall-memory
-     (let ((ring (partial-recall-memory--ring thing))
+     (let ((ring (partial-recall-memory--moments thing))
            (name (partial-recall-memory--name thing)))
 
        (format
@@ -1586,7 +1586,7 @@ This will normally show the current number of items in the
 memory; if the memory has exceeded its original size, the surplus
 is shown."
   (and-let* ((memory (partial-recall--reality))
-             (ring (partial-recall-memory--ring memory))
+             (ring (partial-recall-memory--moments memory))
              (orig-size (partial-recall-memory--orig-size memory))
              (size (ring-size ring))
              (length (ring-length ring)))

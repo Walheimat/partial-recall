@@ -62,7 +62,7 @@ INCLUDE-SUBCONSCIOUS is t."
         (unless (eq memory (partial-recall--reality))
           (push tab-name tab-names))
 
-        (dolist (moment (ring-elements (partial-recall-memory--ring memory)))
+        (dolist (moment (ring-elements (partial-recall-memory--moments memory)))
 
           (let* ((buffer (partial-recall-moment--buffer moment))
                  (implanted (partial-recall-moment--permanence moment))
@@ -196,7 +196,7 @@ If the moment is IMPLANTED, signal that."
 (defun partial-recall-menu--print-memory (memory)
   "Format MEMORY."
   (let ((orig-size (partial-recall-memory--orig-size memory))
-        (actual-size (ring-size (partial-recall-memory--ring memory)))
+        (actual-size (ring-size (partial-recall-memory--moments memory)))
         (tab-name (cond
                    ((partial-recall--realityp memory)
                     partial-recall-menu--present)

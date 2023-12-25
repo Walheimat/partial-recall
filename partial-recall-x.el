@@ -57,8 +57,8 @@ The specs are a plist of attributes `:size' and `:capacity' and
   (interactive)
 
   (let* ((memory (or memory (partial-recall--reality)))
-         (specs (list :size (ring-length (partial-recall-memory--ring memory))
-                      :capacity (ring-size (partial-recall-memory--ring memory))
+         (specs (list :size (ring-length (partial-recall-memory--moments memory))
+                      :capacity (ring-size (partial-recall-memory--moments memory))
                       :original-capacity (partial-recall-memory--orig-size memory))))
 
     (if (called-interactively-p 'any)

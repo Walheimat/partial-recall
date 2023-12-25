@@ -37,7 +37,7 @@
     (with-tab-history :pre t :second t
 
       (ring-insert
-       (partial-recall-memory--ring second-memory)
+       (partial-recall-memory--moments second-memory)
        (partial-recall--find-owning-moment (current-buffer)))
 
       (partial-recall-menu--revert)
@@ -164,7 +164,7 @@
       (bydi ((:ignore partial-recall--realityp))
         (should (string= "test-tab" (partial-recall-menu--print-memory (partial-recall--reality))))
 
-        (ring-resize (partial-recall-memory--ring (partial-recall--reality)) 11)
+        (ring-resize (partial-recall-memory--moments (partial-recall--reality)) 11)
 
         (should (string= "test-tab (+1)" (partial-recall-menu--print-memory (partial-recall--reality))))))))
 
