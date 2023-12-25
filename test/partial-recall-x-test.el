@@ -11,7 +11,7 @@
 (ert-deftest buffer-specs ()
   :tags '(needs-history)
 
-  (with-tab-history :pre t
+  (with-tab-history (:pre t)
     (partial-recall--implant)
 
     (should (equal '(:meaningful t :real t :implanted t)
@@ -25,7 +25,7 @@
 (ert-deftest memory-specs ()
   :tags '(needs-history)
 
-  (with-tab-history :pre t
+  (with-tab-history (:pre t)
     (should (equal '(:size 1 :capacity 10 :original-capacity 10)
                    (partial-recall-x-memory-specs)))
 

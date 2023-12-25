@@ -17,7 +17,7 @@
 (defvar test-table (make-hash-table :test #'equal))
 (defvar test-tabs (list test-tab))
 
-(cl-defmacro with-tab-history (&rest body &key pre lifts probes second wavers &allow-other-keys)
+(cl-defmacro with-tab-history ((&key pre lifts probes second wavers) &rest body)
   "Execute BODY in a clean environment.
 
 This environment is a clear tab history and a single existing
@@ -32,21 +32,25 @@ true, a second memory is created. If WAVERS is t,
 
   `(bydi ((:mock tab-bar--current-tab :return test-tab)
           (:mock tab-bar-tabs :return test-tabs)
-          ,(unless probes 'partial-recall--probe-memory)
-          ,(unless wavers '(:always partial-recall--meaningful-buffer-p))
-          ,(unless lifts '(:ignore partial-recall--lift)))
+          ,@(delq nil
+                  `(,(unless probes 'partial-recall--probe-memory)
+                    ,(unless wavers '(:always partial-recall--meaningful-buffer-p))
+                    ,(unless lifts '(:ignore partial-recall--lift)))))
 
      (let ((partial-recall--table test-table)
            (second-memory-key "second")
            (second-memory nil))
 
-       ,(when pre '(setq partial-recall--last-focus
-                         (partial-recall--remember (current-buffer))))
+       ,@(delq
+          nil
+          `(,(when pre
+               '(setq partial-recall--last-focus
+                              (partial-recall--remember (current-buffer))))
 
-       ,(when second
-          '(progn
-             (setq second-memory (partial-recall-memory--create second-memory-key))
-             (puthash second-memory-key second-memory partial-recall--table)))
+            ,(when second
+               '(progn
+                  (setq second-memory (partial-recall-memory--create second-memory-key))
+                  (puthash second-memory-key second-memory partial-recall--table)))))
 
        (unwind-protect
            ,@body

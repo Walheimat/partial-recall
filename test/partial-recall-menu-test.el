@@ -34,7 +34,7 @@
          (:mock partial-recall-menu--tab-name :return "test-tab")
          (:mock partial-recall-menu--frame :return "frame"))
 
-    (with-tab-history :pre t :second t
+    (with-tab-history (:pre t :second t)
 
       (ring-insert
        (partial-recall-memory--moments second-memory)
@@ -158,7 +158,7 @@
         (partial-recall-menu--null "0")
         (partial-recall-menu--present "1"))
 
-    (with-tab-history :pre t
+    (with-tab-history (:pre t)
       (should (string= "1" (partial-recall-menu--print-memory (partial-recall--reality))))
       (should (string= "0" (partial-recall-menu--print-memory (partial-recall--subconscious))))
       (bydi ((:ignore partial-recall--realityp))
