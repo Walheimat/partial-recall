@@ -813,14 +813,19 @@ Don't do anything if NORECORD is t."
 
     (partial-recall--maybe-switch-memory (window-buffer foreign) t)))
 
-;;; -- Actions
+;;; -- Verbs
+;;
+;; This section holds the core of the package, namely the verbs that
+;; change state.
 
 (defun partial-recall--remember (buffer)
-  "Remember the BUFFER for this tab.
+  "Remember BUFFER as belonging to the current reality.
 
 This will either create a new moment for the buffer or reclaim
-one from the subconscious, assuming no such moment is already
-part of the current reality."
+one from the subconscious.
+
+If BUFFER is already owned by the current reality, this is a
+no-op."
   (and-let* ((memory (partial-recall--reality))
              (ring (partial-recall-memory--moments memory))
              ((not (partial-recall-memory--owns-buffer-p memory buffer))))
@@ -833,24 +838,49 @@ part of the current reality."
         (partial-recall--ring-insert ring moment)))))
 
 (defun partial-recall--reinforce (buffer)
-  "Reinforce the BUFFER in reality.
+  "Reinforce BUFFER in reality.
 
-This will re-insert the buffer's moment."
+This will re-insert the buffer's moment in the current reality.
+
+If this buffer isn't already part of the current reality, this is
+a no-op."
   (and-let* ((reality (partial-recall--reality))
              (moment (partial-recall--find-owning-moment buffer reality)))
 
     (partial-recall--reinsert moment reality)))
 
+(defun partial-recall--reinsert (moment memory)
+  "Reinsert MOMENT into MEMORY.
+
+This removes, inserts and extends the memory. The moment is
+intensified.
+
+If the moment doesn't belong to memory, this is a no-op."
+  (and-let* ((ring (partial-recall-memory--moments memory))
+             ((ring-member ring moment))
+             (buffer (partial-recall-moment--buffer moment)))
+
+    (partial-recall-debug "Re-inserting '%s' in '%s'" moment memory)
+
+    (partial-recall-moment--intensify moment nil 'reinsert)
+
+    (ring-remove+insert+extend ring moment t)))
+
 (defun partial-recall--reclaim (buffer &optional force)
-  "Reclaim BUFFER if possible.
+  "Reclaim BUFFER for the current reality.
 
-If BUFFER is nil, reclaim the current buffer.
+This will move the buffer's moment from another memory provided
+that it is neither permanent nor short-term. This works across
+frames.
 
-If FORCE is t, will reclaim even if it was implanted or the
-threshold wasn't passed."
+If FORCE is t it will be reclaimed either way.
+
+If the buffer already belongs to the current reality, this is a
+no-op."
   (if-let* ((reality (partial-recall--reality))
             (owner (partial-recall--find-owning-memory buffer))
             ((not (eq reality owner)))
+
             (moment (partial-recall--find-owning-moment buffer owner))
             ((or force
                  (and
@@ -862,13 +892,19 @@ threshold wasn't passed."
           (partial-recall--clean-up-window buffer))
 
         (partial-recall--swap owner reality moment))
+
     (partial-recall-debug "Won't claim `%s'" buffer)))
 
 (defun partial-recall--forget (&optional buffer suppress)
   "Forget BUFFER.
 
-This will remove the buffer's moment from the memory. If SUPPRESS
-is t, the forgotten moment goes into the subconscious."
+This will remove the buffer's moment from its owning memory and
+clean-up remaining windows. The moment is probed afterwards.
+
+If SUPPRESS is t, the forgotten moment is moved into the
+subconscious.
+
+BUFFER defaults to the current buffer no buffer is passed."
   (when-let* ((buffer (or buffer (current-buffer)))
               ((partial-recall--buffer-mapped-p buffer t))
               (maybe-remove (lambda (key memory)
@@ -890,7 +926,10 @@ is t, the forgotten moment goes into the subconscious."
       (partial-recall-log "'%s' was removed from '%s'" buffer memory))))
 
 (defun partial-recall--forget-some ()
-  "Prompt the user to forget some moments."
+  "Forget some moments.
+
+This works like `kill-some-buffers' and will prompt the user to
+forget each moment while indicating if it has been modified."
   (let ((moments (partial-recall-moments)))
 
     (while moments
@@ -911,7 +950,12 @@ is t, the forgotten moment goes into the subconscious."
         (setq moments (cdr moments))))))
 
 (defun partial-recall--reject (buffer memory)
-  "Reject BUFFER and push it to MEMORY."
+  "Reject BUFFER and push it to MEMORY.
+
+This is the opposite of `partial-recall--reclaim'.
+
+This routine signals errors if the memory to push to is the
+current reality or if BUFFER doesn't belong to MEMORY."
   (let ((reality (partial-recall--reality)))
 
     (when (equal memory reality)
@@ -927,10 +971,11 @@ is t, the forgotten moment goes into the subconscious."
       (partial-recall--clean-up-buffer buffer))))
 
 (defun partial-recall--implant (&optional buffer excise)
-  "Make BUFFER's moment permanent.
+  "Implant BUFFER.
 
-A permanent moment can not be reclaimed and will not be
-automatically forgotten.
+This makes the buffer's owning moment permanent. A permanent
+moment can not be reclaimed and will not be automatically
+forgotten.
 
 If EXCISE is t, remove permanence instead."
   (when-let* ((buffer (or buffer (current-buffer)))
@@ -947,7 +992,13 @@ If EXCISE is t, remove permanence instead."
         (partial-recall-moment--reset-count moment)))))
 
 (defun partial-recall--suppress (moment)
-  "Suppress MOMENT in the subconscious."
+  "Suppress MOMENT.
+
+This moves it from its owning memory to the subconscious. If the
+owning memory is the subconscious it is instead killed unless
+`partial-recall-repress' is nil.
+
+The moved moment is intensified and reset."
   (and-let* ((buffer (partial-recall-moment--buffer moment))
              (memory (partial-recall--subconscious))
              ((not (partial-recall--buffer-in-memory-p buffer memory)))
@@ -969,10 +1020,16 @@ If EXCISE is t, remove permanence instead."
     (partial-recall--ring-insert ring moment)))
 
 (defun partial-recall--lift (buffer)
-  "Lift BUFFER into reality."
-  (when-let* ((sub (partial-recall--subconscious))
-              (reality (partial-recall--reality))
-              (moment (partial-recall--find-owning-moment buffer)))
+  "Lift BUFFER into reality.
+
+This moves a buffer from the subconscious to the current reality.
+
+If the buffer doesn't belong to the subconscious, this is a
+no-op."
+  (and-let* ((sub (partial-recall--subconscious))
+             ((partial-recall-memory--owns-buffer-p sub buffer))
+             (reality (partial-recall--reality))
+             (moment (partial-recall--find-owning-moment buffer)))
 
     (partial-recall-log "Lifting '%s' out of the subconscious" moment)
 
@@ -1001,7 +1058,8 @@ buffer."
 Both memories will be probed. Memory A after the moment was
 removed, memory B before it is inserted.
 
-If RESET is t, reset the swapped moment."
+The moment is intensified. RESET is passed to
+`partial-recall-moment--intensify' as-is."
   (and-let* ((a-ring (partial-recall-memory--moments a))
              (b-ring (partial-recall-memory--moments b))
              (index (ring-member a-ring moment))
@@ -1016,26 +1074,14 @@ If RESET is t, reset the swapped moment."
 
     (partial-recall--ring-insert b-ring removed)))
 
-(defun partial-recall--reinsert (moment memory)
-  "Reinsert MOMENT into MEMORY.
-
-This removes, inserts and extends. The moment is refreshed."
-  (and-let* ((ring (partial-recall-memory--moments memory))
-             ((ring-member ring moment))
-             (buffer (partial-recall-moment--buffer moment)))
-
-    (partial-recall-debug "Re-inserting '%s' in '%s'" moment memory)
-
-    (partial-recall-moment--intensify moment nil 'reinsert)
-
-    (ring-remove+insert+extend ring moment t)))
-
 (defun partial-recall--meld (a b &optional close)
   "Meld memories A and B.
 
-This moves all of the moments in A to B.
+This moves all of the moments of A to B.
 
-If CLOSE is t, the tab of B is closed."
+If CLOSE is t, the tab of B is closed afterwards.
+
+This routine signals an error if A and B are the same memory."
   (when (eq a b)
     (user-error "Can't shift moments from identical memories"))
 
@@ -1052,10 +1098,11 @@ If CLOSE is t, the tab of B is closed."
 (defun partial-recall--flush (memory &optional arg)
   "Flush MEMORY.
 
-If MEMORY is not provided, flush the reality.
-
 This will call all functions of `partial-recall-memorable-traits'
-to check if the moment should be kept, passing moment and ARG."
+to check if a moment should be kept, passing moment and ARG.
+
+Buffers that aren't kept are suppressed and have their windows
+cleaned up."
   (let* ((ring (partial-recall-memory--moments memory))
          (count 0))
 

@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Display of additional moment and memory info can now be toggled by
   customizing `partial-recall-lighter-show-info`.
+- The documentation of the core functions has been updated and
+  extended.
 
 ### Removed
 
