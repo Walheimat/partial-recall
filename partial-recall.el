@@ -697,40 +697,6 @@ be found, it will be ignored."
 
     (setq partial-recall--last-checked buffer)))
 
-(defun partial-recall--concentrate ()
-  "Concentrate on the current moment.
-
-If the moment has remained the same since the last cycle, its
-focus is intensified, otherwise concentration breaks."
-  (if (partial-recall--can-hold-concentration-p)
-      (progn
-        (partial-recall-debug "Concentration held on '%s'" partial-recall--last-focus)
-        (partial-recall-moment--intensify partial-recall--last-focus nil 'concentrate))
-
-    (when partial-recall--last-focus
-      (partial-recall-debug "Concentration on '%s' broke" partial-recall--last-focus))
-
-    (setq partial-recall--last-focus (partial-recall--find-owning-moment (current-buffer)))))
-
-(defun partial-recall--can-hold-concentration-p ()
-  "Check if concentration can be held."
-  (and partial-recall--last-focus
-       (or (eq (partial-recall--find-owning-moment (current-buffer))
-               partial-recall--last-focus)
-           (partial-recall--buffer-visible-p (partial-recall-moment--buffer partial-recall--last-focus)))))
-
-(defun partial-recall--shift-concentration (name)
-  "Re-concentrate after switching to NAME."
-  (when partial-recall--concentration-timer
-    (cancel-timer partial-recall--concentration-timer))
-
-  (partial-recall-debug "Shifting concentration towards %s" name)
-
-  (setq partial-recall--concentration-timer (run-with-timer
-                                             partial-recall-handle-delay
-                                             partial-recall--concentration-repeat
-                                             #'partial-recall--concentrate)))
-
 ;;; -- Reactions
 
 (defun partial-recall--before-switch-to-buffer (buffer &optional norecord &rest _)
@@ -1121,6 +1087,46 @@ cleaned up."
     (partial-recall-log "Flushed %d moments from '%s'" count memory)
 
     (partial-recall--probe-memory memory)))
+
+(defun partial-recall--concentrate ()
+  "Concentrate on the current moment.
+
+If the moment has remained the same since the last cycle, its
+focus is intensified, otherwise concentration breaks and the now
+current moment is focused."
+  (if (partial-recall--can-hold-concentration-p)
+      (progn
+        (partial-recall-debug "Concentration held on '%s'" partial-recall--last-focus)
+        (partial-recall-moment--intensify partial-recall--last-focus nil 'concentrate))
+
+    (when partial-recall--last-focus
+      (partial-recall-debug "Concentration on '%s' broke" partial-recall--last-focus))
+
+    (setq partial-recall--last-focus (partial-recall--find-owning-moment (current-buffer)))))
+
+(defun partial-recall--can-hold-concentration-p ()
+  "Check if concentration can be held.
+
+It can be held if the current buffer is the last focused buffer
+or if it remains visible."
+  (and partial-recall--last-focus
+       (or (eq (partial-recall--find-owning-moment (current-buffer))
+               partial-recall--last-focus)
+           (partial-recall--buffer-visible-p (partial-recall-moment--buffer partial-recall--last-focus)))))
+
+(defun partial-recall--shift-concentration (name)
+  "Re-concentrate after switching to NAME.
+
+This cancels and re-runs the timer."
+  (when partial-recall--concentration-timer
+    (cancel-timer partial-recall--concentration-timer))
+
+  (partial-recall-debug "Shifting concentration towards %s" name)
+
+  (setq partial-recall--concentration-timer (run-with-timer
+                                             partial-recall-handle-delay
+                                             partial-recall--concentration-repeat
+                                             #'partial-recall--concentrate)))
 
 ;;; -- Repercussions
 
