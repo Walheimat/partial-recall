@@ -472,7 +472,8 @@
         (should (ring-member ring moment))))))
 
 (ert-deftest pr-recollect--reinforces-reality-or-reclaims ()
-  (bydi ((:sometimes partial-recall--buffer-in-memory-p)
+  (bydi ((:always partial-recall--buffer-mapped-p)
+         (:sometimes partial-recall--buffer-in-memory-p)
          partial-recall--reinforce
          partial-recall--reclaim
          (:othertimes partial-recall--short-term-p))
@@ -485,6 +486,11 @@
 
     (partial-recall--recollect (current-buffer))
     (bydi-was-called partial-recall--reclaim)))
+
+(ert-deftest pr-recollect--signals-error ()
+  (bydi ((:ignore partial-recall--buffer-mapped-p))
+
+    (should-error (partial-recall--recollect (current-buffer)))))
 
 (ert-deftest pr-reinforce--reinforces-old-buffers ()
   :tags '(needs-history)

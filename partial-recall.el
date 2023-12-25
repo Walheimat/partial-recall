@@ -981,11 +981,16 @@ If EXCISE is t, remove permanence instead."
     moment))
 
 (defun partial-recall--recollect (buffer)
-  "Recollect the BUFFER.
+  "Recollect BUFFER.
 
-Recollection happens to mapped buffers. Those belonging to the
-current reality are reinforced. Those of other memories
-are (potentially) reclaimed."
+If the buffer belongs to the current reality, it is reinforced.
+Otherwise it is reclaimed.
+
+This routine raises an error if it is called with an unmapped
+buffer."
+  (unless (partial-recall--buffer-mapped-p buffer)
+    (user-error "Can't recollect an unmapped buffer"))
+
   (if (partial-recall--buffer-in-memory-p buffer)
       (partial-recall--reinforce buffer)
     (partial-recall--reclaim buffer)))
