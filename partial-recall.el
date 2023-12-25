@@ -1070,31 +1070,6 @@ to check if the moment should be kept, passing moment and ARG."
 
     (partial-recall--probe-memory memory)))
 
-(defun partial-recall--clean-up-window (buffer &optional frame)
-  "Clean up BUFFER's window.
-
-Optionally in FRAME."
-  (when-let* ((windows (window-list frame)))
-    (dolist (window windows)
-      (when (eq (window-buffer window) buffer)
-        (quit-window nil window)))))
-
-(defun partial-recall--clean-up-buffer (buffer)
-  "Clean up BUFFER if necessary.
-
-Deletes any window currently displaying it and makes sure it is
-no longer recorded as the last checked buffer."
-  (dolist (frame (frame-list))
-    (partial-recall--clean-up-window buffer frame)
-
-    (when (eq partial-recall--last-checked buffer)
-      (setq partial-recall--last-checked nil))
-
-    (when (and partial-recall--last-focus
-               (eq (partial-recall-moment--buffer partial-recall--last-focus)
-                   buffer))
-      (setq partial-recall--last-focus nil))))
-
 ;;; -- Repercussions
 
 (defun partial-recall--probe-memory (memory)
@@ -1198,6 +1173,31 @@ If UNSCHEDULED is t don't account for reclaiming."
 
     (with-current-buffer buffer
       (tab-bar-switch-to-tab (partial-recall--find-tab-name-from-memory owner)))))
+
+(defun partial-recall--clean-up-window (buffer &optional frame)
+  "Clean up BUFFER's window.
+
+Optionally in FRAME."
+  (when-let* ((windows (window-list frame)))
+    (dolist (window windows)
+      (when (eq (window-buffer window) buffer)
+        (quit-window nil window)))))
+
+(defun partial-recall--clean-up-buffer (buffer)
+  "Clean up BUFFER if necessary.
+
+Deletes any window currently displaying it and makes sure it is
+no longer recorded as the last checked buffer."
+  (dolist (frame (frame-list))
+    (partial-recall--clean-up-window buffer frame)
+
+    (when (eq partial-recall--last-checked buffer)
+      (setq partial-recall--last-checked nil))
+
+    (when (and partial-recall--last-focus
+               (eq (partial-recall-moment--buffer partial-recall--last-focus)
+                   buffer))
+      (setq partial-recall--last-focus nil))))
 
 ;;; -- Switching
 
