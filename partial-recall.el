@@ -484,7 +484,7 @@ This also checks for buffers that might have been obscured."
                            (memq buffer (mapcar #'window-buffer windows)))))
          (verb (if visible "remains" "is no longer")))
 
-    (partial-recall-debug "Buffer '%s' %s visible" buffer verb)
+    (partial-recall-debug "Buffer `%s' %s visible" buffer verb)
 
     visible))
 
@@ -638,7 +638,7 @@ If MEMORY is not in another form, this is a no-op."
               (info (partial-recall-memory--find-in-other-frame ,memory))
               (frame (plist-get info :frame)))
 
-     (partial-recall-debug "Evaluating on behalf of %s in other frame" ,memory)
+     (partial-recall-debug "Evaluating on behalf of `%s' in other frame" ,memory)
 
      (with-selected-frame frame
        ,@forms)))
@@ -662,7 +662,7 @@ If MEMORY is not in another form, this is a no-op."
 
       (partial-recall--void-schedule-timer)
 
-      (partial-recall-debug "Scheduling buffer '%s'" buffer)
+      (partial-recall-debug "Scheduling buffer `%s'" buffer)
 
       (setq partial-recall--schedule-timer
             (run-at-time
@@ -674,7 +674,9 @@ If MEMORY is not in another form, this is a no-op."
   "Void the current timer."
   (when partial-recall--schedule-timer
     (unless (timer--triggered partial-recall--schedule-timer)
-      (partial-recall-debug "Canceling previous timer '%s'" partial-recall--schedule-timer)
+
+      (partial-recall-debug "Canceling previous timer `%s'" partial-recall--schedule-timer)
+
       (cancel-timer partial-recall--schedule-timer))
 
     (setq partial-recall--schedule-timer nil)))
@@ -689,7 +691,7 @@ be found, it will be ignored."
 
   (when (partial-recall--buffer-visible-p buffer)
 
-    (partial-recall-log "Handling buffer '%s'" buffer)
+    (partial-recall-log "Handling buffer `%s'" buffer)
 
     (if (partial-recall--buffer-mapped-p buffer)
         (partial-recall--recollect buffer)
@@ -826,7 +828,7 @@ If the moment doesn't belong to memory, this is a no-op."
              ((ring-member ring moment))
              (buffer (partial-recall-moment--buffer moment)))
 
-    (partial-recall-debug "Re-inserting '%s' in '%s'" moment memory)
+    (partial-recall-debug "Re-inserting `%s' in `%s'" moment memory)
 
     (partial-recall-moment--intensify moment nil 'reinsert)
 
@@ -889,7 +891,7 @@ BUFFER defaults to the current buffer no buffer is passed."
     (let ((memory (catch 'found
                     (maphash maybe-remove partial-recall--table))))
 
-      (partial-recall-log "'%s' was removed from '%s'" buffer memory))))
+      (partial-recall-log "`%s' was removed from `%s'" buffer memory))))
 
 (defun partial-recall--forget-some ()
   "Forget some moments.
@@ -950,7 +952,7 @@ If EXCISE is t, remove permanence instead."
 
     (unless (eq (partial-recall-moment--permanence moment) (not excise))
 
-      (partial-recall-log "%s '%s'" verb moment)
+      (partial-recall-log "%s `%s'" verb moment)
 
       (partial-recall-moment--set-permanence moment (not excise))
 
@@ -976,10 +978,12 @@ The moved moment is intensified and reset."
              (buffer (partial-recall-moment--buffer removed)))
 
         (when partial-recall-repress
-          (partial-recall-log "Repressing '%s'" removed)
+
+          (partial-recall-log "Repressing `%s'" removed)
+
           (kill-buffer buffer))))
 
-    (partial-recall-debug "Suppressing '%s'" moment)
+    (partial-recall-debug "Suppressing `%s'" moment)
 
     (partial-recall-moment--intensify moment t 'suppress)
 
@@ -997,7 +1001,7 @@ no-op."
              (reality (partial-recall--reality))
              (moment (partial-recall--find-owning-moment buffer)))
 
-    (partial-recall-log "Lifting '%s' out of the subconscious" moment)
+    (partial-recall-log "Lifting `%s' out of the subconscious" moment)
 
     (partial-recall--swap sub reality moment t)
 
@@ -1031,7 +1035,7 @@ The moment is intensified. RESET is passed to
              (index (ring-member a-ring moment))
              (removed (ring-remove a-ring index)))
 
-    (partial-recall-log "Swapping '%s' from '%s' to '%s'" moment a b)
+    (partial-recall-log "Swapping `%s' from `%s' to `%s'" moment a b)
 
     (partial-recall--probe-memory a)
     (partial-recall--probe-memory b)
@@ -1084,7 +1088,7 @@ cleaned up."
 
         (partial-recall--clean-up-buffer (partial-recall-moment--buffer moment))))
 
-    (partial-recall-log "Flushed %d moments from '%s'" count memory)
+    (partial-recall-log "Flushed %d moments from `%s'" count memory)
 
     (partial-recall--probe-memory memory)))
 
@@ -1096,11 +1100,12 @@ focus is intensified, otherwise concentration breaks and the now
 current moment is focused."
   (if (partial-recall--can-hold-concentration-p)
       (progn
-        (partial-recall-debug "Concentration held on '%s'" partial-recall--last-focus)
+        (partial-recall-debug "Concentration held on `%s'" partial-recall--last-focus)
+
         (partial-recall-moment--intensify partial-recall--last-focus nil 'concentrate))
 
     (when partial-recall--last-focus
-      (partial-recall-debug "Concentration on '%s' broke" partial-recall--last-focus))
+      (partial-recall-debug "Concentration on `%s' broke" partial-recall--last-focus))
 
     (setq partial-recall--last-focus (partial-recall--find-owning-moment (current-buffer)))))
 
@@ -1167,7 +1172,8 @@ re-insert any implanted one."
 
     (when (and (not (partial-recall-memory--at-capacity-p memory))
                (> curr orig))
-      (partial-recall-debug "Resizing '%s'" memory)
+
+      (partial-recall-debug "Resizing `%s'" memory)
 
       (ring-resize ring (max (ring-length ring) orig)))))
 
@@ -1177,7 +1183,8 @@ re-insert any implanted one."
 See `partial-recall-memory--should-extend-p'."
   (when (and (partial-recall-memory--at-capacity-p memory)
              (partial-recall-memory--should-extend-p memory))
-    (partial-recall-debug "Extending '%s'" memory)
+
+    (partial-recall-debug "Extending `%s'" memory)
 
     (ring-extend (partial-recall-memory--moments memory) 1)))
 
@@ -1225,7 +1232,7 @@ If UNSCHEDULED is t don't account for reclaiming."
              (owner (partial-recall--find-owning-memory buffer))
              ((pcase partial-recall-auto-switch
                 ('prompt
-                 (yes-or-no-p (format "Switch to %s?" (partial-recall-repr owner))))
+                 (yes-or-no-p (format "Switch to `%s'?" (partial-recall-repr owner))))
                 ('t t)
                 (_ nil))))
 
@@ -1375,7 +1382,7 @@ If CONSIDER-DELAY is t, consider handling delay."
             (and (numberp max)
                  (> max 0)))
         (funcall fun buffer)
-      (partial-recall-warn "Function '%s' has the wrong arity" fun)
+      (partial-recall-warn "Function `%s' has the wrong arity" fun)
       t)))
 
 (defun partial-recall--explain-omission (&optional buffer)

@@ -986,7 +986,7 @@
         (should (partial-recall--meaningful-buffer-p (current-buffer)))
 
         (bydi-was-called-with partial-recall-warn
-          (list "Function '%s' has the wrong arity" 'point))))))
+          (list "Function `%s' has the wrong arity" 'point))))))
 
 (ert-deftest pr--meaningful-buffer-p--calls-traits-with-buffer ()
   (defun pr--trait-test (buffer)
