@@ -32,7 +32,8 @@
          (:mock partial-recall-menu--print-memory :return "rem")
          (:mock partial-recall-menu--print-presence :return "*")
          (:mock partial-recall-menu--tab-name :return "test-tab")
-         (:mock partial-recall-menu--frame :return "frame"))
+         (:mock partial-recall-menu--frame :return "frame")
+         (:always partial-recall-memory--at-capacity-p))
 
     (with-tab-history (:pre t :second t)
 
@@ -321,7 +322,8 @@
   :tags '(menu)
 
   (bydi ((:ignore buffer-name))
-    (should (string= partial-recall-menu--missing (partial-recall-menu--print-buffer (current-buffer))))))
+    (should (string= partial-recall-menu--missing (partial-recall-menu--print-buffer (current-buffer))))
+    (should (string= partial-recall-menu--missing (partial-recall-menu--print-buffer (current-buffer) t)))))
 
 ;;; partial-recall-menu-test.el ends here
 

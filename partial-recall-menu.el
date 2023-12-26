@@ -57,17 +57,23 @@ INCLUDE-SUBCONSCIOUS is t."
              (sub (partial-recall--subconsciousp memory))
              (tab-name (partial-recall-menu--tab-name memory))
              (frame (partial-recall-menu--frame memory))
-             (partial-recall-memory--pp (partial-recall-menu--print-memory memory)))
+             (partial-recall-memory--pp (partial-recall-menu--print-memory memory))
+             (at-capacity (partial-recall-memory--at-capacity-p memory))
+             (moments (ring-elements (partial-recall-memory--moments memory))))
 
         (unless (eq memory (partial-recall--reality))
           (push tab-name tab-names))
 
-        (dolist (moment (ring-elements (partial-recall-memory--moments memory)))
+        (dotimes (i (length moments))
 
-          (let* ((buffer (partial-recall-moment--buffer moment))
+          (let* ((moment (nth i moments))
+                 (buffer (partial-recall-moment--buffer moment))
                  (implanted (partial-recall-moment--permanence moment))
+                 (at-brink (and (not implanted)
+                                at-capacity
+                                (eq i (1- (length moments)))))
 
-                 (pp-buffer-name (partial-recall-menu--print-buffer buffer))
+                 (pp-buffer-name (partial-recall-menu--print-buffer buffer at-brink))
                  (pp-ts (partial-recall-menu--print-timestamp (partial-recall-moment--timestamp moment)))
                  (pp-presence (partial-recall-menu--print-presence (partial-recall-moment--focus moment) implanted))
 
@@ -166,10 +172,15 @@ is t, the name will be propertized."
 
 ;;; -- Printing
 
-(defun partial-recall-menu--print-buffer (buffer)
-  "Print BUFFER."
-  (or (buffer-name buffer)
-      partial-recall-menu--missing))
+(defun partial-recall-menu--print-buffer (buffer &optional at-brink)
+  "Print BUFFER.
+
+If AT-BRINK is t, print with warning face."
+  (let ((name (or (buffer-name buffer) partial-recall-menu--missing)))
+
+    (if at-brink
+        (propertize name 'face 'partial-recall-contrast)
+      name)))
 
 (defun partial-recall-menu--print-timestamp (timestamp)
   "Format TIMESTAMP."

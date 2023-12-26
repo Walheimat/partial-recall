@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   customizing `partial-recall-lighter-show-info`.
 - The documentation of the core functions has been updated and
   extended.
+- `partial-recall-menu` now highlights buffers that are at the brink
+  of being forgotten.
 
 ### Removed
 
