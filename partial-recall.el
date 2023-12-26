@@ -1076,6 +1076,8 @@ cleaned up."
   (let* ((ring (partial-recall-memory--moments memory))
          (count 0))
 
+    (partial-recall-log "Flushing %s" memory)
+
     (dolist (moment (ring-elements ring))
       (unless (seq-some (lambda (it) (funcall it moment arg)) partial-recall-memorable-traits)
 
@@ -1213,6 +1215,8 @@ This is true if COUNT exceeds `partial-recall-auto-implant'."
   (when (and (numberp partial-recall-auto-implant)
              (not (partial-recall-moment--permanence moment))
              (> count partial-recall-auto-implant))
+
+    (partial-recall-debug "Focus on `%s' raised to auto-implant threshold" moment)
 
     (partial-recall--implant (partial-recall-moment--buffer moment))))
 
