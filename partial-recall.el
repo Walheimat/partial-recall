@@ -1578,7 +1578,6 @@ Shows additional moment and memory info if
 
 (defvar partial-recall-lighter--title
   `(:propertize partial-recall-lighter-prefix
-                face partial-recall-deemphasized
                 mouse-face mode-line-highlight
                 help-echo "Partial Recall\nmouse-1: Implant/Excise\nmouse-3: Menu"
                 local-map ,partial-recall-lighter--map))
