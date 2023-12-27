@@ -7,10 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Changed
-
-- Many private functions (and underlying structures) were renamed.
-
 ### Added
 
 - Display of additional moment and memory info can now be toggled by
@@ -19,6 +15,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   extended.
 - `partial-recall-menu` now highlights buffers that are at the brink
   of being forgotten.
+- The lighter now shows the memory size when it hasn't grown past its
+  original size in the help echo.
+
+### Changed
+
+- Many private functions (and underlying structures) were renamed.
 
 ### Removed
 

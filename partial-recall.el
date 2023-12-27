@@ -1665,7 +1665,7 @@ is shown."
                       help-echo ,(format "Memory has grown to +%d" (- size orig-size)))
       `(:propertize ,(or (partial-recall-graph length size) "-")
                     face partial-recall-deemphasized
-                    help-echo ,(format "Memory contains %d moment(s)" length)))))
+                    help-echo ,(format "Memory contains %d/%d moment(s)" length size)))))
 
 ;;; -- Setup
 

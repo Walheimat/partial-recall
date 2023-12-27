@@ -1265,7 +1265,7 @@
         (should (equal
                  '(:propertize "|"
                                face partial-recall-deemphasized
-                               help-echo "Memory contains 1 moment(s)")
+                               help-echo "Memory contains 1/1 moment(s)")
                  (partial-recall-lighter--memory))))
 
       (let ((another-temp (generate-new-buffer " *temp*" t)))
