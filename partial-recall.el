@@ -907,7 +907,7 @@ forget each moment while indicating if it has been modified."
                  ((not (string-equal name ""))))
 
 
-        (when (yes-or-no-p (format "Forget %s (%s)?"
+        (when (yes-or-no-p (format "Forget `%s' (%s)?"
                                    (partial-recall-repr moment)
                                    (if (buffer-modified-p buffer)
                                        "modified"
@@ -1076,7 +1076,7 @@ cleaned up."
   (let* ((ring (partial-recall-memory--moments memory))
          (count 0))
 
-    (partial-recall-log "Flushing %s" memory)
+    (partial-recall-log "Flushing `%s'" memory)
 
     (dolist (moment (ring-elements ring))
       (unless (seq-some (lambda (it) (funcall it moment arg)) partial-recall-memorable-traits)
@@ -1128,7 +1128,7 @@ This cancels and re-runs the timer."
   (when partial-recall--concentration-timer
     (cancel-timer partial-recall--concentration-timer))
 
-  (partial-recall-debug "Shifting concentration towards %s" name)
+  (partial-recall-debug "Shifting concentration towards `%s'" name)
 
   (setq partial-recall--concentration-timer (run-with-timer
                                              partial-recall-handle-delay

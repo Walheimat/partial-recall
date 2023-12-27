@@ -585,7 +585,7 @@
 
       (partial-recall--forget-some)
 
-      (bydi-was-called-with yes-or-no-p "Forget #<test-moment> (unmodified)?")
+      (bydi-was-called-with yes-or-no-p "Forget `#<test-moment>' (unmodified)?")
 
       (bydi-was-called-with partial-recall--forget (list (current-buffer) t)))))
 
