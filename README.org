@@ -160,19 +160,22 @@ taken into account.
 #+begin_src emacs-lisp
 (use-package partial-recall
   :custom
-  (partial-recall-handle-delay 4) ;; The delay before a buffer is handled (remembered or re-inforced).
+  (partial-recall-handle-delay 3) ;; The delay before a buffer is handled (remembered or re-inforced).
   (partial-recall-buffer-limit 10) ;; The number of buffers in the ring.
   (partial-recall-intermediate-term 1200) ;; The age (in seconds) that, when exceeded, will allow reclaiming.
   (partial-recall-repress t) ;; Whether forgotten buffers should (eventually) be killed.
-  (partial-recall-auto-implant 4) ;; Amount of focus needed before auto-implanting.
+  (partial-recall-auto-implant 20) ;; Amount of focus needed before auto-implanting.
   (partial-recall-auto-switch t) ;; Whether to switch to a moment's tab automatically.
-  (partial-recall-mode-lighter " pr") ;; What you will in the mode-line.
+  (partial-recall-lighter-prefix "pr") ;; What you will in the mode-line.
   (partial-recall-record-triggers '(consult-buffer)) ;; Commands that might obscure buffers before they are handled.
   (partial-recall-log nil) ;; Whether to log actions. Set to 1 for info logs and 0 for debug logs.
   (partial-recall-log-prefix "PR") ;; Message prefix for log messages.
   (partial-recall-filter '("COMMIT_EDITMSG")) ;; Regexes of names that should be ignored.
-  (partial-recall-meaningful-traits '(buffer-file-name partial-recall--not-in-view-mode-p)) ;; List of functions that determine eligible buffers.
+  (partial-recall-meaningful-traits '(buffer-file-name ;; List of functions that determine eligible buffers.
+                                      partial-recall--not-filtered-p
+                                      partial-recall--not-in-view-mode-p))
   (partial-recall-memorable-traits '(partial-recall--gracedp)) ;; Don't flush recent and implanted moments.
+  (partial-recall-intensities '((swap . 1) (reinsert . 2) (concentrate . 2))) ;; Focus gained from actions.
 
   :config
   (partial-recall-mode)
