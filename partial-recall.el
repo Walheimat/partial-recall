@@ -89,7 +89,7 @@ repressed."
   :type 'boolean
   :group 'partial-recall)
 
-(defcustom partial-recall-auto-implant 10
+(defcustom partial-recall-auto-implant 20
   "The amount of focus before auto-implanting a moment.
 
 If this is nil, never auto-implant. The focus is increased by
@@ -175,7 +175,7 @@ considered memorable. See `partial-recall--flush'."
   :type '(repeat function)
   :group 'partial-recall)
 
-(defcustom partial-recall-intensities '((swap . 1) (reinsert . 2) (concentrate . 3))
+(defcustom partial-recall-intensities '((swap . 1) (reinsert . 2) (concentrate . 2))
   "The amount of focus gained from actions.
 
 See `partial-recall-moment--intensify' and its callers."

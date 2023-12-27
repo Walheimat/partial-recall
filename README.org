@@ -71,8 +71,8 @@ moments than its size will allow have been added without revisiting
 them. This removal is called "forgetting". You may also call
 =partial-recall-forget= (or =partial-recall-forget-some=) manually (or
 kill the buffer). Memories will grow instead of forgetting the oldest
-moment if it is still relatively young. This is determined by
-=partial-recall-intermediate-term=.
+moment if it is still relatively young. This (like reclaiming) is
+determined by =partial-recall-intermediate-term=.
 
 Forgotten buffers are not immediately lost, they are put in a special
 memory called the "subconscious" from which they can be "lifted" using
@@ -114,6 +114,9 @@ is broken and will begin again for the current buffer.
 
 /Note/ that concentration is a no-op if the =current-buffer= is not a
 meaningful buffer.
+
+Focus may grow well beyond threshold =partial-recall-implant=. As of
+now this has no further consequences.
 
 *** Meaningful buffers and buffer traits
 
