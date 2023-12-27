@@ -1189,15 +1189,30 @@
     (should (equal
              '(:propertize "-"
                            face partial-recall-deemphasized
-                           help-echo "Moment is fleeting")
+                           help-echo "Moment is fleeting (focus 0%)")
              (partial-recall-lighter--moment)))
 
     (partial-recall--implant)
 
     (should (equal '(:propertize "*"
                                  face partial-recall-contrast
-                                 help-echo "Moment is implanted")
+                                 help-echo "Moment is implanted (focus 0%)")
                    (partial-recall-lighter--moment)))
+
+    (let ((percentage nil))
+      (bydi ((:mock partial-recall-moment--focus-percentage :return percentage))
+
+        (should (equal '(:propertize "*"
+                                     face partial-recall-contrast
+                                     help-echo "Moment is implanted")
+                       (partial-recall-lighter--moment)))
+
+        (setq percentage 20.4)
+
+        (should (equal '(:propertize "*"
+                                     face partial-recall-contrast
+                                     help-echo "Moment is implanted (focus 20%)")
+                       (partial-recall-lighter--moment)))))
 
     (let ((explanation "testing"))
       (bydi ((:ignore partial-recall--find-owning-moment)

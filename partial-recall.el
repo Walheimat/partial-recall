@@ -447,6 +447,16 @@ If RESET is t, reset the focus instead and remove permanence."
 
   moment)
 
+(defun partial-recall-moment--focus-percentage (moment)
+  "The focus of MOMENT.
+
+The focus is returned as a percentage relative to
+`partial-recall-auto-implant'."
+  (and-let* ((focus (partial-recall-moment--focus moment))
+             (threshold partial-recall-auto-implant))
+
+    (* 100 (/ focus (* 1.0 threshold)))))
+
 ;;; -- Buffers
 
 (defun partial-recall-buffers (&optional include-subconscious)
@@ -1623,19 +1633,22 @@ Shows additional moment and memory info if
       (quit nil))))
 
 (defun partial-recall-lighter--moment ()
-  "Show moment information.
+  "Indicate moment state.
 
-This will show a propertized asterisk if the moment is permanent."
+The help echo gives further information."
   (if-let* ((buffer (current-buffer))
             (moment (partial-recall--find-owning-moment buffer)))
 
-      (if (partial-recall-moment--permanence moment)
-          '(:propertize "*"
-                        face partial-recall-contrast
-                        help-echo "Moment is implanted")
-        '(:propertize "-"
-                      face partial-recall-deemphasized
-                      help-echo "Moment is fleeting"))
+      (let* ((percentage (partial-recall-moment--focus-percentage moment))
+             (addendum (if percentage (format " (focus %d%%)" percentage) "")))
+
+        (if (partial-recall-moment--permanence moment)
+            `(:propertize "*"
+                          face partial-recall-contrast
+                          help-echo ,(concat "Moment is implanted" addendum))
+          `(:propertize "-"
+                        face partial-recall-deemphasized
+                        help-echo ,(concat "Moment is fleeting" addendum))))
     (if (partial-recall--meaningful-buffer-p buffer)
         '(:propertize "?"
                       face partial-recall-deemphasized

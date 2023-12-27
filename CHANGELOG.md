@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   of being forgotten.
 - The lighter now shows the memory size when it hasn't grown past its
   original size in the help echo.
+- The lighter now shows the focus of a moment as a percentage
+  (provided `partial-recall-auto-implant` is set).
 
 ### Changed
 
