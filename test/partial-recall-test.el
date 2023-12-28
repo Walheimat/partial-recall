@@ -1193,11 +1193,22 @@
                            help-echo "Moment is fleeting (focus 0%)")
              (partial-recall-lighter--moment)))
 
+    (let ((partial-recall-auto-implant 20)
+          (partial-recall-intensities '((test . 1))))
+
+      (partial-recall-moment--intensify (partial-recall-current-moment) nil 'test)
+
+      (should (equal
+               '(:propertize "▁"
+                             face partial-recall-deemphasized
+                             help-echo "Moment is fleeting (focus 5%)")
+               (partial-recall-lighter--moment))))
+
     (partial-recall--implant)
 
     (should (equal '(:propertize "*"
                                  face partial-recall-contrast
-                                 help-echo "Moment is implanted (focus 0%)")
+                                 help-echo "Moment is implanted (focus 5%)")
                    (partial-recall-lighter--moment)))
 
     (let ((percentage nil))

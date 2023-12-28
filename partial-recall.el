@@ -1651,7 +1651,7 @@ The help echo gives further information."
             `(:propertize "*"
                           face partial-recall-contrast
                           help-echo ,(concat "Moment is implanted" addendum))
-          `(:propertize "-"
+          `(:propertize ,(partial-recall-lighter--fleeting-repr moment)
                         face partial-recall-deemphasized
                         help-echo ,(concat "Moment is fleeting" addendum))))
     (if (partial-recall--meaningful-buffer-p buffer)
@@ -1664,6 +1664,13 @@ The help echo gives further information."
         `(:propertize "!"
                       face ,face
                       help-echo ,echo)))))
+
+(defun partial-recall-lighter--fleeting-repr (moment)
+  "Get the representation of fleeting MOMENT."
+  (let ((focus (partial-recall-moment--focus moment)))
+
+    (or (partial-recall-graph focus partial-recall-auto-implant)
+        "-")))
 
 (defun partial-recall-lighter--memory ()
   "Show memory information.
