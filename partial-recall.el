@@ -1424,9 +1424,10 @@ its explainer (property
 
 Selects a symbol based on VAL's relation to MAX."
   (let ((index 0)
+        (max (or max 0))
         (max-index (1- (length partial-recall-graph--blocks))))
 
-    (unless (zerop val)
+    (unless (or (zerop val) (zerop max))
       (while (and (> val (* max (nth index partial-recall-graph--ratios)))
                   (< index max-index))
         (setq index (1+ index)))

@@ -1473,6 +1473,11 @@
 
     (should (partial-recall--foreignp 'memory))))
 
+(ert-deftest pr-graph--nothing-for-zeroes ()
+  (should-not (partial-recall-graph 0 1))
+  (should-not (partial-recall-graph 1 0))
+  (should-not (partial-recall-graph 2 nil)))
+
 ;;; partial-recall-test.el ends here
 
 ;; Local Variables:
