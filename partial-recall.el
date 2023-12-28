@@ -541,6 +541,10 @@ Searches all memories unless MEMORY is provided."
 
     (ring-ref ring index)))
 
+(defun partial-recall-current-moment ()
+  "Get the current buffer's moment."
+  (partial-recall--find-owning-moment (current-buffer)))
+
 ;;; -- Tabs
 
 (defun partial-recall--find-tab-from-memory (memory &optional frame)

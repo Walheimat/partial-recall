@@ -209,7 +209,7 @@
 
       (should-not (partial-recall--can-hold-concentration-p))
 
-      (setq partial-recall--last-focus (partial-recall--find-owning-moment (current-buffer)))
+      (setq partial-recall--last-focus (partial-recall-current-moment))
 
       (should (partial-recall--can-hold-concentration-p))
 
@@ -529,6 +529,7 @@
 
     (with-tab-history nil
       (bydi ((:mock time-to-seconds :with (lambda (&rest _) (pop seconds))))
+
         (partial-recall--remember (current-buffer))
 
         (bydi ((:mock partial-recall--reality :return mock-reality)
@@ -669,7 +670,7 @@
   :tags '(needs-history)
 
   (with-tab-history (:pre t)
-    (let ((moment (partial-recall--find-owning-moment (current-buffer))))
+    (let ((moment (partial-recall-current-moment)))
 
       (partial-recall--implant (current-buffer))
       (should (partial-recall-moment--permanence moment))
@@ -750,7 +751,7 @@
         (bydi-was-called-n-times partial-recall--maybe-implant-moment 2)
         (bydi-was-called-n-times partial-recall--implant 1)
 
-        (let ((moment (partial-recall--find-owning-moment (current-buffer))))
+        (let ((moment (partial-recall-current-moment)))
           (should (partial-recall-moment--permanence moment)))
 
         (partial-recall--implant (current-buffer) t)
