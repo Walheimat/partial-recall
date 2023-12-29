@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Convenience function `partial-recall-current-moment`.
 - Lighter now shows focus using `partial-recall-graph` if fleeting.
+- Concentration is now deferred until a meaningful buffer can be its
+  target.
 
 ## [0.9.1]
 

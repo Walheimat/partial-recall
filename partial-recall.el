@@ -199,6 +199,7 @@ See `partial-recall-moment--intensify' and its callers."
 (defvar partial-recall--schedule-timer nil)
 
 (defvar partial-recall--concentration-timer nil)
+(defvar partial-recall--concentration-deferred nil)
 
 (defvar partial-recall--last-focus nil)
 
@@ -1131,7 +1132,32 @@ current moment is focused."
     (when partial-recall--last-focus
       (partial-recall-debug "Concentration on `%s' broke" partial-recall--last-focus))
 
-    (setq partial-recall--last-focus (partial-recall--find-owning-moment (current-buffer)))))
+    (if-let ((moment (partial-recall--find-owning-moment (current-buffer))))
+
+        (progn
+          (when partial-recall--concentration-deferred
+            (partial-recall-debug "Aborting deferred concentration")
+
+            (setq partial-recall--concentration-deferred nil)
+
+            (partial-recall--start-concentration partial-recall-concentration-cycle))
+
+          (partial-recall-debug "Concentration on `%s' begins" moment)
+          (setq partial-recall--last-focus moment))
+
+      (unless partial-recall--concentration-deferred
+        (setq partial-recall--last-focus nil)
+        (partial-recall--defer-concentration)))))
+
+(defun partial-recall--defer-concentration ()
+  "Defer concentration.
+
+This restarts the cycle with a much shorter repeat time until
+concentration on a moment can begin."
+  (partial-recall-debug "Deferring concentration")
+
+  (setq partial-recall--concentration-deferred t)
+  (partial-recall--start-concentration nil partial-recall-handle-delay))
 
 (defun partial-recall--can-hold-concentration-p ()
   "Check if concentration can be held.
@@ -1147,15 +1173,29 @@ or if it remains visible."
   "Re-concentrate after switching to NAME.
 
 This cancels and re-runs the timer."
+  (partial-recall-debug "Shifting concentration towards `%s'" name)
+
+  (partial-recall--start-concentration))
+
+(defun partial-recall--start-concentration (&optional secs repeat)
+  "Start concentrating.
+
+This cancels a previously running timer.
+
+Optionally SECS and REPEAT can be passed which are passed along
+to `run-with-timer'. They default to
+`partial-recall-handle-delay' and
+`partial-recall-concentration-cycle'."
   (when partial-recall--concentration-timer
     (cancel-timer partial-recall--concentration-timer))
 
-  (partial-recall-debug "Shifting concentration towards `%s'" name)
+  (when-let ((secs (or secs partial-recall-handle-delay))
+             (repeat (or repeat partial-recall-concentration-cycle)))
 
-  (setq partial-recall--concentration-timer (run-with-timer
-                                             partial-recall-handle-delay
-                                             partial-recall-concentration-cycle
-                                             #'partial-recall--concentrate)))
+    (setq partial-recall--concentration-timer (run-with-timer
+                                               (1+ secs)
+                                               (1+ repeat)
+                                               #'partial-recall--concentrate))))
 
 ;;; -- Repercussions
 
