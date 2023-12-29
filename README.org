@@ -107,16 +107,20 @@ manually.
 
 *** Concentration
 
-Every minute =partial-recall= will "concentrate" on the
-=current-buffer=. If the focused buffer doesn't change between cycles
-its focus will increase (see *Permanence*) otherwise concentration
-is broken and will begin again for the current buffer.
+Every =partial-recall-concentration-cycle= seconds =partial-recall=
+will "concentrate" on the =current-buffer=. If the focused buffer
+doesn't change between cycles its focus will increase (see
+*Permanence*) otherwise concentration is broken and will begin again
+for the current buffer.
 
 /Note/ that concentration is a no-op if the =current-buffer= is not a
 meaningful buffer.
 
 Focus may grow well beyond threshold =partial-recall-implant=. As of
 now this has no further consequences.
+
+Switching tabs has concentration shift to the new tab's current buffer
+and resets the cycle.
 
 *** Meaningful buffers and buffer traits
 
@@ -165,6 +169,7 @@ taken into account.
   (partial-recall-intermediate-term 1200) ;; The age (in seconds) that, when exceeded, will allow reclaiming.
   (partial-recall-repress t) ;; Whether forgotten buffers should (eventually) be killed.
   (partial-recall-auto-implant 20) ;; Amount of focus needed before auto-implanting.
+  (partial-recall-concentration-cycle 60) ;; Amount of seconds between checking whether a buffer remained visible.
   (partial-recall-auto-switch t) ;; Whether to switch to a moment's tab automatically.
   (partial-recall-lighter-prefix "pr") ;; What you will in the mode-line.
   (partial-recall-record-triggers '(consult-buffer)) ;; Commands that might obscure buffers before they are handled.

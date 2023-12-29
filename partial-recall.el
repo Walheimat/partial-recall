@@ -29,8 +29,8 @@
 ;; memory: the subconscious. Once they leave the subconscious as well,
 ;; their buffers are killed. When a moment is implanted, it will not
 ;; leave the memory automatically anymore, instead it is reinforced
-;; (reinserted). Continually re-visiting a moment will automatically
-;; implant it.
+;; (reinserted). Continually re-visiting a moment or keeping it
+;; visible for a while will eventually implant it.
 
 ;;; Code:
 
@@ -88,6 +88,15 @@ overflows are killed using `kill-buffer' if they may be
 repressed."
   :type 'boolean
   :group 'partial-recall)
+
+(defcustom partial-recall-concentration-cycle 60
+  "Number of seconds a cycle of concentration takes.
+
+If a buffer remains visible from when the cycle began until it
+ends, its focus is increased. Can be set to nil to disable
+concentration."
+  :type '(choice (integer :tag "Number of seconds")
+                 (const :tag "Don't use" nil)))
 
 (defcustom partial-recall-auto-implant 20
   "The amount of focus before auto-implanting a moment.
@@ -190,7 +199,6 @@ See `partial-recall-moment--intensify' and its callers."
 (defvar partial-recall--schedule-timer nil)
 
 (defvar partial-recall--concentration-timer nil)
-(defconst partial-recall--concentration-repeat 60)
 
 (defvar partial-recall--last-focus nil)
 
@@ -1146,7 +1154,7 @@ This cancels and re-runs the timer."
 
   (setq partial-recall--concentration-timer (run-with-timer
                                              partial-recall-handle-delay
-                                             partial-recall--concentration-repeat
+                                             partial-recall-concentration-cycle
                                              #'partial-recall--concentrate)))
 
 ;;; -- Repercussions
