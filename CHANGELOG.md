@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Lighter now shows focus using `partial-recall-graph` if fleeting.
 - Concentration is now deferred until a meaningful buffer can be its
   target.
+- Lighter indicates foreign moments.
 
 ## [0.9.1]
 

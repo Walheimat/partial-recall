@@ -1695,13 +1695,18 @@ The help echo gives further information."
       (let* ((percentage (partial-recall-moment--focus-percentage moment))
              (addendum (if percentage (format " (focus %d%%)" percentage) "")))
 
-        (if (partial-recall-moment--permanence moment)
-            `(:propertize "*"
-                          face partial-recall-contrast
-                          help-echo ,(concat "Moment is implanted" addendum))
-          `(:propertize ,(partial-recall-lighter--fleeting-repr moment)
-                        face partial-recall-deemphasized
-                        help-echo ,(concat "Moment is fleeting" addendum))))
+        (if (partial-recall--buffer-in-memory-p buffer)
+            (if (partial-recall-moment--permanence moment)
+                `(:propertize "*"
+                              face partial-recall-contrast
+                              help-echo ,(concat "Moment is implanted" addendum))
+              `(:propertize ,(partial-recall-lighter--fleeting-repr moment)
+                            face partial-recall-deemphasized
+                            help-echo ,(concat "Moment is fleeting" addendum)))
+          `(:propertize "!"
+                        face partial-recall-contrast
+                        help-echo ,(concat "Moment is foreign" addendum))))
+
     (if (partial-recall--meaningful-buffer-p buffer)
         '(:propertize "?"
                       face partial-recall-deemphasized

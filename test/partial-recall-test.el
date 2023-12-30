@@ -1243,6 +1243,7 @@
                    (partial-recall-lighter--moment)))
 
     (let ((percentage nil))
+
       (bydi ((:mock partial-recall-moment--focus-percentage :return percentage))
 
         (should (equal '(:propertize "*"
@@ -1258,6 +1259,7 @@
                        (partial-recall-lighter--moment)))))
 
     (let ((explanation "testing"))
+
       (bydi ((:ignore partial-recall--find-owning-moment)
              (:mock partial-recall--explain-omission :return explanation)
              (:sometimes partial-recall--meaningful-buffer-p))
@@ -1280,6 +1282,16 @@
                                      face partial-recall-deemphasized
                                      help-echo  "Not meaningful")
                        (partial-recall-lighter--moment)))))))
+
+(ert-deftest partial-recall-lighter--moment--foreign ()
+  (bydi ((:always partial-recall--find-owning-moment)
+         (:ignore partial-recall-moment--focus-percentage)
+         (:ignore partial-recall--buffer-in-memory-p))
+
+    (should (equal '(:propertize "!"
+                                 face partial-recall-contrast
+                                 help-echo "Moment is foreign")
+                   (partial-recall-lighter--moment)))))
 
 (ert-deftest partial-recall-lighter--menu ()
   (defvar partial-recall-command-map)
