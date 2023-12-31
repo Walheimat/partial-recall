@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   target.
 - Lighter indicates foreign moments.
 
+### Fixed
+
+- Concentration breaks on foreign moments.
+
 ## [0.9.1]
 
 ### Added

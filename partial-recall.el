@@ -1117,57 +1117,70 @@ cleaned up."
 
     (partial-recall--probe-memory memory)))
 
+(define-error 'prcon-not-owned "Buffer is not owned" 'partial-recall-errors)
+(define-error 'prcon-changed "Buffer has changed" 'partial-recall-errors)
+
 (defun partial-recall--concentrate ()
   "Concentrate on the current moment.
 
 If the moment has remained the same since the last cycle, its
 focus is intensified, otherwise concentration breaks and the now
 current moment is focused."
-  (if (partial-recall--can-hold-concentration-p)
+  (condition-case err
       (progn
-        (partial-recall-debug "Concentration held on `%s'" partial-recall--last-focus)
-
+        (partial-recall--hold-concentration)
         (partial-recall-moment--intensify partial-recall--last-focus nil 'concentrate))
+    (prcon-not-owned
+     (partial-recall--defer-concentration))
+    (prcon-changed
+     (let ((moment (cdr err)))
 
-    (when partial-recall--last-focus
-      (partial-recall-debug "Concentration on `%s' broke" partial-recall--last-focus))
+       (when partial-recall--last-focus
+        (partial-recall-debug "Concentration on `%s' broke" partial-recall--last-focus))
 
-    (if-let ((moment (partial-recall--find-owning-moment (current-buffer))))
+       (partial-recall--renew-concentration)
+       (partial-recall-debug "Concentration on `%s' begins" moment)
 
-        (progn
-          (when partial-recall--concentration-deferred
-            (partial-recall-debug "Aborting deferred concentration")
+       (setq partial-recall--last-focus moment)))))
 
-            (setq partial-recall--concentration-deferred nil)
+(defun partial-recall--hold-concentration ()
+  "Try to hold concentration."
+  (let* ((buffer (current-buffer))
+         (moment (partial-recall--find-owning-moment buffer)))
 
-            (partial-recall--start-concentration partial-recall-concentration-cycle))
+    (unless (or moment (partial-recall--buffer-in-memory-p buffer))
+      (signal 'prcon-not-owned buffer))
 
-          (partial-recall-debug "Concentration on `%s' begins" moment)
-          (setq partial-recall--last-focus moment))
+    (unless (and partial-recall--last-focus
+                 (or (eq moment
+                         partial-recall--last-focus)
+                     (partial-recall--buffer-visible-p
+                      (partial-recall-moment--buffer partial-recall--last-focus))))
 
-      (unless partial-recall--concentration-deferred
-        (setq partial-recall--last-focus nil)
-        (partial-recall--defer-concentration)))))
+      (signal 'prcon-changed moment))
+
+    (partial-recall-debug "Concentration held on `%s'" partial-recall--last-focus)))
 
 (defun partial-recall--defer-concentration ()
   "Defer concentration.
 
 This restarts the cycle with a much shorter repeat time until
 concentration on a moment can begin."
-  (partial-recall-debug "Deferring concentration")
+  (unless partial-recall--concentration-deferred
+    (partial-recall-debug "Deferring concentration")
 
-  (setq partial-recall--concentration-deferred t)
-  (partial-recall--start-concentration nil partial-recall-handle-delay))
+    (setq partial-recall--concentration-deferred t
+          partial-recall--last-focus nil)
+    (partial-recall--start-concentration nil partial-recall-handle-delay)))
 
-(defun partial-recall--can-hold-concentration-p ()
-  "Check if concentration can be held.
+(defun partial-recall--renew-concentration ()
+  "Renew concentration cycle."
+  (when partial-recall--concentration-deferred
+    (partial-recall-debug "Aborting deferred concentration")
 
-It can be held if the current buffer is the last focused buffer
-or if it remains visible."
-  (and partial-recall--last-focus
-       (or (eq (partial-recall--find-owning-moment (current-buffer))
-               partial-recall--last-focus)
-           (partial-recall--buffer-visible-p (partial-recall-moment--buffer partial-recall--last-focus)))))
+    (setq partial-recall--concentration-deferred nil)
+
+    (partial-recall--start-concentration partial-recall-concentration-cycle)))
 
 (defun partial-recall--shift-concentration (name)
   "Re-concentrate after switching to NAME.

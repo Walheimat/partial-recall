@@ -173,59 +173,51 @@
 
       (should-not partial-recall--schedule-timer))))
 
-(ert-deftest pr--concentrate ()
+(ert-deftest pr--concentrate--defers-for-not-owned ()
   :tags '(concentration)
 
-  (let ((partial-recall--last-focus 'last)
-        (partial-recall--concentration-deferred nil)
-        (owning nil)
-        (partial-recall-concentration-cycle 10))
+  (bydi ((:ignore partial-recall--find-owning-moment)
+         (:ignore partial-recall--buffer-in-memory-p)
+         partial-recall--defer-concentration)
 
-    (bydi ((:sometimes partial-recall--can-hold-concentration-p)
-           partial-recall-moment--intensify
-           partial-recall-debug
-           (:mock partial-recall--find-owning-moment :return owning)
-           (:watch partial-recall--last-focus)
-           partial-recall--defer-concentration
-           partial-recall--start-concentration)
+    (partial-recall--concentrate)
 
-      (partial-recall--concentrate)
+    (bydi-was-called partial-recall--defer-concentration)))
 
-      (bydi-was-called partial-recall-moment--intensify)
-
-      (bydi-toggle-sometimes)
-
-      (partial-recall--concentrate)
-
-      (bydi-was-set-to partial-recall--last-focus nil)
-      (bydi-was-called partial-recall--defer-concentration)
-
-      (setq partial-recall--concentration-deferred t
-            owning 'next)
-
-      (partial-recall--concentrate)
-
-      (bydi-was-called-with partial-recall--start-concentration 10)
-      (bydi-was-set-to partial-recall--last-focus 'next))))
-
-(ert-deftest pr--can-hold-concentration-p ()
-  :tags '(needs-history)
+(ert-deftest pr--concentrate--renews-after-change ()
+  :tags '(concentration)
 
   (with-tab-history (:pre t)
-    (let ((partial-recall--last-focus nil))
+    (let ((partial-recall--last-focus (partial-recall-current-moment)))
 
-      (should-not (partial-recall--can-hold-concentration-p))
+      (bydi ((:mock partial-recall--find-owning-moment :return 'new)
+             partial-recall--renew-concentration
+             (:watch partial-recall--last-focus)
+             (:ignore partial-recall--buffer-visible-p))
 
-      (setq partial-recall--last-focus (partial-recall-current-moment))
+        (partial-recall--concentrate)
 
-      (should (partial-recall--can-hold-concentration-p))
+        (bydi-was-called partial-recall--renew-concentration)
+        (bydi-was-set-to partial-recall--last-focus 'new)))))
 
-      (bydi ((:sometimes partial-recall--buffer-remains-visible-p))
-        (let* ((another (generate-new-buffer " *temp*" t))
-               (moment (partial-recall-moment--create another)))
+(ert-deftest pr--hold-concentration--can-hold ()
+  :tags '(concentration)
 
-          (setq partial-recall--last-focus moment)
-          (should-not (partial-recall--can-hold-concentration-p)))))))
+  (with-tab-history (:pre t)
+
+    (let* ((partial-recall--last-focus (partial-recall-current-moment))
+           (another (generate-new-buffer " *temp*" t))
+           (another-moment (partial-recall-moment--create another)))
+
+      (bydi (partial-recall-moment--intensify
+             (:mock partial-recall--find-owning-moment :return another)
+             (:always partial-recall--buffer-visible-p))
+
+        (partial-recall--concentrate)
+
+        (bydi-was-called-with partial-recall-moment--intensify `(,partial-recall--last-focus ...))
+
+        (kill-buffer another)))))
 
 (ert-deftest pr--shift-or-defer-concentration ()
   :tags '(concentration)
@@ -246,6 +238,29 @@
       (bydi-was-set partial-recall--concentration-deferred)
 
       (bydi-was-called-with partial-recall--start-concentration '(nil 5)))))
+
+(ert-deftest pr--renew-concentration ()
+  :tags '(concentration)
+
+  (let ((partial-recall--concentration-deferred nil)
+        (partial-recall-concentration-cycle 10))
+
+    (bydi (partial-recall--start-concentration
+           (:watch partial-recall--concentration-deferred))
+
+      (partial-recall--renew-concentration)
+
+      (bydi-was-not-called partial-recall--start-concentration)
+      (bydi-was-not-set partial-recall--concentration-deferred)
+
+      (setq partial-recall--concentration-deferred t)
+
+      (bydi-clear-mocks-for 'partial-recall--concentration-deferred)
+
+      (partial-recall--renew-concentration)
+
+      (bydi-was-called-with partial-recall--start-concentration 10)
+      (bydi-was-set partial-recall--concentration-deferred))))
 
 (ert-deftest pr--start-concentration ()
   :tags '(concentration)
