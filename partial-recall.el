@@ -1321,7 +1321,7 @@ beyond the memory's limit."
 This is true if COUNT exceeds `partial-recall-auto-implant'."
   (when (and (numberp partial-recall-auto-implant)
              (not (partial-recall-moment--permanence moment))
-             (> count partial-recall-auto-implant))
+             (>= count partial-recall-auto-implant))
 
     (partial-recall-debug "Focus on `%s' raised to auto-implant threshold" moment)
 

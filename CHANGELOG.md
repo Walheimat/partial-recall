@@ -15,6 +15,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   target.
 - Lighter indicates foreign moments.
 
+### Changed
+
+- Moments are now auto-implanted if their focus is equal or greater
+  than the required focus.
+
 ### Fixed
 
 - Concentration breaks on foreign moments.

@@ -782,7 +782,7 @@
 (ert-deftest pr--maybe-implant-moment ()
   :tags '(needs-history)
 
-  (let ((partial-recall-auto-implant 1)
+  (let ((partial-recall-auto-implant 2)
         (partial-recall-intensities '((reinsert . 1))))
     (with-tab-history (:pre t)
 
