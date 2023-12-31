@@ -70,8 +70,9 @@ INCLUDE-SUBCONSCIOUS is t."
                  (buffer (partial-recall-moment--buffer moment))
                  (implanted (partial-recall-moment--permanence moment))
                  (at-brink (and (not implanted)
-                                at-capacity
-                                (eq i (1- (length moments)))))
+                                (or (and at-capacity
+                                         (eq i (1- (length moments))))
+                                    (partial-recall--intermediate-term-p moment))))
 
                  (pp-buffer-name (partial-recall-menu--print-buffer buffer at-brink))
                  (pp-ts (partial-recall-menu--print-timestamp (partial-recall-moment--timestamp moment)))
@@ -175,7 +176,8 @@ is t, the name will be propertized."
 (defun partial-recall-menu--print-buffer (buffer &optional at-brink)
   "Print BUFFER.
 
-If AT-BRINK is t, print with warning face."
+If AT-BRINK is t, print with warning face. These are buffers that
+are either the oldest moment or intermediate moments."
   (let ((name (or (buffer-name buffer) partial-recall-menu--missing)))
 
     (if at-brink

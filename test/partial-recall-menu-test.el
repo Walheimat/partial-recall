@@ -33,7 +33,8 @@
          (:mock partial-recall-menu--print-presence :return "*")
          (:mock partial-recall-menu--tab-name :return "test-tab")
          (:mock partial-recall-menu--frame :return "frame")
-         (:always partial-recall-memory--at-capacity-p))
+         (:sometimes partial-recall-memory--at-capacity-p)
+         (:othertimes partial-recall--intermediate-term-p))
 
     (with-tab-history (:pre t :second t)
 
@@ -54,6 +55,8 @@
                       '("Timestamp" 9 t))
                      tabulated-list-format))
       (bydi-was-called tabulated-list-init-header)
+
+      (bydi-toggle-sometimes)
 
       (partial-recall-menu--revert t)
 

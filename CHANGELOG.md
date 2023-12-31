@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Concentration is now deferred until a meaningful buffer can be its
   target.
 - Lighter indicates foreign moments.
+- The menu now also indicates intermediate moments using a contrasting
+  face.
 
 ### Changed
 
