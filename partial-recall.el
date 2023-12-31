@@ -191,7 +191,9 @@ See `partial-recall-moment--intensify' and its callers."
   :type '(alist :key-type symbol :value-type integer)
   :group 'partial-recall)
 
-;;; -- Internal variables
+;;; -- Variables
+
+;;; ---- Private variables
 
 (defvar partial-recall--table (make-hash-table :test #'equal))
 (defconst partial-recall--subconscious-key "subconscious")
@@ -212,6 +214,8 @@ See `partial-recall-moment--intensify' and its callers."
 (defvar partial-recall--before-minibuffer nil)
 
 (defvar-local partial-recall--implanted nil)
+
+;;; ---- Maps
 
 ;;;###autoload
 (defvar partial-recall-command-map
@@ -241,6 +245,8 @@ See `partial-recall-moment--intensify' and its callers."
   "n" 'partial-recall-next
   "p" 'partial-recall-previous)
 
+;;; ---- Faces
+
 (defface partial-recall-emphasis
   '((t (:inherit (mode-line-emphasis))))
   "Face used for emphasis."
@@ -256,7 +262,7 @@ See `partial-recall-moment--intensify' and its callers."
   "Face used for contrast."
   :group 'partial-recall)
 
-;;; -- Hooks
+;;; ---- Hooks
 
 (defvar partial-recall-probe-hook nil
   "Functions called after a memory was probed.
@@ -309,7 +315,103 @@ A memory is a key that connects it to the hash table, a ring of
 moments and the size it had upon construction."
   key moments orig-size)
 
-;;; -- Memories
+;;; -- Utility
+
+;;; ---- Key creation and look-up
+
+(defun partial-recall--key (&optional tab)
+  "Get the hash key of TAB."
+  (when-let* ((tab (or tab (tab-bar--current-tab))))
+
+    (alist-get 'pr tab)))
+
+(defun partial-recall--create-key (tab)
+  "Create the key for TAB.
+
+This uses a message digest of the tab, a random number, the Emacs
+PID and `recent-keys' vector."
+  (let ((object (format "%s%s%s%s" tab (random) (emacs-pid) (recent-keys))))
+
+    (md5 object)))
+
+(defun partial-recall--memory-by-key (key)
+  "Get or create memory identified by KEY."
+  (when key
+    (if-let* ((table partial-recall--table)
+              (memory (gethash key table)))
+
+        memory
+
+      (let ((new-memory (partial-recall-memory--create key)))
+
+        (puthash key new-memory table)
+        new-memory))))
+
+;;; ---- Rings
+
+(defun partial-recall--ring-oldest (ring)
+  "Get the oldest element in RING."
+  (unless (ring-empty-p ring)
+    (ring-ref ring (1- (ring-length ring)))))
+
+(defun partial-recall--ring-insert (ring item &optional extend)
+  "Insert ITEM in RING.
+
+If EXTEND is t, also extend."
+  (ring-insert+extend ring item extend)
+
+  (run-hook-with-args 'partial-recall-after-insert-hook item)
+
+  item)
+
+;;; ---- Windows
+
+(defun partial-recall--window-list ()
+  "Get all windows."
+  (cl-loop for frame in (visible-frame-list)
+           append (window-list frame)))
+
+(defun partial-recall--maybe-call-with-buffer (buffer fun)
+  "Call FUN maybe with BUFFER."
+  (let* ((arity (func-arity fun))
+         (min (car arity))
+         (max (cdr arity)))
+    (if (or (> min 0)
+            (eq 'many max)
+            (and (numberp max)
+                 (> max 0)))
+        (funcall fun buffer)
+      (partial-recall-warn "Function `%s' has the wrong arity" fun)
+      t)))
+
+;;; ---- Frames
+
+(defmacro partial-recall--in-other-frame (memory &rest forms)
+  "Evaluate FORMS in other frame.
+
+If MEMORY is not in another form, this is a no-op."
+  (declare (indent defun))
+
+  `(and-let* ((partial-recall--foreignp ,memory)
+              (info (partial-recall-memory--find-in-other-frame ,memory))
+              (frame (plist-get info :frame)))
+
+     (partial-recall-debug "Evaluating on behalf of `%s' in other frame" ,memory)
+
+     (with-selected-frame frame
+       ,@forms)))
+
+(defun partial-recall--is-other-frame-p (frame)
+  "Check that FRAME is not the selected frame."
+  (not (eq frame (selected-frame))))
+
+(defun partial-recall--foreignp (memory)
+  "Check if MEMORY belongs to foreign frame."
+  (null (partial-recall--find-tab-from-memory memory)))
+
+;;; -- Accessors
+
+;;; ---- Memories
 
 (defun partial-recall-memories (&optional exclude-subconscious)
   "Get all memories.
@@ -387,7 +489,7 @@ moment."
   "Check if MEMORY is the subconscious."
   (string= partial-recall--subconscious-key (partial-recall-memory--key memory)))
 
-;;; -- Moments
+;;; ---- Moments
 
 (defun partial-recall-moments (&optional include-subconscious)
   "Get all moments.
@@ -466,7 +568,7 @@ The focus is returned as a percentage relative to
 
     (* 100 (/ focus (* 1.0 threshold)))))
 
-;;; -- Buffers
+;;; ---- Buffers
 
 (defun partial-recall-buffers (&optional include-subconscious)
   "Get all mapped buffers.
@@ -554,7 +656,7 @@ Searches all memories unless MEMORY is provided."
   "Get the current buffer's moment."
   (partial-recall--find-owning-moment (current-buffer)))
 
-;;; -- Tabs
+;;; ---- Tabs
 
 (defun partial-recall--find-tab-from-memory (memory &optional frame)
   "Get the tab for MEMORY.
@@ -601,78 +703,6 @@ Optionally search in FRAME."
 (defun partial-recall--queue-tab-fix-up (&rest _r)
   "Queue a fix-up of the original tab."
   (run-at-time 1.0 nil #'partial-recall--fix-up-primary-tab))
-
-;;; -- Rings
-
-(defun partial-recall--ring-oldest (ring)
-  "Get the oldest element in RING."
-  (unless (ring-empty-p ring)
-    (ring-ref ring (1- (ring-length ring)))))
-
-(defun partial-recall--ring-insert (ring item &optional extend)
-  "Insert ITEM in RING.
-
-If EXTEND is t, also extend."
-  (ring-insert+extend ring item extend)
-
-  (run-hook-with-args 'partial-recall-after-insert-hook item)
-
-  item)
-
-;;; -- Key creation and look-up
-
-(defun partial-recall--key (&optional tab)
-  "Get the hash key of TAB."
-  (when-let* ((tab (or tab (tab-bar--current-tab))))
-
-    (alist-get 'pr tab)))
-
-(defun partial-recall--create-key (tab)
-  "Create the key for TAB.
-
-This uses a message digest of the tab, a random number, the Emacs
-PID and `recent-keys' vector."
-  (let ((object (format "%s%s%s%s" tab (random) (emacs-pid) (recent-keys))))
-
-    (md5 object)))
-
-(defun partial-recall--memory-by-key (key)
-  "Get or create memory identified by KEY."
-  (when key
-    (if-let* ((table partial-recall--table)
-              (memory (gethash key table)))
-
-        memory
-
-      (let ((new-memory (partial-recall-memory--create key)))
-
-        (puthash key new-memory table)
-        new-memory))))
-
-;;; -- Dealing with frames
-
-(defmacro partial-recall--in-other-frame (memory &rest forms)
-  "Evaluate FORMS in other frame.
-
-If MEMORY is not in another form, this is a no-op."
-  (declare (indent defun))
-
-  `(and-let* ((partial-recall--foreignp ,memory)
-              (info (partial-recall-memory--find-in-other-frame ,memory))
-              (frame (plist-get info :frame)))
-
-     (partial-recall-debug "Evaluating on behalf of `%s' in other frame" ,memory)
-
-     (with-selected-frame frame
-       ,@forms)))
-
-(defun partial-recall--is-other-frame-p (frame)
-  "Check that FRAME is not the selected frame."
-  (not (eq frame (selected-frame))))
-
-(defun partial-recall--foreignp (memory)
-  "Check if MEMORY belongs to foreign frame."
-  (null (partial-recall--find-tab-from-memory memory)))
 
 ;;; -- Handlers
 
@@ -722,7 +752,7 @@ be found, it will be ignored."
 
     (setq partial-recall--last-checked buffer)))
 
-;;; -- Reactions
+;;; ---- Reactions
 
 (defun partial-recall--before-switch-to-buffer (buffer &optional norecord &rest _)
   "Maybe switch memories before scheduling BUFFER.
@@ -1117,6 +1147,8 @@ cleaned up."
 
     (partial-recall--probe-memory memory)))
 
+;;; ---- Concentration
+
 (define-error 'prcon-not-owned "Buffer is not owned" 'partial-recall-errors)
 (define-error 'prcon-changed "Buffer has changed" 'partial-recall-errors)
 
@@ -1210,7 +1242,7 @@ to `run-with-timer'. They default to
                                                (1+ repeat)
                                                #'partial-recall--concentrate))))
 
-;;; -- Repercussions
+;;; ---- Repercussions
 
 (defun partial-recall--probe-memory (memory)
   "Probe MEMORY.
@@ -1343,7 +1375,7 @@ no longer recorded as the last checked buffer."
                    buffer))
       (setq partial-recall--last-focus nil))))
 
-;;; -- Switching
+;;; -- Buffer switching
 
 (defun partial-recall--switch-to-buffer-and-neglect (buffer)
   "Switch to BUFFER and make sure it is neglected.
@@ -1399,6 +1431,21 @@ If ARG is t, the current moment is considered graced as well."
       (and arg
            (eq (current-buffer) (partial-recall-moment--buffer moment)))))
 
+(defun partial-recall--explain-omission (&optional buffer)
+  "Get the reason why BUFFER is omitted.
+
+This will try to find the first trait in
+`partial-recall-meaningful-traits' that returns falsy and return
+its explainer (property
+`partial-recall-non-meaningful-explainer')if it exists."
+  (and-let* ((buffer (or buffer (current-buffer)))
+             (verify (apply-partially 'partial-recall--maybe-call-with-buffer buffer))
+             (finder (lambda (it) (not (funcall verify it))))
+             (failing (seq-find finder partial-recall-meaningful-traits))
+             (explainer (get failing 'partial-recall-non-meaningful-explainer)))
+
+    explainer))
+
 (put 'buffer-file-name
      'partial-recall-non-meaningful-explainer
      "Buffer not associated with a file")
@@ -1443,41 +1490,6 @@ If CONSIDER-DELAY is t, consider handling delay."
   "Check if MOMENT is intermediate."
   (and (numberp partial-recall-intermediate-term)
        (partial-recall--equals-or-exceeds-p moment partial-recall-intermediate-term)))
-
-;;; -- Utility
-
-(defun partial-recall--window-list ()
-  "Get all windows."
-  (cl-loop for frame in (visible-frame-list)
-           append (window-list frame)))
-
-(defun partial-recall--maybe-call-with-buffer (buffer fun)
-  "Call FUN maybe with BUFFER."
-  (let* ((arity (func-arity fun))
-         (min (car arity))
-         (max (cdr arity)))
-    (if (or (> min 0)
-            (eq 'many max)
-            (and (numberp max)
-                 (> max 0)))
-        (funcall fun buffer)
-      (partial-recall-warn "Function `%s' has the wrong arity" fun)
-      t)))
-
-(defun partial-recall--explain-omission (&optional buffer)
-  "Get the reason why BUFFER is omitted.
-
-This will try to find the first trait in
-`partial-recall-meaningful-traits' that returns falsy and return
-its explainer (property
-`partial-recall-non-meaningful-explainer')if it exists."
-  (and-let* ((buffer (or buffer (current-buffer)))
-             (verify (apply-partially 'partial-recall--maybe-call-with-buffer buffer))
-             (finder (lambda (it) (not (funcall verify it))))
-             (failing (seq-find finder partial-recall-meaningful-traits))
-             (explainer (get failing 'partial-recall-non-meaningful-explainer)))
-
-    explainer))
 
 ;;; -- Graphing
 
