@@ -72,16 +72,16 @@ INCLUDE-SUBCONSCIOUS is t."
           (let* ((moment (nth i moments))
                  (buffer (partial-recall-moment--buffer moment))
                  (implanted (partial-recall-moment--permanence moment))
-                 (buffer-face (cond
-                               ((and at-capacity
-                                     (eq i (1- (length moments))))
-                                'partial-recall-alert)
-                               (sub 'partial-recall-deemphasized)
-                               ((partial-recall--intermediate-term-p moment)
-                                'partial-recall-emphasis)
-                               (t nil)))
+                 (moment-state (cond
+                                ((and at-capacity
+                                      (eq i (1- (length moments))))
+                                 'at-risk)
+                                (sub 'subconscious)
+                                ((partial-recall--intermediate-term-p moment)
+                                 'intermediate)
+                                (t nil)))
 
-                 (pp-buffer-name (partial-recall-menu--print-buffer buffer buffer-face))
+                 (pp-buffer-name (partial-recall-menu--print-buffer buffer moment-state))
                  (pp-modified (partial-recall-menu--print-buffer-status buffer))
                  (pp-ts (partial-recall-menu--print-timestamp (partial-recall-moment--timestamp moment)))
                  (pp-presence (partial-recall-menu--print-presence (partial-recall-moment--focus moment) implanted))
@@ -186,15 +186,25 @@ is t, the name will be propertized."
 
 ;;; -- Printing
 
-(defun partial-recall-menu--print-buffer (buffer &optional face)
-  "Print BUFFER.
+(defun partial-recall-menu--print-buffer (buffer &optional moment-state)
+  "Print BUFFER name.
 
-Optionally propertize with FACE."
-  (let ((name (or (buffer-name buffer) partial-recall-menu--missing)))
+The name is propertized based on MOMENT-STATE."
+  (let* ((name (or (buffer-name buffer) partial-recall-menu--missing))
 
-    (if face
-        (propertize name 'face face)
-      name)))
+         (face (pcase moment-state
+                 ('at-risk 'partial-recall-alert)
+                 ('subconscious 'partial-recall-deemphasized)
+                 ('intermediate 'partial-recall-emphasis)
+                 (_ nil)))
+         (echo (pcase moment-state
+                 ('at-risk (format "%s is at risk of being suppressed" name))
+                 ('intermediate (format "%s is intermediate" name))
+                 (_ name))))
+
+    (propertize name
+                'face face
+                'help-echo echo)))
 
 (defun partial-recall-menu--print-buffer-status (buffer)
   "Print status of BUFFER."
