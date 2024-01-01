@@ -189,7 +189,8 @@ are either the oldest moment or intermediate moments."
   (if (< partial-recall-menu--excess-time
          (- (floor (time-to-seconds))
             timestamp))
-      (format-time-string "   %d/%m" (seconds-to-time timestamp))
+      (propertize (format-time-string "%d/%m/%y" (seconds-to-time timestamp))
+                  'face 'partial-recall-deemphasized)
     (format-time-string "%H:%M:%S" (seconds-to-time timestamp))))
 
 (defun partial-recall-menu--print-presence (focus implanted)

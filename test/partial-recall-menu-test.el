@@ -123,7 +123,7 @@
   (let ((partial-recall-menu--excess-time 2)
         (seconds '(1 6)))
 
-    (bydi (format-time-string
+    (bydi ((:mock format-time-string :with bydi-rf)
            (:mock seconds-to-time :return 'time)
            (:mock time-to-seconds :with (lambda () (pop seconds))))
 
@@ -135,7 +135,7 @@
 
       (partial-recall-menu--print-timestamp 3)
 
-      (bydi-was-called-with format-time-string (list "   %d/%m" 'time)))))
+      (bydi-was-called-with format-time-string (list "%d/%m/%y" 'time)))))
 
 (ert-deftest prm--print-update-count ()
   :tags '(menu)
