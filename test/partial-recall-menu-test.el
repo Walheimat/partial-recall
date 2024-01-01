@@ -21,7 +21,7 @@
 
     (should (equal (aref (partial-recall-menu--format buffers tabs) 3)
                    '("Buffer" 3 t)))
-    (should (equal (aref (partial-recall-menu--format buffers tabs) 4)
+    (should (equal (aref (partial-recall-menu--format buffers tabs) 5)
                    '("Tab" 4 t)))))
 
 (ert-deftest prm--revert ()
@@ -36,7 +36,7 @@
          (:sometimes partial-recall-memory--at-capacity-p)
          (:othertimes partial-recall--intermediate-term-p))
 
-    (with-tab-history (:pre t :second t)
+    (with-tab-history (:pre t :second-mem t :second-mom t)
 
       (ring-insert
        (partial-recall-memory--moments second-memory)
@@ -44,20 +44,23 @@
 
       (partial-recall-menu--revert)
 
-      (should (equal `(("test-tab" "frame" ,(current-buffer) t nil) [" " "*" " " ,(buffer-name) "rem" "today"])
+      (should (equal `(("test-tab" "frame" ,(current-buffer) t nil) [" " "*" " " ,(buffer-name) "*" "rem" "today"])
                      (nth 1 tabulated-list-entries)))
 
       (should (equal (vector
                       '("A" 1 t :pad-right 0)
-                      '("P" 1 t :pad-right 0)
-                      '("M" 1 t :pad-right 1)
+                      '("P" 1 t :pad-right 1)
+                      '(" " 1 t)
                       `("Buffer" ,(length (buffer-name)) t)
+                      '(" " 1 t)
                       `("Tab" ,(length "test-tab") t)
                       '("Timestamp" 9 t))
                      tabulated-list-format))
       (bydi-was-called tabulated-list-init-header)
 
       (bydi-toggle-sometimes)
+
+      (partial-recall--forget second-moment-buffer t)
 
       (partial-recall-menu--revert t)
 
@@ -160,11 +163,10 @@
   :tags '(needs-history menu)
 
   (let ((partial-recall-buffer-limit 10)
-        (partial-recall-menu--null "0")
-        (partial-recall-menu--present "1"))
+        (partial-recall-menu--null "0"))
 
     (with-tab-history (:pre t)
-      (should (string= "1" (partial-recall-menu--print-memory (partial-recall--reality))))
+      (should (string= "test-tab" (partial-recall-menu--print-memory (partial-recall--reality))))
       (should (string= "0" (partial-recall-menu--print-memory (partial-recall--subconscious))))
       (bydi ((:ignore partial-recall--realityp))
         (should (string= "test-tab" (partial-recall-menu--print-memory (partial-recall--reality))))

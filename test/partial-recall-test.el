@@ -681,7 +681,7 @@
           (kill-buffer yet-another-temp))))))
 
 (ert-deftest partial-recall--reject ()
-  (with-tab-history (:pre t :second t)
+  (with-tab-history (:pre t :second-mem t)
     (should-error (partial-recall--reject (current-buffer) (partial-recall--reality)))
 
     (let* ((another (generate-new-buffer " *temp*" t))
@@ -810,7 +810,7 @@
   (let ((partial-recall-auto-switch 'prompt)
         (user-input nil))
 
-    (with-tab-history (:pre t :second t)
+    (with-tab-history (:pre t :second-mem t)
       (let* ((another (generate-new-buffer " *temp*" t))
              (moment (partial-recall-moment--create another)))
 
@@ -873,7 +873,7 @@
 (ert-deftest pr--meld ()
   :tags '(needs-history)
 
-  (with-tab-history (:pre t :second t)
+  (with-tab-history (:pre t :second-mem t)
     (should-error (partial-recall--meld (partial-recall--reality) (partial-recall--reality)))
 
     (bydi (tab-bar-close-tab-by-name)

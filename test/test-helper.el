@@ -17,7 +17,7 @@
 (defvar test-table (make-hash-table :test #'equal))
 (defvar test-tabs (list test-tab))
 
-(cl-defmacro with-tab-history ((&key pre lifts probes second wavers) &rest body)
+(cl-defmacro with-tab-history ((&key pre lifts probes second-mem second-mom wavers) &rest body)
   "Execute BODY in a clean environment.
 
 This environment is a clear tab history and a single existing
@@ -25,8 +25,9 @@ static tab.
 
 If PRE is t, pre-remember the current buffer. Unless LIFTS is t,
 ignore calls to `partial-recall--lift'. Unless PROBES is t,
-ignore calls to `partial-recall--probe-memory'. If SECOND is
-true, a second memory is created. If WAVERS is t,
+ignore calls to `partial-recall--probe-memory'. If SECOND-MEM is
+t, a second memory is created. If SECOND-MOM is t, a second
+moment is created. If WAVERS is t,
 `partial-recall--meaningful-buffer-p' is not always t."
   (declare (indent defun))
 
@@ -39,22 +40,30 @@ true, a second memory is created. If WAVERS is t,
 
      (let ((partial-recall--table test-table)
            (second-memory-key "second")
-           (second-memory nil))
+           (second-memory nil)
+           (second-moment nil)
+           (second-moment-buffer nil))
 
        ,@(delq
           nil
           `(,(when pre
                '(setq partial-recall--last-focus
-                              (partial-recall--remember (current-buffer))))
+                      (partial-recall--remember (current-buffer))))
 
-            ,(when second
+            ,(when second-mom
+               (setq second-moment-buffer (generate-new-buffer " *temp*" t))
+               (setq second-moment (partial-recall--remember second-moment-buffer)))
+
+            ,(when second-mem
                '(progn
                   (setq second-memory (partial-recall-memory--create second-memory-key))
                   (puthash second-memory-key second-memory partial-recall--table)))))
 
        (unwind-protect
            ,@body
-         (clrhash test-table)))))
+         (clrhash test-table)
+         (when (and second-moment-buffer (buffer-live-p second-moment-buffer))
+           (kill-buffer second-moment-buffer))))))
 
 ;; Setup
 

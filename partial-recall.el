@@ -252,6 +252,11 @@ See `partial-recall-moment--intensify' and its callers."
   "Face used for emphasis."
   :group 'partial-recall)
 
+(defface partial-recall-soothe
+  '((t (:inherit (success))))
+  "Face used to soothe."
+  :group 'partial-recall)
+
 (defface partial-recall-deemphasized
   '((t (:inherit (shadow))))
   "Face used to de-emphasize."
@@ -260,6 +265,11 @@ See `partial-recall-moment--intensify' and its callers."
 (defface partial-recall-contrast
   '((t (:inherit (warning))))
   "Face used for contrast."
+  :group 'partial-recall)
+
+(defface partial-recall-alert
+  '((t (:inherit (error))))
+  "Face used to alert."
   :group 'partial-recall)
 
 ;;; ---- Hooks

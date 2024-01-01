@@ -35,9 +35,10 @@
 
     (vector
      '("A" 1 t :pad-right 0)
-     '("P" 1 t :pad-right 0)
-     '("M" 1 t :pad-right 1)
+     '("P" 1 t :pad-right 1)
+     '(" " 1 t)
      `("Buffer" ,longest-buffer t)
+     '(" " 1 t)
      `("Tab" ,longest-tab t)
      '("Timestamp" 9 t))))
 
@@ -71,15 +72,20 @@ INCLUDE-SUBCONSCIOUS is t."
           (let* ((moment (nth i moments))
                  (buffer (partial-recall-moment--buffer moment))
                  (implanted (partial-recall-moment--permanence moment))
-                 (at-brink (and (not implanted)
-                                (or (and at-capacity
-                                         (eq i (1- (length moments))))
-                                    (partial-recall--intermediate-term-p moment))))
+                 (buffer-face (cond
+                               ((and at-capacity
+                                     (eq i (1- (length moments))))
+                                'partial-recall-alert)
+                               (sub 'partial-recall-deemphasized)
+                               ((partial-recall--intermediate-term-p moment)
+                                'partial-recall-emphasis)
+                               (t nil)))
 
-                 (pp-buffer-name (partial-recall-menu--print-buffer buffer at-brink))
+                 (pp-buffer-name (partial-recall-menu--print-buffer buffer buffer-face))
                  (pp-modified (partial-recall-menu--print-buffer-status buffer))
                  (pp-ts (partial-recall-menu--print-timestamp (partial-recall-moment--timestamp moment)))
                  (pp-presence (partial-recall-menu--print-presence (partial-recall-moment--focus moment) implanted))
+                 (pp-real (if real partial-recall-menu--present partial-recall-menu--empty))
 
 
                  (item (list tab-name frame buffer real sub))
@@ -87,6 +93,7 @@ INCLUDE-SUBCONSCIOUS is t."
                                pp-presence
                                pp-modified
                                pp-buffer-name
+                               pp-real
                                partial-recall-memory--pp
                                pp-ts)))
 
@@ -179,15 +186,14 @@ is t, the name will be propertized."
 
 ;;; -- Printing
 
-(defun partial-recall-menu--print-buffer (buffer &optional at-brink)
+(defun partial-recall-menu--print-buffer (buffer &optional face)
   "Print BUFFER.
 
-If AT-BRINK is t, print with warning face. These are buffers that
-are either the oldest moment or intermediate moments."
+Optionally propertize with FACE."
   (let ((name (or (buffer-name buffer) partial-recall-menu--missing)))
 
-    (if at-brink
-        (propertize name 'face 'partial-recall-contrast)
+    (if face
+        (propertize name 'face face)
       name)))
 
 (defun partial-recall-menu--print-buffer-status (buffer)
@@ -212,7 +218,7 @@ If the moment is IMPLANTED, signal that."
                    (if implanted
                        partial-recall-menu--persistence-indicator
                      partial-recall-menu--empty)))
-         (face (if implanted 'success 'shadow))
+         (face (if implanted 'partial-recall-soothe 'partial-recall-deemphasized))
          (help (format "Focus: %s, Implanted: %s" focus implanted)))
 
     (propertize text 'face face 'help-echo help)))
@@ -223,7 +229,7 @@ If the moment is IMPLANTED, signal that."
         (actual-size (ring-size (partial-recall-memory--moments memory)))
         (tab-name (cond
                    ((partial-recall--realityp memory)
-                    partial-recall-menu--present)
+                    (partial-recall-menu--tab-name memory t))
                    ((partial-recall--subconsciousp memory)
                     partial-recall-menu--null)
                    (t
