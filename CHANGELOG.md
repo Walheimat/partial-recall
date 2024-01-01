@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Lighter indicates foreign moments.
 - The menu now also indicates intermediate moments using a contrasting
   face.
+- The menu now shows whether a buffer is modified.
 
 ### Changed
 

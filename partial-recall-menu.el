@@ -35,10 +35,12 @@
 
     (vector
      '("A" 1 t :pad-right 0)
-     '("P" 1 t :pad-right 1)
+     '("P" 1 t :pad-right 0)
+     '("M" 1 t :pad-right 1)
      `("Buffer" ,longest-buffer t)
      `("Tab" ,longest-tab t)
      '("Timestamp" 9 t))))
+
 
 (defun partial-recall-menu--revert (&optional include-subconscious)
   "Revert the buffer menu.
@@ -75,12 +77,15 @@ INCLUDE-SUBCONSCIOUS is t."
                                     (partial-recall--intermediate-term-p moment))))
 
                  (pp-buffer-name (partial-recall-menu--print-buffer buffer at-brink))
+                 (pp-modified (partial-recall-menu--print-buffer-status buffer))
                  (pp-ts (partial-recall-menu--print-timestamp (partial-recall-moment--timestamp moment)))
                  (pp-presence (partial-recall-menu--print-presence (partial-recall-moment--focus moment) implanted))
+
 
                  (item (list tab-name frame buffer real sub))
                  (line (vector partial-recall-menu--empty
                                pp-presence
+                               pp-modified
                                pp-buffer-name
                                partial-recall-memory--pp
                                pp-ts)))
@@ -96,6 +101,7 @@ INCLUDE-SUBCONSCIOUS is t."
           tabulated-list-entries (nreverse entries)))
 
   (tabulated-list-init-header))
+
 
 (defun partial-recall-menu--list (&optional include-subconscious)
   "List the buffers.
@@ -183,6 +189,10 @@ are either the oldest moment or intermediate moments."
     (if at-brink
         (propertize name 'face 'partial-recall-contrast)
       name)))
+
+(defun partial-recall-menu--print-buffer-status (buffer)
+  "Print status of BUFFER."
+  (if (buffer-modified-p buffer) partial-recall-menu--present partial-recall-menu--empty))
 
 (defun partial-recall-menu--print-timestamp (timestamp)
   "Format TIMESTAMP."

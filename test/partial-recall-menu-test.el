@@ -19,9 +19,9 @@
   (let ((buffers '("a" "bb" "ccc"))
         (tabs '("dddd" "eee" "ff")))
 
-    (should (equal (aref (partial-recall-menu--format buffers tabs) 2)
-                   '("Buffer" 3 t)))
     (should (equal (aref (partial-recall-menu--format buffers tabs) 3)
+                   '("Buffer" 3 t)))
+    (should (equal (aref (partial-recall-menu--format buffers tabs) 4)
                    '("Tab" 4 t)))))
 
 (ert-deftest prm--revert ()
@@ -44,12 +44,13 @@
 
       (partial-recall-menu--revert)
 
-      (should (equal `(("test-tab" "frame" ,(current-buffer) t nil) [" " "*" ,(buffer-name) "rem" "today"])
+      (should (equal `(("test-tab" "frame" ,(current-buffer) t nil) [" " "*" " " ,(buffer-name) "rem" "today"])
                      (nth 1 tabulated-list-entries)))
 
       (should (equal (vector
                       '("A" 1 t :pad-right 0)
-                      '("P" 1 t :pad-right 1)
+                      '("P" 1 t :pad-right 0)
+                      '("M" 1 t :pad-right 1)
                       `("Buffer" ,(length (buffer-name)) t)
                       `("Tab" ,(length "test-tab") t)
                       '("Timestamp" 9 t))
@@ -327,6 +328,14 @@
   (bydi ((:ignore buffer-name))
     (should (string= partial-recall-menu--missing (partial-recall-menu--print-buffer (current-buffer))))
     (should (string= partial-recall-menu--missing (partial-recall-menu--print-buffer (current-buffer) t)))))
+
+(ert-deftest prm--print-buffer-status ()
+  :tags '(menu)
+
+  (bydi ((:sometimes buffer-modified-p))
+    (should (string= partial-recall-menu--present (partial-recall-menu--print-buffer-status (current-buffer))))
+    (bydi-toggle-sometimes)
+    (should (string= partial-recall-menu--empty (partial-recall-menu--print-buffer-status (current-buffer))))))
 
 ;;; partial-recall-menu-test.el ends here
 
