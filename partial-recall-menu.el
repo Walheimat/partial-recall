@@ -18,7 +18,7 @@
 (defvar partial-recall-menu--buffer "*Partial Recall Menu*")
 (defvar partial-recall-menu--empty " ")
 (defvar partial-recall-menu--null "-")
-(defvar partial-recall-menu--present "*")
+(defvar partial-recall-menu--indicate "*")
 (defvar partial-recall-menu--missing "?")
 (defvar partial-recall-menu--persistence-indicator "░")
 
@@ -84,7 +84,7 @@ INCLUDE-SUBCONSCIOUS is t."
                  (pp-modified (partial-recall-menu--print-buffer-status buffer))
                  (pp-ts (partial-recall-menu--print-timestamp (partial-recall-moment--timestamp moment)))
                  (pp-presence (partial-recall-menu--print-presence (partial-recall-moment--focus moment) implanted))
-                 (pp-real (if real partial-recall-menu--present partial-recall-menu--empty))
+                 (pp-real (if real partial-recall-menu--indicate partial-recall-menu--empty))
 
 
                  (item (list tab-name frame buffer real sub))
@@ -207,7 +207,7 @@ The name is propertized based on MOMENT-STATE."
 
 (defun partial-recall-menu--print-buffer-status (buffer)
   "Print status of BUFFER."
-  (if (buffer-modified-p buffer) partial-recall-menu--present partial-recall-menu--empty))
+  (if (buffer-modified-p buffer) partial-recall-menu--indicate partial-recall-menu--empty))
 
 (defun partial-recall-menu--print-timestamp (timestamp)
   "Format TIMESTAMP."

@@ -335,7 +335,7 @@
   :tags '(menu)
 
   (bydi ((:sometimes buffer-modified-p))
-    (should (string= partial-recall-menu--present (partial-recall-menu--print-buffer-status (current-buffer))))
+    (should (string= partial-recall-menu--indicate (partial-recall-menu--print-buffer-status (current-buffer))))
     (bydi-toggle-sometimes)
     (should (string= partial-recall-menu--empty (partial-recall-menu--print-buffer-status (current-buffer))))))
 
