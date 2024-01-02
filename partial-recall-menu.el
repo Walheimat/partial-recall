@@ -64,8 +64,7 @@ INCLUDE-SUBCONSCIOUS is t."
              (at-capacity (partial-recall-memory--at-capacity-p memory))
              (moments (ring-elements (partial-recall-memory--moments memory))))
 
-        (unless (eq memory (partial-recall--reality))
-          (push tab-name tab-names))
+        (push tab-name tab-names)
 
         (dotimes (i (length moments))
 
