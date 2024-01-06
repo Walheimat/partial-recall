@@ -150,7 +150,7 @@ Raises and error if the entry belongs to the subconscious."
 
       (display-buffer-use-some-window buffer nil))))
 
-;;; -- Utility
+;;;; Utility
 
 (defun partial-recall-menu--tab-and-frame (memory)
   "Get tab and frame for MEMORY."
@@ -183,7 +183,7 @@ is t, the name will be propertized."
               (alist-get 'name tab)))
         partial-recall-menu--missing)))
 
-;;; -- Printing
+;;;; Printing
 
 (defun partial-recall-menu--print-buffer (buffer &optional moment-state)
   "Print BUFFER name.
@@ -248,7 +248,7 @@ If the moment is IMPLANTED, signal that."
         (format "%s (+%d)" tab-name (- actual-size orig-size))
       tab-name)))
 
-;;; -- Mode
+;;;; Mode
 
 (defvar-keymap partial-recall-menu-mode-map
   :doc "Local keymap for `partial-recall-menu-mode' buffers."
@@ -267,7 +267,7 @@ If the moment is IMPLANTED, signal that."
   :interactive nil
   (add-hook 'tabulated-list-revert-hook 'partial-recall-menu--revert nil t))
 
-;;; -- API
+;;;; API
 
 (defun partial-recall-menu-toggle-subconscious ()
   "Toggle the inclusion of the subconscious."

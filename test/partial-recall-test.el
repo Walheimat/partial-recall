@@ -8,7 +8,7 @@
 
 (require 'partial-recall nil t)
 
-;;; -- Accessors
+;;;; Accessors
 
 (ert-deftest pr--key--returns-if-set ()
   (bydi ((:mock tab-bar--current-tab :return test-tab))
@@ -93,7 +93,7 @@
 
       (partial-recall--ring-insert ring 'item))))
 
-;;; -- Handlers
+;;;; Handlers
 
 (ert-deftest pr--schedule-buffer--cancels-running-timer ()
   (let ((partial-recall--schedule-timer nil)
@@ -298,7 +298,7 @@
 
     (should (string= "Testing" (partial-recall--explain-omission)))))
 
-;;; -- Reactions
+;;;; Reactions
 
 (ert-deftest pr--after-switch-to-buffer--schedules ()
   (bydi (partial-recall--schedule-buffer)
@@ -418,7 +418,7 @@
 
     (bydi-was-called partial-recall--maybe-switch-memory)))
 
-;;; -- Actions
+;;;; Actions
 
 (ert-deftest pr-remember--remembers ()
   :tags '(needs-history)
@@ -951,7 +951,7 @@
 
       (partial-recall--probe-memory 'memory))))
 
-;;; -- Conditionals
+;;;; Conditionals
 
 (ert-deftest pr--memory-buffer-p ()
   :tags '(needs-history)
@@ -1109,7 +1109,7 @@
 
       (kill-buffer buffer))))
 
-;;; -- Completion
+;;;; Completion
 
 (ert-deftest pr--complete-dream ()
   :tags '(completion)
@@ -1227,7 +1227,7 @@
     (bydi-was-set minibuffer-completion-table)
     (bydi-was-called internal-complete-buffer-except)))
 
-;;; -- Lighter
+;;;; Lighter
 
 (ert-deftest pr-lighter-moment ()
   :tags '(needs-history)
@@ -1363,7 +1363,7 @@
                                help-echo "Memory has grown to +1")
                  (partial-recall-lighter--memory)))))))
 
-;;; -- Setup
+;;;; Setup
 
 (ert-deftest pr--fix-up-primary-tab ()
   :tags '(user-facing)
@@ -1436,7 +1436,7 @@
     (bydi-was-called-n-times advice-remove 7)
     (bydi-was-called-n-times remove-hook 7)))
 
-;;; -- API
+;;;; API
 
 (ert-deftest pr-mode ()
   :tags '(user-facing)

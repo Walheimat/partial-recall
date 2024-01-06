@@ -38,7 +38,7 @@
 (require 'ring)
 (require 'subr-x)
 
-;;; -- Customization
+;;;; Customization
 
 (defgroup partial-recall nil
   "Short-term (buffer) memory."
@@ -191,9 +191,9 @@ See `partial-recall-moment--intensify' and its callers."
   :type '(alist :key-type symbol :value-type integer)
   :group 'partial-recall)
 
-;;; -- Variables
+;;;; Variables
 
-;;; ---- Private variables
+;;;;; Private variables
 
 (defvar partial-recall--table (make-hash-table :test #'equal))
 (defconst partial-recall--subconscious-key "subconscious")
@@ -215,7 +215,7 @@ See `partial-recall-moment--intensify' and its callers."
 
 (defvar-local partial-recall--implanted nil)
 
-;;; ---- Maps
+;;;;; Maps
 
 ;;;###autoload
 (defvar partial-recall-command-map
@@ -245,7 +245,7 @@ See `partial-recall-moment--intensify' and its callers."
   "n" 'partial-recall-next
   "p" 'partial-recall-previous)
 
-;;; ---- Faces
+;;;;; Faces
 
 (defface partial-recall-emphasis
   '((t (:inherit (mode-line-emphasis))))
@@ -272,7 +272,7 @@ See `partial-recall-moment--intensify' and its callers."
   "Face used to alert."
   :group 'partial-recall)
 
-;;; ---- Hooks
+;;;;; Hooks
 
 (defvar partial-recall-probe-hook nil
   "Functions called after a memory was probed.
@@ -292,7 +292,7 @@ permanence value as arguments.")
 Each function will be called with the inserted moment as its only
 argument.")
 
-;;; -- Structures
+;;;; Structures
 
 (cl-defstruct (partial-recall-moment
                (:conc-name partial-recall-moment--)
@@ -325,9 +325,9 @@ A memory is a key that connects it to the hash table, a ring of
 moments and the size it had upon construction."
   key moments orig-size)
 
-;;; -- Utility
+;;;; Utility
 
-;;; ---- Key creation and look-up
+;;;;; Key creation and look-up
 
 (defun partial-recall--key (&optional tab)
   "Get the hash key of TAB."
@@ -357,7 +357,7 @@ PID and `recent-keys' vector."
         (puthash key new-memory table)
         new-memory))))
 
-;;; ---- Rings
+;;;;; Rings
 
 (defun partial-recall--ring-oldest (ring)
   "Get the oldest element in RING."
@@ -374,7 +374,7 @@ If EXTEND is t, also extend."
 
   item)
 
-;;; ---- Windows
+;;;;; Windows
 
 (defun partial-recall--window-list ()
   "Get all windows."
@@ -394,7 +394,7 @@ If EXTEND is t, also extend."
       (partial-recall-warn "Function `%s' has the wrong arity" fun)
       t)))
 
-;;; ---- Frames
+;;;;; Frames
 
 (defmacro partial-recall--in-other-frame (memory &rest forms)
   "Evaluate FORMS in other frame.
@@ -419,9 +419,9 @@ If MEMORY is not in another form, this is a no-op."
   "Check if MEMORY belongs to foreign frame."
   (null (partial-recall--find-tab-from-memory memory)))
 
-;;; -- Accessors
+;;;; Accessors
 
-;;; ---- Memories
+;;;;; Memories
 
 (defun partial-recall-memories (&optional exclude-subconscious)
   "Get all memories.
@@ -499,7 +499,7 @@ moment."
   "Check if MEMORY is the subconscious."
   (string= partial-recall--subconscious-key (partial-recall-memory--key memory)))
 
-;;; ---- Moments
+;;;;; Moments
 
 (defun partial-recall-moments (&optional include-subconscious)
   "Get all moments.
@@ -578,7 +578,7 @@ The focus is returned as a percentage relative to
 
     (* 100 (/ focus (* 1.0 threshold)))))
 
-;;; ---- Buffers
+;;;;; Buffers
 
 (defun partial-recall-buffers (&optional include-subconscious)
   "Get all mapped buffers.
@@ -666,7 +666,7 @@ Searches all memories unless MEMORY is provided."
   "Get the current buffer's moment."
   (partial-recall--find-owning-moment (current-buffer)))
 
-;;; ---- Tabs
+;;;;; Tabs
 
 (defun partial-recall--find-tab-from-memory (memory &optional frame)
   "Get the tab for MEMORY.
@@ -714,7 +714,7 @@ Optionally search in FRAME."
   "Queue a fix-up of the original tab."
   (run-at-time 1.0 nil #'partial-recall--fix-up-primary-tab))
 
-;;; -- Handlers
+;;;; Handlers
 
 (defun partial-recall--schedule-buffer (buffer)
   "Schedule handling BUFFER."
@@ -762,7 +762,7 @@ be found, it will be ignored."
 
     (setq partial-recall--last-checked buffer)))
 
-;;; ---- Reactions
+;;;;; Reactions
 
 (defun partial-recall--before-switch-to-buffer (buffer &optional norecord &rest _)
   "Maybe switch memories before scheduling BUFFER.
@@ -844,7 +844,7 @@ Don't do anything if NORECORD is t."
 
     (partial-recall--maybe-switch-memory (window-buffer foreign) t)))
 
-;;; -- Verbs
+;;;; Verbs
 ;;
 ;; This section holds the core of the package, namely the verbs that
 ;; change state.
@@ -1157,7 +1157,7 @@ cleaned up."
 
     (partial-recall--probe-memory memory)))
 
-;;; ---- Concentration
+;;;;; Concentration
 
 (define-error 'prcon-not-owned "Buffer is not owned" 'partial-recall-errors)
 (define-error 'prcon-changed "Buffer has changed" 'partial-recall-errors)
@@ -1252,7 +1252,7 @@ to `run-with-timer'. They default to
                                                (1+ repeat)
                                                #'partial-recall--concentrate))))
 
-;;; ---- Repercussions
+;;;;; Repercussions
 
 (defun partial-recall--probe-memory (memory)
   "Probe MEMORY.
@@ -1385,7 +1385,7 @@ no longer recorded as the last checked buffer."
                    buffer))
       (setq partial-recall--last-focus nil))))
 
-;;; -- Buffer switching
+;;;; Buffer switching
 
 (defun partial-recall--switch-to-buffer-and-neglect (buffer)
   "Switch to BUFFER and make sure it is neglected.
@@ -1410,7 +1410,7 @@ This means the buffer won't be scheduled for handling."
 
     (partial-recall-moment--buffer next)))
 
-;;; -- Traits
+;;;; Traits
 
 (defun partial-recall--meaningful-buffer-p (buffer)
   "Check if BUFFER should be remembered."
@@ -1466,7 +1466,7 @@ its explainer (property
      'partial-recall-non-meaningful-explainer
      "Buffer is in `view-mode'")
 
-;;; -- Thresholds
+;;;; Thresholds
 
 (defun partial-recall--equals-or-exceeds-p (moment threshold)
   "Check if MOMENT's age equals or exceeds THRESHOLD.
@@ -1501,7 +1501,7 @@ If CONSIDER-DELAY is t, consider handling delay."
   (and (numberp partial-recall-intermediate-term)
        (partial-recall--equals-or-exceeds-p moment partial-recall-intermediate-term)))
 
-;;; -- Graphing
+;;;; Graphing
 
 (defvar partial-recall-graph--blocks ["▁" "▂" "▃" "▄" "▅" "▆" "▇" "█"])
 (defvar partial-recall-graph--ratios '(0.125 0.25 0.375 0.5 0.625 0.75 0.875 1))
@@ -1521,7 +1521,7 @@ Selects a symbol based on VAL's relation to MAX."
 
       (aref partial-recall-graph--blocks index))))
 
-;;; -- Messaging
+;;;; Messaging
 
 (defun partial-recall-warn (message &rest args)
   "Warn about MESSAGE.
@@ -1549,7 +1549,7 @@ Message will be formatted with ARGS."
       (concat (propertize partial-recall-log-prefix 'face 'partial-recall-emphasis) " :: " format-string)
     format-string))
 
-;;; -- Representation
+;;;; Representation
 
 (defun partial-recall-repr (thing)
   "Format THING if it's a custom structure."
@@ -1575,7 +1575,7 @@ Message will be formatted with ARGS."
         (ring-size ring))))
     (_ thing)))
 
-;;; -- Completion
+;;;; Completion
 
 (defun partial-recall--complete-dream (prompt)
   "Complete dream buffer using PROMPT."
@@ -1660,7 +1660,7 @@ t."
 
     (cdr-safe (assoc selection collection))))
 
-;;; -- Lighter
+;;;; Lighter
 
 (defvar partial-recall-lighter '(" "
                                  (:eval partial-recall-lighter--title)
@@ -1780,7 +1780,7 @@ is shown."
                     face partial-recall-deemphasized
                     help-echo ,(format "Memory contains %d/%d moment(s)" length size)))))
 
-;;; -- Setup
+;;;; Setup
 
 (defun partial-recall-mode--setup ()
   "Set up `partial-recall-mode'."
@@ -1853,7 +1853,7 @@ is shown."
   (remove-hook 'tab-bar-tab-post-open-functions #'partial-recall--on-create)
   (remove-hook 'delete-frame-functions #'partial-recall--on-frame-delete))
 
-;;; -- API
+;;;; API
 
 ;;;###autoload
 (define-minor-mode partial-recall-mode
