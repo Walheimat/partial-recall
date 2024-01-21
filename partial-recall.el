@@ -248,7 +248,7 @@ See `partial-recall-moment--intensify' and its callers."
 ;;;;; Faces
 
 (defface partial-recall-emphasis
-  '((t (:inherit (mode-line-emphasis))))
+  '((t (:inherit (font-lock-type-face))))
   "Face used for emphasis."
   :group 'partial-recall)
 
