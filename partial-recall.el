@@ -1161,6 +1161,7 @@ cleaned up."
 
 (define-error 'prcon-not-owned "Buffer is not owned" 'partial-recall-errors)
 (define-error 'prcon-changed "Buffer has changed" 'partial-recall-errors)
+(define-error 'prcon-not-ready "No reality" 'partial-recall-errors)
 
 (defun partial-recall--concentrate ()
   "Concentrate on the current moment.
@@ -1172,7 +1173,7 @@ current moment is focused."
       (progn
         (partial-recall--hold-concentration)
         (partial-recall-moment--intensify partial-recall--last-focus nil 'concentrate))
-    (prcon-not-owned
+    ((prcon-not-ready prcon-not-owned)
      (partial-recall--defer-concentration))
     (prcon-changed
      (let ((moment (cdr err)))
@@ -1187,8 +1188,12 @@ current moment is focused."
 
 (defun partial-recall--hold-concentration ()
   "Try to hold concentration."
+  (unless (partial-recall--reality)
+    (signal 'prcon-not-ready nil))
+
   (let* ((buffer (current-buffer))
          (moment (partial-recall--find-owning-moment buffer)))
+
 
     (unless (or moment (partial-recall--buffer-in-memory-p buffer))
       (signal 'prcon-not-owned buffer))

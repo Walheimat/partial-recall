@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Face `partial-recall-emphasis` now inherits from
   `font-lock-type-face` instead of `mode-line-emphasis`.
 
+### Fixed
+
+- Concentration is deferred when there is no reality.
+
 ## [0.9.2]
 
 ### Added

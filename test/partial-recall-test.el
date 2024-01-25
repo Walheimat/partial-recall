@@ -178,6 +178,17 @@
 
   (bydi ((:ignore partial-recall--find-owning-moment)
          (:ignore partial-recall--buffer-in-memory-p)
+         (:always partial-recall--reality)
+         partial-recall--defer-concentration)
+
+    (partial-recall--concentrate)
+
+    (bydi-was-called partial-recall--defer-concentration)))
+
+(ert-deftest pr--concentrate--defers-for-not-ready ()
+  :tags '(concentration)
+
+  (bydi ((:ignore partial-recall--reality)
          partial-recall--defer-concentration)
 
     (partial-recall--concentrate)
