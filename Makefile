@@ -4,7 +4,8 @@ CURRENT_PACKAGE_VERSION=0.9.2
 UPDATE_VERSION_FILES=Cask \
 					 partial-recall.el \
 					 partial-recall-menu.el \
-                     partial-recall-x.el
+                     partial-recall-x.el \
+					 Makefile
 
 PACIFY_DEPS=partial-recall.el \
 			partial-recall-menu.el \
