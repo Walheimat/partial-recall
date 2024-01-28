@@ -13,11 +13,6 @@
 * **ci:** add release job ([db188ff](https://github.com/Walheimat/partial-recall/commit/db188fff2e9f1189d9db84e17f41076d439bd1e0))
 * **faces:** make emphasis inherit from font-lock-type-face ([1e950ab](https://github.com/Walheimat/partial-recall/commit/1e950ab0c65561c0f7f3795843dd406b2642694f))
 
-All notable changes to this project will be documented in this file.
-
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
 ## [0.9.2]
 
 ### Added
