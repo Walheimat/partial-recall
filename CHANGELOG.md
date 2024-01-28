@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.9.3](https://github.com/Walheimat/partial-recall/compare/v0.9.2...v0.9.3) (2024-01-28)
+
+
+### Bug Fixes
+
+* **concentration:** defer when there is no reality ([01bae54](https://github.com/Walheimat/partial-recall/commit/01bae54d7fdcfe2fa0e5e3f74f76a7083c76ed65))
+
+
+### Features
+
+* **ci:** add release job ([db188ff](https://github.com/Walheimat/partial-recall/commit/db188fff2e9f1189d9db84e17f41076d439bd1e0))
+* **faces:** make emphasis inherit from font-lock-type-face ([1e950ab](https://github.com/Walheimat/partial-recall/commit/1e950ab0c65561c0f7f3795843dd406b2642694f))
+
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
