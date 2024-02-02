@@ -8,13 +8,11 @@ module.exports = {
             [
                 "chore",
                 "ci",
-                "config",
                 "docs",
                 "feat",
                 "fix",
                 "improve",
                 "refac",
-                "style",
                 "test",
                 "perf",
             ],
@@ -32,6 +30,6 @@ module.exports = {
         "footer-max-line-length": [2, "always", 70],
     },
     ignores: [
-        (commit) => commit.includes("fixup") || commit.includes("release"),
+        (commit) => commit.includes("fixup"),
     ],
 };
