@@ -529,11 +529,12 @@ INCLUDE-SUBCONSCIOUS is t."
 
   moment)
 
-(defun partial-recall-moment--increase-focus (moment amount)
-  "Increment the focus for MOMENT by AMOUNT.
+(defun partial-recall-moment--increase-focus (moment context)
+  "Increment the focus for MOMENT using CONTEXT.
 
 Permanent moments do not gain additional focus."
   (and-let* (((not (partial-recall-moment--permanence moment)))
+             (amount (or (alist-get context partial-recall-intensities) 0))
              (count (partial-recall-moment--focus moment))
              (updated-count (+ count amount)))
 
@@ -556,9 +557,7 @@ If RESET is t, reset the focus instead and remove permanence."
     (partial-recall-moment--reset-count moment)
     (partial-recall-moment--set-permanence moment nil))
 
-  (let ((contextual (alist-get context partial-recall-intensities)))
-
-    (partial-recall-moment--increase-focus moment (or contextual 0)))
+  (partial-recall-moment--increase-focus moment context)
 
   (partial-recall-moment--update-timestamp moment))
 
