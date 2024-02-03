@@ -13,7 +13,6 @@ module.exports = {
                 "fix",
                 "improve",
                 "refac",
-                "test",
                 "perf",
             ],
         ],

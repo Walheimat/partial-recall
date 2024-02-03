@@ -35,25 +35,25 @@
               "section": "Bug Fixes"
             },
             {
-              "type": "refac",
-              "section": "Features"
+              "type": "improve",
+              "section": "Changes"
             },
             {
-              "type": "improve",
-              "section": "Features"
+              "type": "docs",
+              "section": "Changes"
             },
             {
               "type": "chore",
               "hidden": true
             },
             {
-              "type": "docs",
+              "type": "ci",
               "hidden": true
             },
             {
-              "type": "ci",
+              "type": "refac",
               "hidden": true
-            }
+            },
           ]
         }
       }
