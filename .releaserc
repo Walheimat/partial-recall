@@ -10,10 +10,6 @@
         "preset": "conventionalcommits",
         "releaseRules": [
           {
-            "type": "refac",
-            "release": "patch"
-          },
-          {
             "type": "improve",
             "release": "patch"
           }
