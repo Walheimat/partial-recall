@@ -1559,6 +1559,30 @@
   (should-not (partial-recall-graph 1 0))
   (should-not (partial-recall-graph 2 nil)))
 
+
+;;;; History
+
+(cl-defstruct (test-history-structure
+               (:constructor th-create
+                             (&aux
+                              (history (make-ring 3)))))
+  "Test structure for history."
+  history)
+
+(ert-deftest history--record-and-retrieve ()
+  :tags '(history)
+
+  (let ((obj (th-create)))
+
+    (partial-recall-history--record obj :type 'test)
+    (partial-recall-history--record obj :type 'mock)
+    (partial-recall-history--record obj)
+    (partial-recall-history--record obj :type 'test)
+
+    (should (eq (length (partial-recall-history--retrieve obj)) 3))
+    (should (eq (length (partial-recall-history--retrieve obj 'test)) 1))
+    (should (eq 'unspecified (oref (nth 1 (partial-recall-history--retrieve obj)) type)))))
+
 ;;; partial-recall-test.el ends here
 
 ;; Local Variables:

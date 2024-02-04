@@ -37,6 +37,7 @@
 (require 'cl-lib)
 (require 'ring)
 (require 'subr-x)
+(require 'eieio)
 
 ;;;; Customization
 
@@ -333,6 +334,21 @@ focus is distinct from `buffer-display-count'."
 A memory is a key that connects it to the hash table, a ring of
 moments and the size it had upon construction."
   key moments orig-size history)
+
+(cl-defstruct (partial-recall-event
+               (:conc-name partial-recall-event--)
+               (:constructor partial-recall-event--create
+                             (type
+                              &optional
+                              moment
+                              memory
+                              &aux
+                              (timestamp (floor (time-to-seconds))))))
+  "A event of a specific type
+
+The event will have a timestamp and can optionally hold
+references to a moment and/or a memory."
+  type moment memory timestamp)
 
 ;;;; Utility
 
@@ -1792,6 +1808,30 @@ is shown."
       `(:propertize ,(or (partial-recall-graph length size) "-")
                     face partial-recall-deemphasized
                     help-echo ,(format "Memory contains %d/%d moment(s)" length size)))))
+
+;;;; History
+
+(cl-defun partial-recall-history--record (object &key type memory moment)
+  "Record an event for OBJECT.
+
+The type of the event can be specified using TYPE, otherwise it
+is considered unspecified. Optionally references to MEMORY or
+MOMENT can be passed."
+  (ring-insert
+   (oref object history)
+   (partial-recall-event--create (or type 'unspecified) moment memory)))
+
+(defun partial-recall-history--retrieve (object &optional event-type)
+  "Retrieve history of OBJECT.
+
+If EVENT-TYPE is non-nil, filter the results by it."
+  (let* ((history (oref object history))
+         (elements (ring-elements history))
+         (filter (if event-type
+                     (lambda (it) (eq event-type (oref it type)))
+                   #'always)))
+
+    (seq-filter filter elements)))
 
 ;;;; Setup
 
