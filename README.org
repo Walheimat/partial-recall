@@ -76,14 +76,18 @@ determined by =partial-recall-intermediate-term=.
 
 Forgotten buffers are not immediately lost, they are put in a special
 memory called the "subconscious" from which they can be "lifted" using
-=partial-recall-lift=. The subconscious works like any other memory:
-it is a ring of moments and can only hold a limited amount. If
-=partial-recall-repress= is =t=, the buffers of moments leaving the
-subconscious are killed. Closing a tab means forgetting all of the
-associated memory's moments.
+=partial-recall-lift= (or =partial-recall-retrieve=). The subconscious
+works like any other memory: it is a ring of moments and can only hold
+a limited amount. If =partial-recall-repress= is =t=, the buffers of
+moments leaving the subconscious are killed. Closing a tab means
+forgetting all of the associated memory's moments.
 
 You may also push buffers from the current memory to another using
 =partial-recall-reject=.
+
+Buffers that were removed from a memory can also be retrieved using
+=partial-recall-retrieve= provided that they were either reclaimed by
+other memories or still reside in the subconscious.
 
 *** Permanence
 
@@ -183,6 +187,7 @@ taken into account.
                                       partial-recall--not-in-view-mode-p))
   (partial-recall-memorable-traits '(partial-recall--gracedp)) ;; Don't flush recent and implanted moments.
   (partial-recall-intensities '((swap . 1) (reinsert . 2) (concentrate . 2))) ;; Focus gained from actions.
+  (partial-recall-history-size 100) ;; Size of moment and memory history.
 
   :config
   (partial-recall-mode)
@@ -215,6 +220,7 @@ probably want to bind the following commands:
 - =partial-recall-forget-some=
 - =partial-recall-explain-omission=
 - =partial-recall-reject=
+- =partial-recall-retrieve=
 
 ** Using the menu
 

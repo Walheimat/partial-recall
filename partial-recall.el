@@ -249,6 +249,7 @@ Older entries will eventually be pushed out by newer entries."
     (define-key map (kbd "l") 'partial-recall-lift)
     (define-key map (kbd "x") 'partial-recall-flush)
     (define-key map (kbd "o") 'partial-recall-explain-omission)
+    (define-key map (kbd "t") 'partial-recall-retrieve)
     map)
   "Map for `partial-recall-mode' commands.")
 
@@ -482,6 +483,8 @@ If EXCLUDE-SUBCONSCIOUS is t, it is excluded."
               (index (partial-recall-memory--owns-buffer-p memory buffer))
               (removed (ring-remove moments index)))
 
+    (partial-recall-history--record memory :type 'removal :moment removed)
+
     removed))
 
 (defun partial-recall-memory--find-in-other-frame (memory)
@@ -516,6 +519,15 @@ moment."
   (if (partial-recall--subconsciousp memory)
       partial-recall--subconscious-key
     (partial-recall--find-any-tab-from-memory memory)))
+
+(defun partial-recall-memory--removed-buffers (&optional memory)
+  "Get a list of buffers removed from MEMORY."
+  (let* ((memory (or memory (partial-recall--reality)))
+         (moments (partial-recall-history--retrieve-moments memory 'removal)))
+
+    (seq-filter
+     (lambda (it) (not (partial-recall-memory--owns-buffer-p memory it)))
+     (mapcar #'partial-recall-moment--buffer moments))))
 
 (defun partial-recall--reality ()
   "Get the current memory."
@@ -1135,6 +1147,9 @@ The moment is intensified. RESET is passed to
 
     (partial-recall-log "Swapping `%s' from `%s' to `%s'" moment a b)
 
+    (unless (partial-recall--subconsciousp a)
+      (partial-recall-history--record a :type 'removal :moment removed))
+
     (partial-recall--probe-memory a)
     (partial-recall--probe-memory b)
 
@@ -1641,6 +1656,14 @@ If EXCLUDE-CURRENT is t, don't include the current buffer."
 
     (partial-recall--complete-buffer prompt predicate initial exclude-current)))
 
+(defun partial-recall--complete-removed (prompt)
+  "Complete removed buffer using PROMPT."
+  (let* ((buffers (partial-recall-memory--removed-buffers))
+         (predicate (lambda (it) (and-let* ((buffer (cdr it))
+                                       ((member buffer buffers)))))))
+
+    (partial-recall--complete-buffer prompt predicate)))
+
 (defun partial-recall--complete-subconscious (prompt)
   "Complete subconscious buffer using PROMPT."
   (let* ((memory (partial-recall--subconscious))
@@ -1844,6 +1867,14 @@ If EVENT-TYPE is non-nil, filter the results by it."
 
     (seq-filter filter elements)))
 
+(defun partial-recall-history--retrieve-moments (object &optional event-type)
+  "Retrieve moments recorded in OBJECT history.
+
+If EVENT-TYPE is non-nil, filter the results by it."
+  (mapcar
+   #'partial-recall-event--moment
+   (partial-recall-history--retrieve object event-type)))
+
 ;;;; Setup
 
 (defun partial-recall-mode--setup ()
@@ -1978,6 +2009,19 @@ The selection is limited to buffers belonging to other memories.
 The selected buffer is removed from that memory and subsequently
 switched to."
   (interactive (list (partial-recall--complete-dream "Reclaim moment: ")))
+
+  (when-let* ((reclaimed (partial-recall--reclaim buffer t))
+              (buffer (partial-recall-moment--buffer reclaimed)))
+
+    (partial-recall--switch-to-buffer-and-neglect buffer)))
+
+;;;###autoload
+(defun partial-recall-retrieve (buffer)
+  "Retrieve BUFFER.
+
+The selection is limited to buffers that were removed from the
+current memory."
+  (interactive (list (partial-recall--complete-removed "Retrieve moment: ")))
 
   (when-let* ((reclaimed (partial-recall--reclaim buffer t))
               (buffer (partial-recall-moment--buffer reclaimed)))

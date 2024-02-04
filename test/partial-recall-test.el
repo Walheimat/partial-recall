@@ -618,14 +618,16 @@
       (bydi-was-not-called partial-recall--remember))))
 
 (ert-deftest pr-forget--forgets ()
-  :tags '(needs-history)
+  :tags '(needs-history history)
 
   (with-tab-history (:pre t)
 
-    (bydi (partial-recall--suppress)
+    (bydi (partial-recall--suppress
+           partial-recall-history--record)
       (partial-recall--forget (current-buffer) t)
 
-      (bydi-was-called partial-recall--suppress))
+      (bydi-was-called partial-recall--suppress)
+      (bydi-was-called partial-recall-history--record))
 
     (let* ((memory (gethash (alist-get 'pr test-tab) partial-recall--table))
            (ring (partial-recall-memory--moments memory)))
@@ -1161,6 +1163,15 @@
 
     (bydi-was-called-with partial-recall--complete-buffer (list '... (buffer-name (current-buffer))))))
 
+(ert-deftest pr--complete-removed ()
+  :tags '(completion)
+
+  (bydi (partial-recall--complete-buffer
+         (:mock partial-recall-memory--removed-buffers :return (list (current-buffer))))
+
+    (should (funcall (nth 1 (partial-recall--complete-removed "Some prompt: "))
+                     `(current . ,(current-buffer))))))
+
 (ert-deftest pr--complete-subconscious ()
   :tags '(completion)
 
@@ -1478,6 +1489,7 @@
            partial-recall--complete-subconscious
            partial-recall--complete-any
            partial-recall--complete-memory
+           partial-recall--complete-removed
            partial-recall--implant
            partial-recall--lift
            partial-recall--remember
@@ -1505,6 +1517,7 @@
       (call-interactively 'partial-recall-previous)
       (call-interactively 'partial-recall-forget-some)
       (call-interactively 'partial-recall-reject)
+      (call-interactively 'partial-recall-retrieve)
 
       (bydi-was-called partial-recall--reclaim)
       (bydi-was-called partial-recall--forget)
@@ -1517,9 +1530,10 @@
       (bydi-was-called partial-recall--previous-buffer)
       (bydi-was-called partial-recall--forget-some)
       (bydi-was-called partial-recall--reject)
+      (bydi-was-called partial-recall--complete-removed)
 
       (bydi-was-called-n-times partial-recall--complete-reality 5)
-      (bydi-was-called-n-times partial-recall--switch-to-buffer-and-neglect 5)
+      (bydi-was-called-n-times partial-recall--switch-to-buffer-and-neglect 6)
       (bydi-was-called-n-times switch-to-buffer 2)
       (bydi-was-called-n-times pop-to-buffer 1)
       (bydi-was-called-n-times partial-recall--complete-dream 1)
@@ -1582,6 +1596,27 @@
     (should (eq (length (partial-recall-history--retrieve obj)) 3))
     (should (eq (length (partial-recall-history--retrieve obj 'test)) 1))
     (should (eq 'unspecified (oref (nth 1 (partial-recall-history--retrieve obj)) type)))))
+
+(ert-deftest history--retrieve-moments ()
+  :tags '(history)
+
+  (let* ((obj (th-create)))
+
+    (partial-recall-history--record obj :type 'test :moment 'a)
+    (partial-recall-history--record obj :type 'mock :moment 'b)
+    (partial-recall-history--record obj :type 'test :moment 'c)
+
+    (should (eq (length (partial-recall-history--retrieve-moments obj)) 3))
+    (should (eq (length (partial-recall-history--retrieve-moments obj 'test)) 2))))
+
+(ert-deftest memory--removed-buffers ()
+  :tags '(history needs-history)
+
+  (with-tab-history (:pre t)
+
+    (partial-recall--forget)
+
+    (should (eq (length (partial-recall-memory--removed-buffers)) 1))))
 
 ;;; partial-recall-test.el ends here
 
