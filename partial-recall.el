@@ -191,6 +191,13 @@ See `partial-recall-moment--intensify' and its callers."
   :type '(alist :key-type symbol :value-type integer)
   :group 'partial-recall)
 
+(defcustom partial-recall-history-size 100
+  "The size of moment and memory history.
+
+Older entries will eventually be pushed out by newer entries."
+  :type 'integer
+  :group 'partial-recall)
+
 ;;;; Variables
 
 ;;;;; Private variables
@@ -301,7 +308,8 @@ argument.")
                               &aux
                               (timestamp (floor (time-to-seconds)))
                               (focus 0)
-                              (permanence nil))))
+                              (permanence nil)
+                              (history (make-ring partial-recall-history-size)))))
   "A moment of partial recall.
 
 A moment is defined by a buffer, a timestamp when that buffer was
@@ -310,7 +318,7 @@ permanence marker that can prevent it from being forgotten.
 
 The timestamp is distinct from `buffer-display-time' and the
 focus is distinct from `buffer-display-count'."
-  buffer timestamp focus permanence)
+  buffer timestamp focus permanence history)
 
 (cl-defstruct (partial-recall-memory
                (:conc-name partial-recall-memory--)
@@ -318,12 +326,13 @@ focus is distinct from `buffer-display-count'."
                              (key
                               &aux
                               (moments (make-ring partial-recall-memory-size))
-                              (orig-size partial-recall-memory-size))))
+                              (orig-size partial-recall-memory-size)
+                              (history (make-ring partial-recall-history-size)))))
   "A memory of partial recall.
 
 A memory is a key that connects it to the hash table, a ring of
 moments and the size it had upon construction."
-  key moments orig-size)
+  key moments orig-size history)
 
 ;;;; Utility
 
