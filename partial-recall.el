@@ -63,6 +63,11 @@ quick succession. See `partial-recall-intermediate-term'."
   :type 'integer
   :group 'partial-recall)
 
+(defcustom partial-recall-subconscious-size 30
+  "The amount of buffers to keep in the subconscious."
+  :type 'integer
+  :group 'partial-recall)
+
 (defcustom partial-recall-intermediate-term (* 20 60)
   "Threshold after which moments are handled differently.
 
@@ -325,15 +330,16 @@ focus is distinct from `buffer-display-count'."
                (:conc-name partial-recall-memory--)
                (:constructor partial-recall-memory--create
                              (key
-                              &aux
-                              (moments (make-ring partial-recall-memory-size))
+                              &key
                               (orig-size partial-recall-memory-size)
+                              &aux
+                              (moments (make-ring orig-size))
                               (history (make-ring partial-recall-history-size)))))
   "A memory of partial recall.
 
 A memory is a key that connects it to the hash table, a ring of
 moments and the size it had upon construction."
-  key moments orig-size history)
+  key orig-size moments history)
 
 (cl-defstruct (partial-recall-event
                (:conc-name partial-recall-event--)
@@ -369,15 +375,18 @@ PID and `recent-keys' vector."
 
     (md5 object)))
 
-(defun partial-recall--memory-by-key (key)
-  "Get or create memory identified by KEY."
+(defun partial-recall--memory-by-key (key &optional size)
+  "Get or create memory identified by KEY.
+
+If not found, the memory is created, optionally using size SIZE."
   (when key
     (if-let* ((table partial-recall--table)
               (memory (gethash key table)))
 
         memory
 
-      (let ((new-memory (partial-recall-memory--create key)))
+      (let* ((size (or size partial-recall-memory-size))
+             (new-memory (partial-recall-memory--create key :orig-size size)))
 
         (puthash key new-memory table)
         new-memory))))
@@ -518,7 +527,9 @@ moment."
 
 (defun partial-recall--subconscious ()
   "Return (or create) the subconscious."
-  (partial-recall--memory-by-key partial-recall--subconscious-key))
+  (partial-recall--memory-by-key
+   partial-recall--subconscious-key
+   partial-recall-subconscious-size))
 
 (defun partial-recall--subconsciousp (memory)
   "Check if MEMORY is the subconscious."
