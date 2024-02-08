@@ -1,83 +1,85 @@
 {
-  "branches": [
-    "trunk"
-  ],
-  "repositoryUrl": "git@github.com:Walheimat/partial-recall.git",
-  "plugins": [
-    [
-      "@semantic-release/commit-analyzer",
-      {
-        "preset": "conventionalcommits",
-        "releaseRules": [
-          {
-            "type": "improve",
-            "release": "patch"
-          }
+    "branches": ["trunk"],
+    "repositoryUrl": "git@github.com:Walheimat/partial-recall.git",
+    "plugins": [
+        [
+            "@semantic-release/commit-analyzer",
+            {
+                "preset": "conventionalcommits",
+                "releaseRules": [
+                    {
+                        "type": "improve",
+                        "release": "patch"
+                    },
+                    {
+                        "type": "refac",
+                        "release": "patch"
+                    }
+                ]
+            }
+        ],
+        [
+            "@semantic-release/release-notes-generator",
+            {
+                "preset": "conventionalcommits",
+                "presetConfig": {
+                    "types": [
+                        {
+                            "type": "feat",
+                            "section": "Features"
+                        },
+                        {
+                            "type": "fix",
+                            "section": "Bug Fixes"
+                        },
+                        {
+                            "type": "improve",
+                            "section": "Changes"
+                        },
+                        {
+                            "type": "docs",
+                            "hidden": true
+                        },
+                        {
+                            "type": "chore",
+                            "hidden": true
+                        },
+                        {
+                            "type": "ci",
+                            "hidden": true
+                        },
+                        {
+                            "type": "refac",
+                            "hidden": true
+                        }
+                    ]
+                }
+            }
+        ],
+        [
+            "@semantic-release/exec",
+            {
+                "prepareCmd": "make update-next-version NEXT_PACKAGE_VERSION=${nextRelease.version}"
+            }
+        ],
+        [
+            "@semantic-release/changelog",
+            {
+                "changelogTitle": "# Changelog"
+            }
+        ],
+        [
+            "@semantic-release/git",
+            {
+                "assets": [
+                    "CHANGELOG.md",
+                    "partial-recall.el",
+                    "partial-recall-x.el",
+                    "partial-recall-menu.el",
+                    "Cask",
+                    "Makefile"
+                ]
+            }
         ]
-      },
-    ],
-    [
-      "@semantic-release/release-notes-generator",
-      {
-        "preset": "conventionalcommits",
-        "presetConfig": {
-          "types": [
-            {
-              "type": "feat",
-              "section": "Features"
-            },
-            {
-              "type": "fix",
-              "section": "Bug Fixes"
-            },
-            {
-              "type": "improve",
-              "section": "Changes"
-            },
-            {
-              "type": "docs",
-              "section": "Changes"
-            },
-            {
-              "type": "chore",
-              "hidden": true
-            },
-            {
-              "type": "ci",
-              "hidden": true
-            },
-            {
-              "type": "refac",
-              "hidden": true
-            },
-          ]
-        }
-      }
-    ],
-    [
-      "@semantic-release/exec",
-      {
-        "prepareCmd": "make update-next-version NEXT_PACKAGE_VERSION=${nextRelease.version}"
-      }
-    ],
-    [
-      "@semantic-release/changelog",
-      {
-        "changelogTitle": "# Changelog"
-      }
-    ],
-    [
-      "@semantic-release/git",
-      {
-        "assets": [
-          "CHANGELOG.md",
-          "partial-recall.el",
-          "partial-recall-x.el",
-          "partial-recall-menu.el",
-          "Cask",
-          "Makefile"
-        ]
-      }
     ]
-  ]
 }
