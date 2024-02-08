@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.10.0](https://github.com/Walheimat/partial-recall/compare/v0.9.3...v0.10.0) (2024-02-08)
+
+
+### Features
+
+* **history:** add event structure, history methods ([21526a4](https://github.com/Walheimat/partial-recall/commit/21526a455242c14d769e9b3e63352c153e4aa182))
+* **history:** add partial-recall-retrieve ([75dab0f](https://github.com/Walheimat/partial-recall/commit/75dab0f4a5bcafc9886992f46f9bbee70b81e69c))
+* **structures:** add history slots ([ad5d714](https://github.com/Walheimat/partial-recall/commit/ad5d7148d811d7dd157fa6f963568baf9e89a7e5))
+* **subconscious:** increased subconscious ([e761851](https://github.com/Walheimat/partial-recall/commit/e76185139e802028f77435947bf7cf6db3e05227))
+
+
+### Bug Fixes
+
+* **completion:** signal user-error when completing null ([65cb082](https://github.com/Walheimat/partial-recall/commit/65cb08293a29c7ea30916556290d94dc2ede4078))
+
 ## [0.9.3](https://github.com/Walheimat/partial-recall/compare/v0.9.2...v0.9.3) (2024-01-28)
 
 
