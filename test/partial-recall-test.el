@@ -1238,16 +1238,21 @@
          (:spy internal-complete-buffer-except))
 
     (ert-simulate-keys '(?\C-m)
-      (partial-recall--complete-buffer "Some prompt: " #'ignore nil))
+      (should-error (partial-recall--complete-buffer "Some prompt: " #'ignore nil)))
 
     (bydi-was-set minibuffer-completion-table)
     (bydi-was-not-called internal-complete-buffer-except)
 
     (ert-simulate-keys '(?\C-m)
-      (partial-recall--complete-buffer "Some prompt: " #'ignore nil t))
+      (should-error (partial-recall--complete-buffer "Some prompt: " #'ignore nil t)))
 
     (bydi-was-set minibuffer-completion-table)
-    (bydi-was-called internal-complete-buffer-except)))
+    (bydi-was-called internal-complete-buffer-except)
+
+    (ert-simulate-keys '(?\C-m)
+      (should (equal
+               (partial-recall--complete-buffer "Some prompt: " #'always (buffer-name (current-buffer)))
+               (current-buffer))))))
 
 ;;;; Lighter
 

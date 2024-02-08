@@ -1710,7 +1710,10 @@ If EXCLUDE-CURRENT is t, don't include the current buffer."
     (minibuffer-with-setup-hook
         (lambda () (setq-local minibuffer-completion-table rbts-completion-table))
 
-      (get-buffer (read-buffer prompt initial t predicate)))))
+      (if-let* ((selection (read-buffer prompt initial t predicate))
+                (buffer (get-buffer selection)))
+          buffer
+        (user-error "No buffer selected")))))
 
 (defun partial-recall--complete-memory (prompt &optional include-subconscious)
   "Complete memory using PROMPT.
