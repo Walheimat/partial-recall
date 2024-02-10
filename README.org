@@ -113,12 +113,16 @@ manually.
 
 Every =partial-recall-concentration-cycle= seconds =partial-recall=
 will "concentrate" on the =current-buffer=. If the focused buffer
-doesn't change between cycles its focus will increase (see
-*Permanence*) otherwise concentration is broken and will begin again
-for the current buffer.
+doesn't change (or at least remains visible) between cycles its focus
+will increase (see *Permanence*) otherwise concentration is broken and
+will begin again for the current buffer.
 
 /Note/ that concentration is a no-op if the =current-buffer= is not a
-meaningful buffer.
+meaningful buffer. In this instance, concentration is deferred. During
+this phase attempts to re-focus are made more rapidly (using a tenth
+of =partial-recall-concentration-cycle=). If the previously focused
+buffer can be focused again after the first repeat, concentration can
+be resumed.
 
 Focus may grow well beyond threshold =partial-recall-implant=. As of
 now this has no further consequences.

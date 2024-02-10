@@ -215,8 +215,10 @@ Older entries will eventually be pushed out by newer entries."
 
 (defvar partial-recall--concentration-timer nil)
 (defvar partial-recall--concentration-deferred nil)
+(defvar partial-recall--concentration-grace-period nil)
 
 (defvar partial-recall--last-focus nil)
+(defvar partial-recall--faint-focus nil)
 
 (defvar partial-recall--last-checked nil)
 (defvar partial-recall--neglect nil)
@@ -1212,6 +1214,7 @@ cleaned up."
 (define-error 'prcon-not-owned "Buffer is not owned" 'partial-recall-errors)
 (define-error 'prcon-changed "Buffer has changed" 'partial-recall-errors)
 (define-error 'prcon-not-ready "No reality" 'partial-recall-errors)
+(define-error 'prcon-refocused "Concentration was regained" 'partial-recall-errors)
 
 (defun partial-recall--concentrate ()
   "Concentrate on the current moment.
@@ -1222,19 +1225,29 @@ current moment is focused."
   (condition-case err
       (progn
         (partial-recall--hold-concentration)
+
+        ;; Move faint to last focus if it exists.
+        (when partial-recall--faint-focus
+          (setq partial-recall--last-focus partial-recall--faint-focus
+                partial-recall--faint-focus nil)
+          (partial-recall--renew-concentration)
+          (partial-recall-debug "Concentration on `%s' resumes" partial-recall--last-focus))
+
         (partial-recall-moment--intensify partial-recall--last-focus nil 'concentrate))
+
     ((prcon-not-ready prcon-not-owned)
      (partial-recall--defer-concentration))
     (prcon-changed
      (let ((moment (cdr err)))
 
-       (when partial-recall--last-focus
-        (partial-recall-debug "Concentration on `%s' broke" partial-recall--last-focus))
+       (when-let ((lost (or partial-recall--faint-focus partial-recall--last-focus)))
+         (partial-recall-debug "Concentration on `%s' broke" lost))
 
        (partial-recall--renew-concentration)
        (partial-recall-debug "Concentration on `%s' begins" moment)
 
-       (setq partial-recall--last-focus moment)))))
+       (setq partial-recall--last-focus moment
+             partial-recall--faint-focus nil)))))
 
 (defun partial-recall--hold-concentration ()
   "Try to hold concentration."
@@ -1244,15 +1257,13 @@ current moment is focused."
   (let* ((buffer (current-buffer))
          (moment (partial-recall--find-owning-moment buffer)))
 
-
     (unless (or moment (partial-recall--buffer-in-memory-p buffer))
       (signal 'prcon-not-owned buffer))
 
-    (unless (and partial-recall--last-focus
-                 (or (eq moment
-                         partial-recall--last-focus)
-                     (partial-recall--buffer-visible-p
-                      (partial-recall-moment--buffer partial-recall--last-focus))))
+    (unless (or (eq moment partial-recall--last-focus)
+                (eq moment partial-recall--faint-focus)
+                (partial-recall--buffer-visible-p
+                 (partial-recall-moment--buffer partial-recall--last-focus)))
 
       (signal 'prcon-changed moment))
 
@@ -1262,13 +1273,21 @@ current moment is focused."
   "Defer concentration.
 
 This restarts the cycle with a much shorter repeat time until
-concentration on a moment can begin."
-  (unless partial-recall--concentration-deferred
+concentration on a moment can begin. The last focus is retained
+as a faint focus.
+
+If deferring is already in place, the faint focus is lost as
+well."
+  (if partial-recall--concentration-deferred
+      (setq partial-recall--faint-focus nil)
+
     (partial-recall-debug "Deferring concentration")
 
     (setq partial-recall--concentration-deferred t
+          partial-recall--faint-focus partial-recall--last-focus
           partial-recall--last-focus nil)
-    (partial-recall--start-concentration nil partial-recall-handle-delay)))
+
+    (partial-recall--start-concentration nil (/ partial-recall-concentration-cycle 10))))
 
 (defun partial-recall--renew-concentration ()
   "Renew concentration cycle."
