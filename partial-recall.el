@@ -1214,7 +1214,6 @@ cleaned up."
 (define-error 'prcon-not-owned "Buffer is not owned" 'partial-recall-errors)
 (define-error 'prcon-changed "Buffer has changed" 'partial-recall-errors)
 (define-error 'prcon-not-ready "No reality" 'partial-recall-errors)
-(define-error 'prcon-refocused "Concentration was regained" 'partial-recall-errors)
 
 (defun partial-recall--concentrate ()
   "Concentrate on the current moment.
