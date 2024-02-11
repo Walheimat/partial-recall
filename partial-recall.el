@@ -1229,8 +1229,7 @@ current moment is focused."
         (when partial-recall--faint-focus
           (setq partial-recall--last-focus partial-recall--faint-focus
                 partial-recall--faint-focus nil)
-          (partial-recall--renew-concentration)
-          (partial-recall-debug "Concentration on `%s' resumes" partial-recall--last-focus))
+          (partial-recall--renew-concentration))
 
         (partial-recall-moment--intensify partial-recall--last-focus nil 'concentrate))
 
@@ -1254,19 +1253,20 @@ current moment is focused."
     (signal 'prcon-not-ready nil))
 
   (let* ((buffer (current-buffer))
-         (moment (partial-recall--find-owning-moment buffer)))
+         (moment (partial-recall--find-owning-moment buffer))
+         (focus (or partial-recall--last-focus partial-recall--faint-focus)))
 
     (unless (or moment (partial-recall--buffer-in-memory-p buffer))
       (signal 'prcon-not-owned buffer))
 
-    (unless (or (eq moment partial-recall--last-focus)
-                (eq moment partial-recall--faint-focus)
-                (partial-recall--buffer-visible-p
-                 (partial-recall-moment--buffer partial-recall--last-focus)))
+    (unless (and focus
+                 (or (eq moment focus)
+                     (partial-recall--buffer-visible-p
+                      (partial-recall-moment--buffer focus))))
 
       (signal 'prcon-changed moment))
 
-    (partial-recall-debug "Concentration held on `%s'" partial-recall--last-focus)))
+    (partial-recall-debug "Concentration held on `%s'" focus)))
 
 (defun partial-recall--defer-concentration ()
   "Defer concentration.
