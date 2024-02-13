@@ -173,152 +173,6 @@
 
       (should-not partial-recall--schedule-timer))))
 
-(ert-deftest pr--concentrate--defers-for-not-owned ()
-  :tags '(concentration)
-
-  (bydi ((:ignore partial-recall--find-owning-moment)
-         (:ignore partial-recall--buffer-in-memory-p)
-         (:always partial-recall--reality)
-         partial-recall--defer-concentration)
-
-    (partial-recall--concentrate)
-
-    (bydi-was-called partial-recall--defer-concentration)))
-
-(ert-deftest pr--concentrate--defers-for-not-ready ()
-  :tags '(concentration)
-
-  (bydi ((:ignore partial-recall--reality)
-         partial-recall--defer-concentration)
-
-    (partial-recall--concentrate)
-
-    (bydi-was-called partial-recall--defer-concentration)))
-
-(ert-deftest pr--concentrate--renews-after-change ()
-  :tags '(concentration)
-
-  (with-tab-history (:pre t)
-    (let ((partial-recall--last-focus (partial-recall-current-moment)))
-
-      (bydi ((:mock partial-recall--find-owning-moment :return 'new)
-             partial-recall--renew-concentration
-             (:watch partial-recall--last-focus)
-             (:ignore partial-recall--buffer-visible-p))
-
-        (partial-recall--concentrate)
-
-        (bydi-was-called partial-recall--renew-concentration)
-        (bydi-was-set-to partial-recall--last-focus 'new)))))
-
-(ert-deftest pr--hold-concentration--can-hold ()
-  :tags '(concentration)
-
-  (with-tab-history (:pre t)
-
-    (let* ((partial-recall--last-focus (partial-recall-current-moment))
-           (partial-recall--faint-focus nil)
-           (another (generate-new-buffer " *temp*" t))
-           (another-moment (partial-recall-moment--create another)))
-
-      (bydi (partial-recall-moment--intensify
-             partial-recall--renew-concentration
-             (:mock partial-recall--find-owning-moment :return another)
-             (:always partial-recall--buffer-visible-p)
-             (:watch partial-recall--faint-focus))
-
-        (partial-recall--concentrate)
-
-        (bydi-was-called-with partial-recall-moment--intensify `(,partial-recall--last-focus ...))
-
-        (kill-buffer another)
-
-        (setq partial-recall--last-focus nil
-              partial-recall--faint-focus (partial-recall-current-moment))
-
-        (bydi-clear-mocks-for 'partial-recall--faint-focus)
-
-        (partial-recall--concentrate)
-
-        (bydi-was-called partial-recall--renew-concentration)
-        (bydi-was-called partial-recall-moment--intensify)
-        (bydi-was-set partial-recall--faint-focus)))))
-
-(ert-deftest pr--shift-or-defer-concentration ()
-  :tags '(concentration)
-
-  (let ((partial-recall--concentration-deferred nil)
-        (partial-recall--last-focus 'last)
-        (partial-recall-handle-delay 5)
-        (partial-recall-concentration-cycle 10))
-
-    (bydi (partial-recall--start-concentration
-           (:watch partial-recall--concentration-deferred)
-           (:watch partial-recall--faint-focus))
-
-      (partial-recall--shift-concentration "test")
-
-      (bydi-was-called partial-recall--start-concentration)
-      (bydi-was-not-set partial-recall--concentration-deferred)
-
-      (partial-recall--defer-concentration)
-
-      (bydi-was-set partial-recall--concentration-deferred)
-      (bydi-was-set-to partial-recall--faint-focus 'last)
-
-      (bydi-was-called-with partial-recall--start-concentration '(nil 1) t)
-
-      (partial-recall--defer-concentration)
-
-      (bydi-was-set-to partial-recall--faint-focus nil)
-      (bydi-was-not-called partial-recall--start-concentration))))
-
-(ert-deftest pr--renew-concentration ()
-  :tags '(concentration)
-
-  (let ((partial-recall--concentration-deferred nil)
-        (partial-recall-concentration-cycle 10))
-
-    (bydi (partial-recall--start-concentration
-           (:watch partial-recall--concentration-deferred))
-
-      (partial-recall--renew-concentration)
-
-      (bydi-was-not-called partial-recall--start-concentration)
-      (bydi-was-not-set partial-recall--concentration-deferred)
-
-      (setq partial-recall--concentration-deferred t)
-
-      (bydi-clear-mocks-for 'partial-recall--concentration-deferred)
-
-      (partial-recall--renew-concentration)
-
-      (bydi-was-called-with partial-recall--start-concentration 10)
-      (bydi-was-set partial-recall--concentration-deferred))))
-
-(ert-deftest pr--start-concentration ()
-  :tags '(concentration)
-
-  (let ((partial-recall--concentration-timer nil)
-        (partial-recall-handle-delay 1)
-        (partial-recall-concentration-cycle 10))
-
-    (bydi (cancel-timer
-           run-with-timer)
-
-      (partial-recall--shift-concentration "test")
-
-      (bydi-was-not-called cancel-timer)
-
-      (bydi-was-called-with run-with-timer '(2 11 partial-recall--concentrate))
-
-      (setq partial-recall--concentration-timer 'timer)
-
-      (partial-recall--start-concentration 5 5)
-
-      (bydi-was-called cancel-timer)
-      (bydi-was-called-with run-with-timer '(6 6 partial-recall--concentrate)))))
-
 (ert-deftest pr--explain-omission-internal ()
   :tags '(meaningful)
 
@@ -367,7 +221,7 @@
 
 (ert-deftest pr--on-create--sets-cdr ()
   (bydi ((:mock partial-recall--create-key :return "test")
-         partial-recall--shift-concentration)
+         (:spy run-hook-with-args))
 
     (let ((tab '(current-tab (name . "test-tab") (explicit-name))))
 
@@ -375,7 +229,7 @@
 
       (should (string= "test" (alist-get 'pr tab)))
 
-      (bydi-was-called-with partial-recall--shift-concentration "test-tab"))))
+      (bydi-was-called-with run-hook-with-args '(partial-recall-after-create-hook "test-tab")))))
 
 (ert-deftest pr--on-close ()
   :tags '(needs-history)
@@ -1469,7 +1323,7 @@
       (partial-recall-mode--setup)
 
       (bydi-was-called partial-recall--queue-tab-fix-up)
-      (bydi-was-called-n-times advice-add 7)
+      (bydi-was-called-n-times advice-add 6)
       (bydi-was-called-n-times add-hook 7)
       (bydi-was-called tab-bar-mode))))
 
@@ -1477,13 +1331,11 @@
   :tags '(user-facing)
 
   (bydi (remove-hook
-         (:spy advice-remove)
-         cancel-timer)
+         (:spy advice-remove))
 
     (partial-recall-mode--teardown)
 
-    (bydi-was-called cancel-timer)
-    (bydi-was-called-n-times advice-remove 7)
+    (bydi-was-called-n-times advice-remove 6)
     (bydi-was-called-n-times remove-hook 7)))
 
 ;;;; API

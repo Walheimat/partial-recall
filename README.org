@@ -130,6 +130,8 @@ now this has no further consequences.
 Switching tabs has concentration shift to the new tab's current buffer
 and resets the cycle.
 
+To enable this behavior, enable =partial-recall-concentration-mode=.
+
 *** Meaningful buffers and buffer traits
 
 =partial-recall= only "remembers" buffers that are "meaningful". This
@@ -179,7 +181,6 @@ taken into account.
   (partial-recall-intermediate-term 1200) ;; The age (in seconds) that, when exceeded, will allow reclaiming.
   (partial-recall-repress t) ;; Whether forgotten buffers should (eventually) be killed.
   (partial-recall-auto-implant 20) ;; Amount of focus needed before auto-implanting.
-  (partial-recall-concentration-cycle 60) ;; Amount of seconds between checking whether a buffer remained visible.
   (partial-recall-auto-switch t) ;; Whether to switch to a moment's tab automatically.
   (partial-recall-lighter-prefix "pr") ;; What you will in the mode-line.
   (partial-recall-record-triggers '(consult-buffer)) ;; Commands that might obscure buffers before they are handled.
@@ -193,8 +194,11 @@ taken into account.
   (partial-recall-intensities '((swap . 1) (reinsert . 2) (concentrate . 2))) ;; Focus gained from actions.
   (partial-recall-history-size 100) ;; Size of moment and memory history.
 
+  (partial-recall-concentration-cycle 60) ;; Amount of seconds between checking whether a buffer remained visible.
+
   :config
   (partial-recall-mode)
+  (partial-recall-concentration-mode)
 
   ;; If you use `consult', you can add the provided buffer source.
   (with-eval-after-load 'consult

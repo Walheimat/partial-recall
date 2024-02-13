@@ -95,20 +95,10 @@ repressed."
   :type 'boolean
   :group 'partial-recall)
 
-(defcustom partial-recall-concentration-cycle 60
-  "Number of seconds a cycle of concentration takes.
-
-If a buffer remains visible from when the cycle began until it
-ends, its focus is increased. Can be set to nil to disable
-concentration."
-  :type '(choice (integer :tag "Number of seconds")
-                 (const :tag "Don't use" nil)))
-
 (defcustom partial-recall-auto-implant 20
   "The amount of focus before auto-implanting a moment.
 
-If this is nil, never auto-implant. The focus is increased by
-`partial-recall--concentrate'."
+If this is nil, never auto-implant."
   :type '(choice (const :tag "Don't auto-implant" nil)
                  (integer :tag "Minimum focus before auto-implanting"))
   :group 'partial-recall)
@@ -135,7 +125,8 @@ If this is nil, never auto-implant. The focus is increased by
 
 It will allow the buffer visited before these commands to be
 considered visible. This is relevant for
-`partial-recall--concentrate' which increases a moment's focus."
+`partial-recall-concentration--concentrate' which increases a
+moment's focus."
   :type '(repeat symbol)
   :group 'partial-recall)
 
@@ -212,10 +203,6 @@ Older entries will eventually be pushed out by newer entries."
 (defconst partial-recall--subconscious-key "subconscious")
 
 (defvar partial-recall--schedule-timer nil)
-
-(defvar partial-recall--concentration-timer nil)
-(defvar partial-recall--concentration-deferred nil)
-(defvar partial-recall--concentration-grace-period nil)
 
 (defvar partial-recall--last-focus nil)
 (defvar partial-recall--faint-focus nil)
@@ -307,6 +294,12 @@ permanence value as arguments.")
 
 Each function will be called with the inserted moment as its only
 argument.")
+
+(defvar partial-recall-after-create-hook nil
+  "Functions run after a memory is created.
+
+Each function will be called with the name of the memory (that is
+the name of the tab).")
 
 ;;;; Structures
 
@@ -841,7 +834,7 @@ Don't do anything if NORECORD is t."
 
     (setcdr tab (push (cons 'pr key) state))
 
-    (partial-recall--shift-concentration (alist-get 'name tab))))
+    (run-hook-with-args 'partial-recall-after-create-hook (alist-get 'name tab))))
 
 (defun partial-recall--on-close (tab only)
   "Remove TAB from table if it is not the ONLY one."
@@ -1208,122 +1201,6 @@ cleaned up."
     (partial-recall-log "Flushed %d moments from `%s'" count memory)
 
     (partial-recall--probe-memory memory)))
-
-;;;;; Concentration
-
-(define-error 'prcon-not-owned "Buffer is not owned" 'partial-recall-errors)
-(define-error 'prcon-changed "Buffer has changed" 'partial-recall-errors)
-(define-error 'prcon-not-ready "No reality" 'partial-recall-errors)
-
-(defun partial-recall--concentrate ()
-  "Concentrate on the current moment.
-
-If the moment has remained the same since the last cycle, its
-focus is intensified, otherwise concentration breaks and the now
-current moment is focused."
-  (condition-case err
-      (progn
-        (partial-recall--hold-concentration)
-
-        ;; Move faint to last focus if it exists.
-        (when partial-recall--faint-focus
-          (setq partial-recall--last-focus partial-recall--faint-focus
-                partial-recall--faint-focus nil)
-          (partial-recall--renew-concentration))
-
-        (partial-recall-moment--intensify partial-recall--last-focus nil 'concentrate))
-
-    ((prcon-not-ready prcon-not-owned)
-     (partial-recall--defer-concentration))
-    (prcon-changed
-     (let ((moment (cdr err)))
-
-       (when-let ((lost (or partial-recall--faint-focus partial-recall--last-focus)))
-         (partial-recall-debug "Concentration on `%s' broke" lost))
-
-       (partial-recall--renew-concentration)
-       (partial-recall-debug "Concentration on `%s' begins" moment)
-
-       (setq partial-recall--last-focus moment
-             partial-recall--faint-focus nil)))))
-
-(defun partial-recall--hold-concentration ()
-  "Try to hold concentration."
-  (unless (partial-recall--reality)
-    (signal 'prcon-not-ready nil))
-
-  (let* ((buffer (current-buffer))
-         (moment (partial-recall--find-owning-moment buffer))
-         (focus (or partial-recall--last-focus partial-recall--faint-focus)))
-
-    (unless (or moment (partial-recall--buffer-in-memory-p buffer))
-      (signal 'prcon-not-owned buffer))
-
-    (unless (and focus
-                 (or (eq moment focus)
-                     (partial-recall--buffer-visible-p
-                      (partial-recall-moment--buffer focus))))
-
-      (signal 'prcon-changed moment))
-
-    (partial-recall-debug "Concentration held on `%s'" focus)))
-
-(defun partial-recall--defer-concentration ()
-  "Defer concentration.
-
-This restarts the cycle with a much shorter repeat time until
-concentration on a moment can begin. The last focus is retained
-as a faint focus.
-
-If deferring is already in place, the faint focus is lost as
-well."
-  (if partial-recall--concentration-deferred
-      (setq partial-recall--faint-focus nil)
-
-    (partial-recall-debug "Deferring concentration")
-
-    (setq partial-recall--concentration-deferred t
-          partial-recall--faint-focus partial-recall--last-focus
-          partial-recall--last-focus nil)
-
-    (partial-recall--start-concentration nil (/ partial-recall-concentration-cycle 10))))
-
-(defun partial-recall--renew-concentration ()
-  "Renew concentration cycle."
-  (when partial-recall--concentration-deferred
-    (partial-recall-debug "Aborting deferred concentration")
-
-    (setq partial-recall--concentration-deferred nil)
-
-    (partial-recall--start-concentration partial-recall-concentration-cycle)))
-
-(defun partial-recall--shift-concentration (name)
-  "Re-concentrate after switching to NAME.
-
-This cancels and re-runs the timer."
-  (partial-recall-debug "Shifting concentration towards `%s'" name)
-
-  (partial-recall--start-concentration))
-
-(defun partial-recall--start-concentration (&optional secs repeat)
-  "Start concentrating.
-
-This cancels a previously running timer.
-
-Optionally SECS and REPEAT can be passed which are passed along
-to `run-with-timer'. They default to
-`partial-recall-handle-delay' and
-`partial-recall-concentration-cycle'."
-  (when partial-recall--concentration-timer
-    (cancel-timer partial-recall--concentration-timer))
-
-  (when-let ((secs (or secs partial-recall-handle-delay))
-             (repeat (or repeat partial-recall-concentration-cycle)))
-
-    (setq partial-recall--concentration-timer (run-with-timer
-                                               (1+ secs)
-                                               (1+ repeat)
-                                               #'partial-recall--concentrate))))
 
 ;;;;; Repercussions
 
@@ -1923,9 +1800,6 @@ If EVENT-TYPE is non-nil, filter the results by it."
   (advice-add
    'winner-redo :after
    #'partial-recall--after-winner)
-  (advice-add
-   'tab-bar-switch-to-tab :after
-   #'partial-recall--shift-concentration)
 
   (add-hook 'minibuffer-setup-hook #'partial-recall--on-minibuffer-setup)
   (add-hook 'minibuffer-exit-hook #'partial-recall--on-minibuffer-exit)
@@ -1937,8 +1811,6 @@ If EVENT-TYPE is non-nil, filter the results by it."
 
 (defun partial-recall-mode--teardown ()
   "Tear down `partial-recall-mode'."
-  (cancel-timer partial-recall--concentration-timer)
-
   (advice-remove
    partial-recall--switch-to-buffer-function
    #'partial-recall--before-switch-to-buffer)
@@ -1957,9 +1829,6 @@ If EVENT-TYPE is non-nil, filter the results by it."
   (advice-remove
    'winner-redo
    #'partial-recall--after-winner)
-  (advice-remove
-   'tab-bar-switch-to-tab
-   #'partial-recall--shift-concentration)
 
   (remove-hook 'minibuffer-setup-hook #'partial-recall--on-minibuffer-setup)
   (remove-hook 'minibuffer-exit-hook #'partial-recall--on-minibuffer-exit)
