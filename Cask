@@ -13,5 +13,6 @@
 (files
  "partial-recall.el"
  "partial-recall-concentration.el"
+ "partial-recall-plasticity.el"
  "partial-recall-menu.el"
  "partial-recall-x.el")
