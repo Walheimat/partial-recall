@@ -75,6 +75,7 @@
                     "CHANGELOG.md",
                     "partial-recall.el",
                     "partial-recall-concentration.el",
+                    "partial-recall-plasticity.el",
                     "partial-recall-x.el",
                     "partial-recall-menu.el",
                     "Cask",

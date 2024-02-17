@@ -6,7 +6,16 @@
 
 ;;; Code:
 
-(require 'partial-recall nil t)
+(require 'partial-recall)
+(require 'partial-recall-plasticity)
+
+(defmacro with-plasticity-enabled (&rest args)
+  "Run ARGS with `partial-recall-plasticity-mode' enabled."
+  (declare (indent defun))
+  `(progn
+     (partial-recall-plasticity-mode)
+     ,@args
+     (partial-recall-plasticity-mode -1)))
 
 ;;;; Accessors
 
@@ -332,18 +341,19 @@
       (should (eq 1 (ring-length ring))))))
 
 (ert-deftest pr-remember--extends-ring ()
-  :tags '(needs-history)
+  :tags '(plasticity needs-history)
 
-  (with-tab-history (:probes t)
-    (bydi ((:always partial-recall-memory--at-capacity-p)
-           (:always partial-recall-memory--should-extend-p)
-           partial-recall--maybe-reinserted-implanted
-           partial-recall--maybe-suppress-oldest-moment
-           partial-recall--maybe-forget-oldest-moment
-           ring-extend)
+  (with-plasticity-enabled
+    (with-tab-history (:probes t)
+      (bydi ((:always partial-recall-memory--at-capacity-p)
+             (:always partial-recall-plasticity--should-extend-p)
+             partial-recall--maybe-reinserted-implanted
+             partial-recall--maybe-suppress-oldest-moment
+             partial-recall--maybe-forget-oldest-moment
+             ring-extend)
 
-      (partial-recall--remember (current-buffer))
-      (bydi-was-called ring-extend))))
+        (partial-recall--remember (current-buffer))
+        (bydi-was-called ring-extend)))))
 
 (ert-deftest pr-remember--reinforces-permanent ()
   :tags '(needs-history)
@@ -370,9 +380,6 @@
       (let ((another-temp (generate-new-buffer " *temp*" t)))
 
         (bydi ((:always partial-recall-memory--at-capacity-p)
-               (:ignore partial-recall-memory--should-extend-p)
-               partial-recall--maybe-resize-memory
-               partial-recall--maybe-extend-memory
                partial-recall--maybe-reinsert-implanted
                partial-recall--suppress)
           (partial-recall--remember another-temp)
@@ -382,29 +389,32 @@
         (kill-buffer another-temp)))))
 
 (ert-deftest pr-swap ()
-  (let* ((partial-recall-memory-size 1)
-         (a (partial-recall-memory--create "a"))
-         (b (partial-recall-memory--create "b"))
-         (buffer (generate-new-buffer " *temp*" t))
-         (moment (partial-recall-moment--create buffer)))
+  :tags '(plasticity)
 
-    (ring-insert (partial-recall-memory--moments a) moment)
+  (with-plasticity-enabled
+    (let* ((partial-recall-memory-size 1)
+           (a (partial-recall-memory--create "a"))
+           (b (partial-recall-memory--create "b"))
+           (buffer (generate-new-buffer " *temp*" t))
+           (moment (partial-recall-moment--create buffer)))
 
-    (bydi ((:mock partial-recall--find-tab-name-from-memory :return "tab")
-           (:mock buffer-name :return "buffer")
-           partial-recall--maybe-reinsert-implanted
-           partial-recall-moment--update-timestamp
-           (:always partial-recall-memory--at-capacity-p)
-           (:always partial-recall-memory--should-extend-p))
+      (ring-insert (partial-recall-memory--moments a) moment)
 
-      (partial-recall--swap a b moment)
+      (bydi ((:mock partial-recall--find-tab-name-from-memory :return "tab")
+             (:mock buffer-name :return "buffer")
+             partial-recall--maybe-reinsert-implanted
+             partial-recall-moment--update-timestamp
+             (:always partial-recall-memory--at-capacity-p)
+             (:always partial-recall-plasticity--should-extend-p))
 
-      (bydi-was-called partial-recall-moment--update-timestamp)
+        (partial-recall--swap a b moment)
 
-      (let ((ring (partial-recall-memory--moments b)))
+        (bydi-was-called partial-recall-moment--update-timestamp)
 
-        (should (eq 2 (ring-size ring)))
-        (should (ring-member ring moment))))))
+        (let ((ring (partial-recall-memory--moments b)))
+
+          (should (eq 2 (ring-size ring)))
+          (should (ring-member ring moment)))))))
 
 (ert-deftest pr-recollect--reinforces-reality-or-reclaims ()
   (bydi ((:always partial-recall--buffer-mapped-p)
@@ -542,7 +552,7 @@
       (should-not (partial-recall--buffer-in-memory-p (current-buffer) sub)))))
 
 (ert-deftest pr-forget--shortens-extended-memory ()
-  :tags '(needs-history)
+  :tags '(plasticity needs-history)
 
   (let ((partial-recall-memory-size 2)
         (another-temp (generate-new-buffer " *temp*" t))
@@ -551,24 +561,25 @@
     (bydi (partial-recall--suppress
            partial-recall--maybe-reinsert-implanted
            (:sometimes partial-recall--short-term-p))
-      (with-tab-history (:pre t :probes t)
-        (let ((ring (partial-recall-memory--moments (partial-recall--reality))))
+      (with-plasticity-enabled
+        (with-tab-history (:pre t :probes t)
+          (let ((ring (partial-recall-memory--moments (partial-recall--reality))))
 
-          (partial-recall--remember another-temp)
-          (partial-recall--remember yet-another-temp)
+            (partial-recall--remember another-temp)
+            (partial-recall--remember yet-another-temp)
 
-          (should (eq (ring-size ring) 3))
-          (should (eq (ring-length ring) 3))
+            (should (eq (ring-size ring) 3))
+            (should (eq (ring-length ring) 3))
 
-          (bydi-toggle-sometimes)
+            (bydi-toggle-sometimes)
 
-          (partial-recall--flush (partial-recall--reality))
+            (partial-recall--flush (partial-recall--reality))
 
-          (should (eq (ring-size ring) 2))
-          (should (eq (ring-length ring) 0))
+            (should (eq (ring-size ring) 2))
+            (should (eq (ring-length ring) 0))
 
-          (kill-buffer another-temp)
-          (kill-buffer yet-another-temp))))))
+            (kill-buffer another-temp)
+            (kill-buffer yet-another-temp)))))))
 
 (ert-deftest partial-recall--reject ()
   (with-tab-history (:pre t :second-mem t)
@@ -829,15 +840,17 @@
       (should (equal (partial-recall--previous-buffer) another)))))
 
 (ert-deftest partial-recall--probe-memory--runs-hooks ()
-  (bydi (partial-recall--maybe-resize-memory
-         partial-recall--maybe-extend-memory
-         partial-recall--maybe-reinsert-implanted
+  :tags '(plasticity)
+
+  (bydi (partial-recall--maybe-reinsert-implanted
          partial-recall--maybe-suppress-oldest-moment)
 
     (ert-with-test-buffer (:name "memory hook")
-      (add-hook 'partial-recall-probe-hook (lambda (memory)
-                                             (should (equal 'memory memory)))
-                nil t)
+      (add-hook
+       'partial-recall-after-probe-hook
+       (lambda (memory)
+         (should (equal 'memory memory)))
+       nil t)
 
       (partial-recall--probe-memory 'memory))))
 
@@ -869,23 +882,6 @@
   (with-tab-history (:pre t)
 
     (should (partial-recall--buffer-mapped-p (current-buffer)))))
-
-(ert-deftest pr--should-extend-memory-p ()
-  :tags '(needs-history)
-
-  (let ((seconds '(10 11 12))
-        (partial-recall-memory-size 1)
-        (partial-recall-intermediate-term 2))
-
-    (with-tab-history nil
-      (bydi ((:mock time-to-seconds :with (lambda (&rest _) (pop seconds))))
-
-        (partial-recall--remember (current-buffer))
-
-        (let ((memory (partial-recall--reality)))
-
-          (should (partial-recall-memory--should-extend-p memory))
-          (should-not (partial-recall-memory--should-extend-p memory)))))))
 
 (ert-deftest pr--has-buffers-p ()
   :tags '(needs-history)
@@ -1242,7 +1238,7 @@
       (bydi-was-called-with partial-recall-implant '(... t)))))
 
 (ert-deftest pr-lighter-memory ()
-  :tags '(needs-history)
+  :tags '(plasticity needs-history)
 
   (let ((partial-recall-memory-size 1))
 
@@ -1257,15 +1253,16 @@
                                help-echo "Memory contains 1/1 moment(s)")
                  (partial-recall-lighter--memory))))
 
-      (let ((another-temp (generate-new-buffer " *temp*" t)))
+      (with-plasticity-enabled
+        (let ((another-temp (generate-new-buffer " *temp*" t)))
 
-        (partial-recall--remember another-temp)
+          (partial-recall--remember another-temp)
 
-        (should (equal
-                 '(:propertize "+"
-                               face partial-recall-emphasis
-                               help-echo "Memory has grown to +1")
-                 (partial-recall-lighter--memory)))))))
+          (should (equal
+                   '(:propertize "+"
+                                 face partial-recall-emphasis
+                                 help-echo "Memory has grown to +1")
+                   (partial-recall-lighter--memory))))))))
 
 ;;;; Setup
 

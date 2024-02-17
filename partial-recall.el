@@ -277,7 +277,13 @@ Older entries will eventually be pushed out by newer entries."
 
 ;;;;; Hooks
 
-(defvar partial-recall-probe-hook nil
+(defvar partial-recall-before-probe-hook nil
+  "Functions called before a memory was probed.
+
+Each function will be called with the probed memory as its only
+argument.")
+
+(defvar partial-recall-after-probe-hook nil
   "Functions called after a memory was probed.
 
 Each function will be called with the probed memory as its only
@@ -499,15 +505,6 @@ If EXCLUDE-SUBCONSCIOUS is t, it is excluded."
               (moments (partial-recall-memory--moments memory)))
 
     (not (ring-empty-p moments))))
-
-(defun partial-recall-memory--should-extend-p (memory)
-  "Check if MEMORY should extend its ring size.
-
-This is the case if the oldest ring element is still a short-term
-moment."
-  (and-let* ((ring (partial-recall-memory--moments memory))
-             (to-remove (partial-recall--ring-oldest ring))
-             ((partial-recall--short-term-p to-remove)))))
 
 (defun partial-recall-memory--name (memory)
   "Get the name of MEMORY."
@@ -1209,12 +1206,12 @@ cleaned up."
 
 This will reinsert implanted moments, suppress removed moments,
 as well as resize and extend the memory if necessary."
-  (or  (partial-recall--maybe-resize-memory memory)
-       (partial-recall--maybe-extend-memory memory))
+  (run-hook-with-args 'partial-recall-before-probe-hook memory)
+
   (partial-recall--maybe-reinsert-implanted memory)
   (partial-recall--maybe-suppress-oldest-moment memory)
 
-  (run-hook-with-args 'partial-recall-probe-hook memory))
+  (run-hook-with-args 'partial-recall-after-probe-hook memory))
 
 (defun partial-recall--maybe-reinsert-implanted (memory)
   "Maybe reinforce oldest moments in MEMORY.
@@ -1232,30 +1229,6 @@ re-insert any implanted one."
         (partial-recall--reinsert oldest memory)
         (push oldest checked)
         (setq oldest (partial-recall--ring-oldest ring))))))
-
-(defun partial-recall--maybe-resize-memory (memory)
-  "Maybe resize MEMORY if it has grown but could shrink."
-  (let ((ring (partial-recall-memory--moments memory))
-        (orig (partial-recall-memory--orig-size memory))
-        (curr (ring-size (partial-recall-memory--moments memory))))
-
-    (when (and (not (partial-recall-memory--at-capacity-p memory))
-               (> curr orig))
-
-      (partial-recall-debug "Resizing `%s'" memory)
-
-      (ring-resize ring (max (ring-length ring) orig)))))
-
-(defun partial-recall--maybe-extend-memory (memory)
-  "Maybe extend MEMORY.
-
-See `partial-recall-memory--should-extend-p'."
-  (when (and (partial-recall-memory--at-capacity-p memory)
-             (partial-recall-memory--should-extend-p memory))
-
-    (partial-recall-debug "Extending `%s'" memory)
-
-    (ring-extend (partial-recall-memory--moments memory) 1)))
 
 (defun partial-recall-memory--at-capacity-p (memory)
   "Check if MEMORY is at capacity."
