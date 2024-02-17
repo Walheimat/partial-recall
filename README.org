@@ -74,8 +74,8 @@ kill the buffer).
 
 If you enable =partial-recall-plasticity-mode= memories will grow
 instead of forgetting the oldest moment if it is still relatively
-young. This (like reclaiming) is determined by
-=partial-recall-intermediate-term=.
+young or the youngest is very young. This (like reclaiming) is
+determined by =partial-recall-intermediate-term=.
 
 Forgotten buffers are not immediately lost, they are put in a special
 memory called the "subconscious" from which they can be "lifted" using

@@ -51,7 +51,16 @@ This is the case if the oldest ring element is still a short-term
 moment."
   (and-let* ((ring (partial-recall-memory--moments memory))
              (to-remove (partial-recall--ring-oldest ring))
-             ((partial-recall--short-term-p to-remove)))))
+             (youngest (partial-recall--ring-youngest ring)))
+
+    (or (partial-recall--short-term-p to-remove)
+        (partial-recall-plasticity--free-recall youngest))))
+
+(defun partial-recall-plasticity--free-recall (moment)
+  "Check if MOMENT is very recent."
+  (and-let* (((numberp partial-recall-intermediate-term))
+             (half-term (/ partial-recall-intermediate-term 2)))
+       (partial-recall--falls-below-p moment half-term)))
 
 ;;;; Mode
 

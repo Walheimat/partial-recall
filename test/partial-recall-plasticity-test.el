@@ -8,10 +8,10 @@
 
 (require 'partial-recall-plasticity)
 
-(ert-deftest prp--should-extend-memory-p ()
+(ert-deftest prp--should-extend-memory-p--if-oldest-is-young ()
   :tags '(plasticity needs-history)
 
-  (let ((seconds '(10 11 12))
+  (let ((seconds '(10 11 12 13))
         (partial-recall-memory-size 1)
         (partial-recall-intermediate-term 2))
 

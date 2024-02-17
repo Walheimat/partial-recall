@@ -400,6 +400,11 @@ If not found, the memory is created, optionally using size SIZE."
   (unless (ring-empty-p ring)
     (ring-ref ring (1- (ring-length ring)))))
 
+(defun partial-recall--ring-youngest (ring)
+  "Get the oldest element in RING."
+  (unless (ring-empty-p ring)
+    (ring-ref ring 0)))
+
 (defun partial-recall--ring-insert (ring item &optional extend)
   "Insert ITEM in RING.
 
