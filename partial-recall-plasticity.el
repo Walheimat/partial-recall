@@ -64,6 +64,7 @@ moment."
 
 ;;;; Mode
 
+;;;###autoload
 (define-minor-mode partial-recall-plasticity-mode
   "Add plasticity behavior to `partial-recall' memories."
   :group 'partial-recall
@@ -77,6 +78,5 @@ moment."
      #'partial-recall-plasticity--maybe-resize)))
 
 (provide 'partial-recall-plasticity)
-
 
 ;;; partial-recall-plasticity.el ends here
