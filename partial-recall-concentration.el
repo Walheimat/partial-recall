@@ -159,8 +159,8 @@ to `run-with-timer'. They default to
    'partial-recall-after-create-hook
    #'partial-recall-concentration--shift)
 
-  (advice-add
-   'tab-bar-switch-to-tab :after
+  (add-hook
+   'partial-recall-after-reality-change-hook
    #'partial-recall-concentration--shift))
 
 (defun partial-recall-concentration--teardown ()
@@ -171,8 +171,8 @@ to `run-with-timer'. They default to
    'partial-recall-after-create-hook
    #'partial-recall-concentration--shift)
 
-  (advice-remove
-   'tab-bar-switch-to-tab
+  (remove-hook
+   'partial-recall-after-reality-change-hook
    #'partial-recall-concentration--shift))
 
 ;;;###autoload

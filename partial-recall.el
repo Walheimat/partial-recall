@@ -307,6 +307,12 @@ argument.")
 Each function will be called with the name of the memory (that is
 the name of the tab).")
 
+(defvar partial-recall-after-reality-change-hook nil
+  "Function to run after reality changes.
+
+Each function is called with the name of the memory (that is the
+name of the tab).")
+
 ;;;; Structures
 
 (cl-defstruct (partial-recall-moment
@@ -887,6 +893,10 @@ Don't do anything if NORECORD is t."
                         (window-list))))
 
     (partial-recall--maybe-switch-memory (window-buffer foreign) t)))
+
+(defun partial-recall--after-tab-bar-switch (name)
+  "Call hook with NAME."
+  (run-hook-with-args 'partial-recall-after-reality-change-hook name))
 
 ;;;; Verbs
 ;;
@@ -1778,6 +1788,9 @@ If EVENT-TYPE is non-nil, filter the results by it."
   (advice-add
    'winner-redo :after
    #'partial-recall--after-winner)
+  (advice-add
+   'tab-bar-switch-to-tab :after
+   #'partial-recall--after-tab-bar-switch)
 
   (add-hook 'minibuffer-setup-hook #'partial-recall--on-minibuffer-setup)
   (add-hook 'minibuffer-exit-hook #'partial-recall--on-minibuffer-exit)
@@ -1807,6 +1820,9 @@ If EVENT-TYPE is non-nil, filter the results by it."
   (advice-remove
    'winner-redo
    #'partial-recall--after-winner)
+  (advice-remove
+   'tab-bar-switch-to-tab
+   #'partial-recall--after-tab-bar-switch)
 
   (remove-hook 'minibuffer-setup-hook #'partial-recall--on-minibuffer-setup)
   (remove-hook 'minibuffer-exit-hook #'partial-recall--on-minibuffer-exit)

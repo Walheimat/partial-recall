@@ -315,6 +315,15 @@
 
     (bydi-was-called partial-recall--maybe-switch-memory)))
 
+(ert-deftest pr--after-tab-bar-switch ()
+  :tags '(hooks)
+
+  (bydi ((:spy run-hook-with-args))
+
+    (partial-recall--after-tab-bar-switch "test")
+
+    (bydi-was-called-with run-hook-with-args '(partial-recall-after-reality-change-hook "test"))))
+
 ;;;; Actions
 
 (ert-deftest pr-remember--remembers ()
@@ -1320,7 +1329,7 @@
       (partial-recall-mode--setup)
 
       (bydi-was-called partial-recall--queue-tab-fix-up)
-      (bydi-was-called-n-times advice-add 6)
+      (bydi-was-called-n-times advice-add 7)
       (bydi-was-called-n-times add-hook 7)
       (bydi-was-called tab-bar-mode))))
 
@@ -1332,7 +1341,7 @@
 
     (partial-recall-mode--teardown)
 
-    (bydi-was-called-n-times advice-remove 6)
+    (bydi-was-called-n-times advice-remove 7)
     (bydi-was-called-n-times remove-hook 7)))
 
 ;;;; API

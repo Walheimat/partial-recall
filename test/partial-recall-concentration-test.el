@@ -161,21 +161,17 @@
          partial-recall-concentration--concentrate
          (:always partial-recall--reality)
          (:risky-mock add-hook :with bydi-rf)
-         (:risky-mock advice-add :with bydi-rf)
-         (:risky-mock remove-hook :with bydi-rf)
-         (:risky-mock advice-remove :with bydi-rf))
+         (:risky-mock remove-hook :with bydi-rf))
 
     (partial-recall-concentration--setup)
 
     (bydi-was-called partial-recall-concentration--concentrate)
     (bydi-was-called add-hook)
-    (bydi-was-called advice-add)
 
     (partial-recall-concentration--teardown)
 
     (bydi-was-called cancel-timer)
-    (bydi-was-called remove-hook)
-    (bydi-was-called advice-remove)))
+    (bydi-was-called remove-hook)))
 
 (ert-deftest prcon--mode ()
   :tags '(concentration)
