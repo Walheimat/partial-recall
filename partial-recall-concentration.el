@@ -34,9 +34,9 @@ concentration."
 
 ;;; Errors
 
-(define-error 'prcon-not-owned "Buffer is not owned" 'partial-recall-errors)
-(define-error 'prcon-changed "Buffer has changed" 'partial-recall-errors)
-(define-error 'prcon-not-ready "No reality" 'partial-recall-errors)
+(define-error 'partial-recall-concentration-not-owned "Buffer is not owned" 'partial-recall-errors)
+(define-error 'partial-recall-concentration-changed "Buffer has changed" 'partial-recall-errors)
+(define-error 'partial-recall-concentration-not-ready "No reality" 'partial-recall-errors)
 
 (defun partial-recall-concentration--concentrate ()
   "Concentrate on the current moment.
@@ -56,9 +56,9 @@ current moment is focused."
 
         (partial-recall-moment--intensify partial-recall--last-focus nil 'concentrate))
 
-    ((prcon-not-ready prcon-not-owned)
+    ((partial-recall-concentration-not-ready partial-recall-concentration-not-owned)
      (partial-recall-concentration--defer))
-    (prcon-changed
+    (partial-recall-concentration-changed
      (let ((moment (cdr err)))
 
        (when-let ((lost (or partial-recall--faint-focus partial-recall--last-focus)))
@@ -73,21 +73,21 @@ current moment is focused."
 (defun partial-recall-concentration--hold ()
   "Try to hold concentration."
   (unless (partial-recall--reality)
-    (signal 'prcon-not-ready nil))
+    (signal 'partial-recall-concentration-not-ready nil))
 
   (let* ((buffer (current-buffer))
          (moment (partial-recall--find-owning-moment buffer))
          (focus (or partial-recall--last-focus partial-recall--faint-focus)))
 
     (unless (or moment (partial-recall--buffer-in-memory-p buffer))
-      (signal 'prcon-not-owned buffer))
+      (signal 'partial-recall-concentration-not-owned buffer))
 
     (unless (and focus
                  (or (eq moment focus)
                      (partial-recall--buffer-visible-p
                       (partial-recall-moment--buffer focus))))
 
-      (signal 'prcon-changed moment))
+      (signal 'partial-recall-concentration-changed moment))
 
     (partial-recall-debug "Concentration held on `%s'" focus)))
 
