@@ -15,7 +15,9 @@
 
 (require 'partial-recall)
 
-(defun partial-recall-plasticity--maybe-resize (memory)
+;;;; Memory
+
+(defun partial-recall-plasticity--resize-or-extend-memory (memory)
   "Maybe resize MEMORY."
   (or  (partial-recall-plasticity--maybe-resize-memory memory)
        (partial-recall-plasticity--maybe-extend-memory memory)))
@@ -60,22 +62,22 @@ moment."
   "Check if MOMENT is very recent."
   (and-let* (((numberp partial-recall-intermediate-term))
              (half-term (/ partial-recall-intermediate-term 2)))
-       (partial-recall--falls-below-p moment half-term)))
+    (partial-recall--falls-below-p moment half-term)))
 
 ;;;; Mode
 
 ;;;###autoload
-(define-minor-mode partial-recall-plasticity-mode
+(define-minor-mode partial-recall-plasticity-of-memory-mode
   "Add plasticity behavior to `partial-recall' memories."
   :group 'partial-recall
   :global t
-  (if partial-recall-plasticity-mode
+  (if partial-recall-plasticity-of-memory-mode
       (add-hook
        'partial-recall-before-probe-hook
-       #'partial-recall-plasticity--maybe-resize)
+       #'partial-recall-plasticity--resize-or-extend-memory)
     (remove-hook
      'partial-recall-before-probe-hook
-     #'partial-recall-plasticity--maybe-resize)))
+     #'partial-recall-plasticity--resize-or-extend-memory)))
 
 (provide 'partial-recall-plasticity)
 

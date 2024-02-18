@@ -9,13 +9,13 @@
 (require 'partial-recall)
 (require 'partial-recall-plasticity)
 
-(defmacro with-plasticity-enabled (&rest args)
+(defmacro with-memory-plasticity-enabled (&rest args)
   "Run ARGS with `partial-recall-plasticity-mode' enabled."
   (declare (indent defun))
   `(progn
-     (partial-recall-plasticity-mode)
+     (partial-recall-plasticity-of-memory-mode)
      ,@args
-     (partial-recall-plasticity-mode -1)))
+     (partial-recall-plasticity-of-memory-mode -1)))
 
 ;;;; Accessors
 
@@ -352,7 +352,7 @@
 (ert-deftest pr-remember--extends-ring ()
   :tags '(plasticity needs-history)
 
-  (with-plasticity-enabled
+  (with-memory-plasticity-enabled
     (with-tab-history (:probes t)
       (bydi ((:always partial-recall-memory--at-capacity-p)
              (:always partial-recall-plasticity--should-extend-p)
@@ -400,7 +400,7 @@
 (ert-deftest pr-swap ()
   :tags '(plasticity)
 
-  (with-plasticity-enabled
+  (with-memory-plasticity-enabled
     (let* ((partial-recall-memory-size 1)
            (a (partial-recall-memory--create "a"))
            (b (partial-recall-memory--create "b"))
@@ -570,7 +570,7 @@
     (bydi (partial-recall--suppress
            partial-recall--maybe-reinsert-implanted
            (:sometimes partial-recall--short-term-p))
-      (with-plasticity-enabled
+      (with-memory-plasticity-enabled
         (with-tab-history (:pre t :probes t)
           (let ((ring (partial-recall-memory--moments (partial-recall--reality))))
 
@@ -1262,7 +1262,7 @@
                                help-echo "Memory contains 1/1 moment(s)")
                  (partial-recall-lighter--memory))))
 
-      (with-plasticity-enabled
+      (with-memory-plasticity-enabled
         (let ((another-temp (generate-new-buffer " *temp*" t)))
 
           (partial-recall--remember another-temp)
