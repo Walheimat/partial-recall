@@ -25,6 +25,50 @@
           (should (partial-recall-plasticity--should-extend-p memory))
           (should-not (partial-recall-plasticity--should-extend-p memory)))))))
 
+(ert-deftest prp--maybe-implant-moment ()
+  :tags '(needs-history plasticity)
+
+  (with-moment-plasticity-enabled
+    (let ((partial-recall-plasticity-implant-threshold 2)
+          (partial-recall-intensities '((reinsert . 1))))
+      (with-tab-history (:pre t)
+
+        (bydi ((:spy partial-recall-plasticity--maybe-implant-moment)
+               (:spy partial-recall--set-permanence)
+               partial-recall-moment--reset-count)
+
+          (partial-recall--reinforce (current-buffer))
+          (partial-recall--reinforce (current-buffer))
+          (partial-recall--reinforce (current-buffer))
+
+          (bydi-was-called-n-times partial-recall-plasticity--maybe-implant-moment 2)
+          (bydi-was-called-n-times partial-recall--set-permanence 1)
+
+          (let ((moment (partial-recall-current-moment)))
+            (should (partial-recall-moment--permanence moment)))
+
+          (partial-recall--set-permanence (current-buffer) t)
+
+          (bydi-was-called partial-recall-moment--reset-count))))))
+
+(ert-deftest pr-remember--reinforces-permanent ()
+  :tags '(needs-history)
+
+  (with-moment-plasticity-enabled
+    (let ((partial-recall-memory-size 1))
+
+      (with-tab-history (:pre t :probes t)
+        (let ((another-temp (generate-new-buffer " *temp*" t)))
+
+          (partial-recall--set-permanence)
+
+          (bydi ((:spy partial-recall--reinsert))
+            (partial-recall--remember another-temp)
+
+            (bydi-was-called partial-recall--reinsert))
+
+          (kill-buffer another-temp))))))
+
 ;;; partial-recall-plasticity-test.el ends here
 
 ;; Local Variables:

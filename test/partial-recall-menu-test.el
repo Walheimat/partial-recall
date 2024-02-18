@@ -142,22 +142,32 @@
       (bydi-was-called-with format-time-string (list "%d/%m/%y" 'time)))))
 
 (ert-deftest prm--print-update-count ()
-  :tags '(menu)
+  :tags '(menu plasticity)
 
   (let ((partial-recall-menu--empty "e")
         (partial-recall-graph--blocks ["a" "b" "c" "d"])
         (partial-recall-menu--persistence-indicator "f")
         (partial-recall-graph--ratios '(0.25 0.5 0.75 1))
-        (partial-recall-auto-implant 4))
+        (partial-recall-plasticity-implant-threshold 4))
 
-    (should (string= "f" (partial-recall-menu--print-presence 0 t)))
-    (should (string= "e" (partial-recall-menu--print-presence 0 nil)))
-    (should (string= "a" (partial-recall-menu--print-presence 1 nil)))
-    (should (string= "b" (partial-recall-menu--print-presence 2 nil)))
-    (should (string= "c" (partial-recall-menu--print-presence 3 nil)))
-    (should (string= "d" (partial-recall-menu--print-presence 4 nil)))
-    (should (string= "d" (partial-recall-menu--print-presence 5 nil)))
-    (should (string= "d" (partial-recall-menu--print-presence 6 t)))))
+      (should (string= "e" (partial-recall-menu--print-presence 0 t))))
+
+  (with-moment-plasticity-enabled
+    (let ((partial-recall-menu--empty "e")
+          (partial-recall-graph--blocks ["a" "b" "c" "d"])
+          (partial-recall-menu--persistence-indicator "f")
+          (partial-recall-graph--ratios '(0.25 0.5 0.75 1))
+          (partial-recall-plasticity-implant-threshold 4))
+
+      (should (string= "f" (partial-recall-menu--print-presence 0 t)))
+      (should (string= "e" (partial-recall-menu--print-presence 0 nil)))
+      (should (string= "a" (partial-recall-menu--print-presence 1 nil)))
+      (should (string= "b" (partial-recall-menu--print-presence 2 nil)))
+      (should (string= "c" (partial-recall-menu--print-presence 3 nil)))
+      (should (string= "d" (partial-recall-menu--print-presence 4 nil)))
+      (should (string= "d" (partial-recall-menu--print-presence 5 nil)))
+      (should (string= "d" (partial-recall-menu--print-presence 6 t))))))
+
 
 (ert-deftest prm--print-memory ()
   :tags '(needs-history menu)
@@ -201,7 +211,7 @@
            partial-recall--reclaim
            partial-recall--forget
            partial-recall--reinforce
-           partial-recall--implant
+           partial-recall--set-permanence
            partial-recall--lift
            forward-line)
 
@@ -212,7 +222,7 @@
         (bydi-was-called-n-times partial-recall--lift 1)
         (bydi-was-called-n-times partial-recall--forget 1)
         (bydi-was-called-n-times partial-recall--reinforce 1)
-        (bydi-was-called-n-times partial-recall--implant 2)
+        (bydi-was-called-n-times partial-recall--set-permanence 2)
         (bydi-was-called-n-times forward-line 8)
         (bydi-was-called-n-times tabulated-list-revert 1)))))
 

@@ -43,7 +43,7 @@ and `:implanted'."
   (let* ((buffer (or buffer (current-buffer)))
          (specs (list :meaningful (partial-recall--meaningful-buffer-p buffer)
                       :real (not (null (partial-recall--buffer-in-memory-p buffer)))
-                      :implanted (buffer-local-value 'partial-recall--implanted buffer))))
+                      :implanted (buffer-local-value 'partial-recall--permanent buffer))))
 
     (if (called-interactively-p 'any)
         (let ((partial-recall-log t))

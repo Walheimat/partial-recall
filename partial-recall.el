@@ -21,16 +21,13 @@
 ;; package.
 ;;
 ;; Moments can be reclaimed from other memories, they can be
-;; forgotten, they can be implanted and they can be reinforced. All of
-;; these things happen automatically but can be performed explicitly
-;; by the user as well.
+;; forgotten, they can be made permanent and they can be reinforced.
+;; All of these things happen automatically but can be performed
+;; explicitly by the user as well.
 ;;
 ;; When moments are forgotten, they are added to a special kind of
 ;; memory: the subconscious. Once they leave the subconscious as well,
-;; their buffers are killed. When a moment is implanted, it will not
-;; leave the memory automatically anymore, instead it is reinforced
-;; (reinserted). Continually re-visiting a moment or keeping it
-;; visible for a while will eventually implant it.
+;; their buffers are killed.
 
 ;;; Code:
 
@@ -93,14 +90,6 @@ subconscious. Buffers moving out of the subconscious when it
 overflows are killed using `kill-buffer' if they may be
 repressed."
   :type 'boolean
-  :group 'partial-recall)
-
-(defcustom partial-recall-auto-implant 20
-  "The amount of focus before auto-implanting a moment.
-
-If this is nil, never auto-implant."
-  :type '(choice (const :tag "Don't auto-implant" nil)
-                 (integer :tag "Minimum focus before auto-implanting"))
   :group 'partial-recall)
 
 (defcustom partial-recall-auto-switch t
@@ -215,7 +204,7 @@ Older entries will eventually be pushed out by newer entries."
 
 (defvar partial-recall--before-minibuffer nil)
 
-(defvar-local partial-recall--implanted nil)
+(defvar-local partial-recall--permanent nil)
 
 ;;;;; Maps
 
@@ -228,7 +217,7 @@ Older entries will eventually be pushed out by newer entries."
     (define-key map (kbd "c") 'partial-recall-reclaim)
     (define-key map (kbd "f") 'partial-recall-forget)
     (define-key map (kbd "k") 'partial-recall-forget-some)
-    (define-key map (kbd "i") 'partial-recall-implant)
+    (define-key map (kbd "i") 'partial-recall-make-permanent)
     (define-key map (kbd "j") 'partial-recall-reject)
     (define-key map (kbd "m") 'partial-recall-menu)
     (define-key map (kbd "n") 'partial-recall-next)
@@ -312,6 +301,11 @@ the name of the tab).")
 
 Each function is called with the name of the memory (that is the
 name of the tab).")
+
+(defvar partial-recall-after-focus-change-hook nil
+  "Function to run after focus changes.
+
+Each function will be called with the moment that gained focus.")
 
 ;;;; Structures
 
@@ -568,7 +562,7 @@ INCLUDE-SUBCONSCIOUS is t."
   (setf (partial-recall-moment--permanence moment) permanence)
 
   (with-current-buffer (partial-recall-moment--buffer moment)
-    (setq-local partial-recall--implanted permanence))
+    (setq-local partial-recall--permanent permanence))
 
   (run-hook-with-args 'partial-recall-permanence-change-hook moment permanence)
 
@@ -589,9 +583,9 @@ Permanent moments do not gain additional focus."
              (count (partial-recall-moment--focus moment))
              (updated-count (+ count amount)))
 
-    (partial-recall--maybe-implant-moment moment updated-count)
-
     (setf (partial-recall-moment--focus moment) updated-count)
+
+    (run-hook-with-args 'partial-recall-after-focus-change-hook moment updated-count)
 
     moment))
 
@@ -617,16 +611,6 @@ If RESET is t, reset the focus instead and remove permanence."
   (setf (partial-recall-moment--focus moment) 0)
 
   moment)
-
-(defun partial-recall-moment--focus-percentage (moment)
-  "The focus of MOMENT.
-
-The focus is returned as a percentage relative to
-`partial-recall-auto-implant'."
-  (and-let* ((focus (partial-recall-moment--focus moment))
-             (threshold partial-recall-auto-implant))
-
-    (* 100 (/ focus (* 1.0 threshold)))))
 
 ;;;;; Buffers
 
@@ -1055,7 +1039,7 @@ current reality or if BUFFER doesn't belong to MEMORY."
       (partial-recall--swap reality memory moment)
       (partial-recall--clean-up-buffer buffer))))
 
-(defun partial-recall--implant (&optional buffer excise)
+(defun partial-recall--set-permanence (&optional buffer excise)
   "Implant BUFFER.
 
 This makes the buffer's owning moment permanent. A permanent
@@ -1065,7 +1049,7 @@ forgotten.
 If EXCISE is t, remove permanence instead."
   (when-let* ((buffer (or buffer (current-buffer)))
               (moment (partial-recall--find-owning-moment buffer))
-              (verb (if excise "Excising" "Implanting")))
+              (verb (if excise "Removing permanence from" "Adding permanence to")))
 
     (unless (eq (partial-recall-moment--permanence moment) (not excise))
 
@@ -1219,31 +1203,13 @@ cleaned up."
 (defun partial-recall--probe-memory (memory)
   "Probe MEMORY.
 
-This will reinsert implanted moments, suppress removed moments,
-as well as resize and extend the memory if necessary."
+This will run the two memory hooks before and after maybe
+suppressing the oldest moment."
   (run-hook-with-args 'partial-recall-before-probe-hook memory)
 
-  (partial-recall--maybe-reinsert-implanted memory)
   (partial-recall--maybe-suppress-oldest-moment memory)
 
   (run-hook-with-args 'partial-recall-after-probe-hook memory))
-
-(defun partial-recall--maybe-reinsert-implanted (memory)
-  "Maybe reinforce oldest moments in MEMORY.
-
-This will loop over the moments in reverse and makes sure to
-re-insert any implanted one."
-  (and-let* ((ring (partial-recall-memory--moments memory))
-             (oldest (partial-recall--ring-oldest ring)))
-
-    (let ((checked nil))
-
-      (while (and oldest
-                  (not (memq oldest checked))
-                  (partial-recall-moment--permanence oldest))
-        (partial-recall--reinsert oldest memory)
-        (push oldest checked)
-        (setq oldest (partial-recall--ring-oldest ring))))))
 
 (defun partial-recall-memory--at-capacity-p (memory)
   "Check if MEMORY is at capacity."
@@ -1262,18 +1228,6 @@ beyond the memory's limit."
              (removed (ring-remove ring)))
 
     (partial-recall--suppress removed)))
-
-(defun partial-recall--maybe-implant-moment (moment count)
-  "Check if MOMENT should be implanted automatically.
-
-This is true if COUNT exceeds `partial-recall-auto-implant'."
-  (when (and (numberp partial-recall-auto-implant)
-             (not (partial-recall-moment--permanence moment))
-             (>= count partial-recall-auto-implant))
-
-    (partial-recall-debug "Focus on `%s' raised to auto-implant threshold" moment)
-
-    (partial-recall--implant (partial-recall-moment--buffer moment))))
 
 (defun partial-recall--maybe-switch-memory (&optional buffer unscheduled)
   "Maybe switch to BUFFER's memory.
@@ -1369,13 +1323,10 @@ This means the buffer won't be scheduled for handling."
 (defun partial-recall--gracedp (moment &optional arg)
   "Check if MOMENT was graced.
 
-This is either a permanent moment, a moment that has been focused
-once or a short-term moment.
+This holds true only for short-term moments.
 
 If ARG is t, the current moment is considered graced as well."
-  (or (partial-recall-moment--permanence moment)
-      (> 0 (partial-recall-moment--focus moment))
-      (partial-recall--short-term-p moment)
+  (or (partial-recall--short-term-p moment)
       (and arg
            (eq (current-buffer) (partial-recall-moment--buffer moment)))))
 
@@ -1637,7 +1588,7 @@ Shows additional moment and memory info if
 (defvar partial-recall-lighter--title
   `(:propertize partial-recall-lighter-prefix
                 mouse-face mode-line-highlight
-                help-echo "Partial Recall\nmouse-1: Implant/Excise\nmouse-3: Menu"
+                help-echo "Partial Recall\nmouse-1: Toggle permanence\nmouse-3: Menu"
                 local-map ,partial-recall-lighter--map))
 
 (defun partial-recall-lighter--toggle ()
@@ -1647,7 +1598,7 @@ Shows additional moment and memory info if
   (when-let* ((buffer (current-buffer))
               (moment (partial-recall--find-owning-moment buffer)))
 
-    (partial-recall-implant (current-buffer) (partial-recall-moment--permanence moment))))
+    (partial-recall-make-permanent (current-buffer) (partial-recall-moment--permanence moment))))
 
 (defun partial-recall-lighter--menu ()
   "Show a menu.."
@@ -1676,20 +1627,11 @@ The help echo gives further information."
   (if-let* ((buffer (current-buffer))
             (moment (partial-recall--find-owning-moment buffer)))
 
-      (let* ((percentage (partial-recall-moment--focus-percentage moment))
-             (addendum (if percentage (format " (focus %d%%)" percentage) "")))
-
-        (if (partial-recall--buffer-in-memory-p buffer)
-            (if (partial-recall-moment--permanence moment)
-                `(:propertize "*"
-                              face partial-recall-contrast
-                              help-echo ,(concat "Moment is implanted" addendum))
-              `(:propertize ,(partial-recall-lighter--fleeting-repr moment)
-                            face partial-recall-deemphasized
-                            help-echo ,(concat "Moment is fleeting" addendum)))
-          `(:propertize "!"
-                        face partial-recall-contrast
-                        help-echo ,(concat "Moment is foreign" addendum))))
+      (if (partial-recall--buffer-in-memory-p buffer)
+          (partial-recall-lighter--moment-in-memory moment)
+        `(:propertize "!"
+                      face partial-recall-contrast
+                      help-echo "Moment is foreign"))
 
     (if (partial-recall--meaningful-buffer-p buffer)
         '(:propertize "?"
@@ -1702,12 +1644,11 @@ The help echo gives further information."
                       face ,face
                       help-echo ,echo)))))
 
-(defun partial-recall-lighter--fleeting-repr (moment)
-  "Get the representation of fleeting MOMENT."
-  (let ((focus (partial-recall-moment--focus moment)))
-
-    (or (partial-recall-graph focus partial-recall-auto-implant)
-        "-")))
+(defun partial-recall-lighter--moment-in-memory (_moment)
+  "Get the representation of a MOMENT in memory."
+  `(:propertize "-"
+                face partial-recall-deemphasized
+                help-echo "Moment is fleeting"))
 
 (defun partial-recall-lighter--memory ()
   "Show memory information.
@@ -1934,7 +1875,7 @@ reclaimed afterwards."
   (partial-recall--forget buffer t))
 
 ;;;###autoload
-(defun partial-recall-implant (buffer &optional excise)
+(defun partial-recall-make-permanent (buffer &optional excise)
   "Implant the BUFFER.
 
 This will ensure the buffer is never removed from the memory.
@@ -1946,7 +1887,7 @@ removed from the memory again."
                                                          "Implant moment: "))
                      current-prefix-arg))
 
-  (partial-recall--implant buffer excise))
+  (partial-recall--set-permanence buffer excise))
 
 ;;;###autoload
 (defun partial-recall-lift (buffer)

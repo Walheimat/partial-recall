@@ -9,14 +9,6 @@
 (require 'partial-recall)
 (require 'partial-recall-plasticity)
 
-(defmacro with-memory-plasticity-enabled (&rest args)
-  "Run ARGS with `partial-recall-plasticity-mode' enabled."
-  (declare (indent defun))
-  `(progn
-     (partial-recall-plasticity-of-memory-mode)
-     ,@args
-     (partial-recall-plasticity-of-memory-mode -1)))
-
 ;;;; Accessors
 
 (ert-deftest pr--key--returns-if-set ()
@@ -364,23 +356,6 @@
         (partial-recall--remember (current-buffer))
         (bydi-was-called ring-extend)))))
 
-(ert-deftest pr-remember--reinforces-permanent ()
-  :tags '(needs-history)
-
-  (let ((partial-recall-memory-size 1))
-
-    (with-tab-history (:pre t :probes t)
-      (let ((another-temp (generate-new-buffer " *temp*" t)))
-
-        (partial-recall--implant)
-
-        (bydi ((:spy partial-recall--reinsert))
-          (partial-recall--remember another-temp)
-
-          (bydi-was-called partial-recall--reinsert))
-
-        (kill-buffer another-temp)))))
-
 (ert-deftest pr-remember--removes-impermanent ()
   :tags '(needs-history)
 
@@ -568,27 +543,28 @@
         (yet-another-temp (generate-new-buffer " *temp*" t)))
 
     (bydi (partial-recall--suppress
-           partial-recall--maybe-reinsert-implanted
+           partial-recall-plasticity--maybe-reinsert-implanted
            (:sometimes partial-recall--short-term-p))
-      (with-memory-plasticity-enabled
-        (with-tab-history (:pre t :probes t)
-          (let ((ring (partial-recall-memory--moments (partial-recall--reality))))
+      (with-moment-plasticity-enabled
+        (with-memory-plasticity-enabled
+          (with-tab-history (:pre t :probes t)
+            (let ((ring (partial-recall-memory--moments (partial-recall--reality))))
 
-            (partial-recall--remember another-temp)
-            (partial-recall--remember yet-another-temp)
+              (partial-recall--remember another-temp)
+              (partial-recall--remember yet-another-temp)
 
-            (should (eq (ring-size ring) 3))
-            (should (eq (ring-length ring) 3))
+              (should (eq (ring-size ring) 3))
+              (should (eq (ring-length ring) 3))
 
-            (bydi-toggle-sometimes)
+              (bydi-toggle-sometimes)
 
-            (partial-recall--flush (partial-recall--reality))
+              (partial-recall--flush (partial-recall--reality))
 
-            (should (eq (ring-size ring) 2))
-            (should (eq (ring-length ring) 0))
+              (should (eq (ring-size ring) 2))
+              (should (eq (ring-length ring) 0))
 
-            (kill-buffer another-temp)
-            (kill-buffer yet-another-temp)))))))
+              (kill-buffer another-temp)
+              (kill-buffer yet-another-temp))))))))
 
 (ert-deftest partial-recall--reject ()
   (with-tab-history (:pre t :second-mem t)
@@ -628,7 +604,7 @@
   (with-tab-history (:pre t)
     (let ((moment (partial-recall-current-moment)))
 
-      (partial-recall--implant (current-buffer))
+      (partial-recall--set-permanence (current-buffer))
       (should (partial-recall-moment--permanence moment))
 
       (partial-recall--forget (current-buffer) t)
@@ -688,31 +664,6 @@
       (partial-recall--lift (current-buffer))
 
       (should (eq (ring-length (partial-recall-memory--moments sub)) 0)))))
-
-(ert-deftest pr--maybe-implant-moment ()
-  :tags '(needs-history)
-
-  (let ((partial-recall-auto-implant 2)
-        (partial-recall-intensities '((reinsert . 1))))
-    (with-tab-history (:pre t)
-
-      (bydi ((:spy partial-recall--maybe-implant-moment)
-             (:spy partial-recall--implant)
-             partial-recall-moment--reset-count)
-
-        (partial-recall--reinforce (current-buffer))
-        (partial-recall--reinforce (current-buffer))
-        (partial-recall--reinforce (current-buffer))
-
-        (bydi-was-called-n-times partial-recall--maybe-implant-moment 2)
-        (bydi-was-called-n-times partial-recall--implant 1)
-
-        (let ((moment (partial-recall-current-moment)))
-          (should (partial-recall-moment--permanence moment)))
-
-        (partial-recall--implant (current-buffer) t)
-
-        (bydi-was-called partial-recall-moment--reset-count)))))
 
 (ert-deftest pr--maybe-switch-memory ()
   :tags '(needs-history)
@@ -796,34 +747,35 @@
       (bydi-was-called-with tab-bar-close-tab-by-name "test-tab"))))
 
 (ert-deftest pr--flush ()
-  :tags '(needs-history)
+  :tags '(needs-history plasticity)
 
-  (with-tab-history (:pre t)
-    (let ((another (generate-new-buffer " *temp*" t))
-          (ring (partial-recall-memory--moments (partial-recall--reality)))
-          (partial-recall-intermediate-term -1))
+  (with-moment-plasticity-enabled
+    (with-tab-history (:pre t)
+      (let ((another (generate-new-buffer " *temp*" t))
+            (ring (partial-recall-memory--moments (partial-recall--reality)))
+            (partial-recall-intermediate-term -1))
 
-      (partial-recall--remember another)
+        (partial-recall--remember another)
 
-      (should (eq 2 (ring-length ring)))
+        (should (eq 2 (ring-length ring)))
 
-      (partial-recall--implant another)
+        (partial-recall--set-permanence another)
 
-      (bydi (partial-recall--clean-up-buffer)
-        (partial-recall--flush (partial-recall--reality))
+        (bydi (partial-recall--clean-up-buffer)
+          (partial-recall--flush (partial-recall--reality))
 
-        (bydi-was-called partial-recall--clean-up-buffer))
-
-      (should (eq 1 (ring-length ring)))
-      (should (eq another (partial-recall-moment--buffer (ring-ref ring 0))))
-
-      (with-current-buffer another
-        (partial-recall--implant another t)
-
-        (partial-recall--flush (partial-recall--reality) t)
+          (bydi-was-called partial-recall--clean-up-buffer))
 
         (should (eq 1 (ring-length ring)))
-        (should (eq another (partial-recall-moment--buffer (ring-ref ring 0))))))))
+        (should (eq another (partial-recall-moment--buffer (ring-ref ring 0))))
+
+        (with-current-buffer another
+          (partial-recall--set-permanence another t)
+
+          (partial-recall--flush (partial-recall--reality) t)
+
+          (should (eq 1 (ring-length ring)))
+          (should (eq another (partial-recall-moment--buffer (ring-ref ring 0)))))))))
 
 (ert-deftest pr--switch-to-and-neglect ()
   (let ((partial-recall--switch-to-buffer-function 'switch-to-buffer))
@@ -1139,48 +1091,33 @@
 ;;;; Lighter
 
 (ert-deftest pr-lighter-moment ()
-  :tags '(needs-history)
+  :tags '(needs-history plasticity)
 
   (with-tab-history (:pre t :wavers t)
     (should (equal
              '(:propertize "-"
                            face partial-recall-deemphasized
-                           help-echo "Moment is fleeting (focus 0%)")
+                           help-echo "Moment is fleeting")
              (partial-recall-lighter--moment)))
 
-    (let ((partial-recall-auto-implant 20)
-          (partial-recall-intensities '((test . 1))))
+    (with-moment-plasticity-enabled
+      (let ((partial-recall-plasticity-implant-threshold 20)
+            (partial-recall-intensities '((test . 1))))
 
-      (partial-recall-moment--intensify (partial-recall-current-moment) nil 'test)
+        (partial-recall-moment--intensify (partial-recall-current-moment) nil 'test)
 
-      (should (equal
-               '(:propertize "▁"
-                             face partial-recall-deemphasized
-                             help-echo "Moment is fleeting (focus 5%)")
-               (partial-recall-lighter--moment))))
+        (should (equal
+                 '(:propertize "▁"
+                               face partial-recall-deemphasized
+                               help-echo "Moment is fleeting (focus 5%)")
+                 (partial-recall-lighter--moment))))
 
-    (partial-recall--implant)
+      (partial-recall--set-permanence)
 
-    (should (equal '(:propertize "*"
-                                 face partial-recall-contrast
-                                 help-echo "Moment is implanted (focus 5%)")
-                   (partial-recall-lighter--moment)))
-
-    (let ((percentage nil))
-
-      (bydi ((:mock partial-recall-moment--focus-percentage :return percentage))
-
-        (should (equal '(:propertize "*"
-                                     face partial-recall-contrast
-                                     help-echo "Moment is implanted")
-                       (partial-recall-lighter--moment)))
-
-        (setq percentage 20.4)
-
-        (should (equal '(:propertize "*"
-                                     face partial-recall-contrast
-                                     help-echo "Moment is implanted (focus 20%)")
-                       (partial-recall-lighter--moment)))))
+      (should (equal '(:propertize "*"
+                                   face partial-recall-contrast
+                                   help-echo "Moment is implanted")
+                     (partial-recall-lighter--moment))))
 
     (let ((explanation "testing"))
 
@@ -1236,15 +1173,15 @@
 
   (with-tab-history (:pre t)
 
-    (bydi ((:spy partial-recall-implant))
+    (bydi ((:spy partial-recall-make-permanent))
 
       (partial-recall-lighter--toggle)
 
-      (bydi-was-called-with partial-recall-implant '(... nil))
+      (bydi-was-called-with partial-recall-make-permanent '(... nil))
 
       (partial-recall-lighter--toggle)
 
-      (bydi-was-called-with partial-recall-implant '(... t)))))
+      (bydi-was-called-with partial-recall-make-permanent '(... t)))))
 
 (ert-deftest pr-lighter-memory ()
   :tags '(plasticity needs-history)
@@ -1376,7 +1313,7 @@
            partial-recall--complete-any
            partial-recall--complete-memory
            partial-recall--complete-removed
-           partial-recall--implant
+           partial-recall--set-permanence
            partial-recall--lift
            partial-recall--remember
            partial-recall--switch-to-buffer-and-neglect
@@ -1394,7 +1331,7 @@
       (call-interactively 'partial-recall-switch-to-buffer)
       (call-interactively 'partial-recall-switch-to-buffer-other-window)
       (funcall-interactively 'partial-recall-switch-to-buffer 'buffer t)
-      (call-interactively 'partial-recall-implant)
+      (call-interactively 'partial-recall-make-permanent)
       (call-interactively 'partial-recall-lift)
       (call-interactively 'partial-recall-remember)
       (call-interactively 'partial-recall-meld)
@@ -1407,7 +1344,7 @@
 
       (bydi-was-called partial-recall--reclaim)
       (bydi-was-called partial-recall--forget)
-      (bydi-was-called partial-recall--implant)
+      (bydi-was-called partial-recall--set-permanence)
       (bydi-was-called partial-recall--lift)
       (bydi-was-called partial-recall--remember)
       (bydi-was-called partial-recall--meld)

@@ -14,9 +14,7 @@
 workspace. Each meaningful buffer that is first visited in a tab will
 be associated with that tab until a limit is met whereupon the oldest
 buffer is forgotten. If a newly visited buffer is already associated
-with another tab, it may be reclaimed (automatically or manually). If
-all buffers were visited relatively recently, the size of the limit
-increases (for that tab).
+with another tab, it may be reclaimed (automatically or manually).
 
 See *Concepts* section below for more information.
 
@@ -73,9 +71,9 @@ them. This removal is called "forgetting". You may also call
 kill the buffer).
 
 If you enable =partial-recall-plasticity-of-memory-mode= memories will
-grow instead of forgetting the oldest moment if it is still relatively
-young or the youngest is very young. This (like reclaiming) is
-determined by =partial-recall-intermediate-term=.
+grow instead of forgetting the oldest moment if it itself is still not
+that old or the youngest moment is very young. This (like reclaiming)
+is determined by =partial-recall-intermediate-term=.
 
 Forgotten buffers are not immediately lost, they are put in a special
 memory called the "subconscious" from which they can be "lifted" using
@@ -96,21 +94,23 @@ other memories or still reside in the subconscious.
 
 Moments normally age out of its memory unless their buffers are
 re-visited (or focused upon) and refreshed before that would happen.
-"Permanent" moments don't suffer this fate. There are three scenarios
-by which a moment is made permanent:
+If you enable =partial-recall-plasticity-of-moment-mode= "Permanent"
+moments don't suffer this fate. There are three scenarios by which a
+moment is made permanent:
 
-1. The user calls =partial-recall-implant= and selects its buffer.
+1. The user calls =partial-recall-make-permanent= and selects its buffer.
 2. The moment has been revisited and re-inserted so often that its
-   focus reached =partial-recall-auto-implant=.
-3. The moment has been concentrated upon to reach that same threshold.
+   focus reached =partial-recall-plasticity-implant-threshold=.
+3. Mode =partial-recall-concentration-mode= is on and the moment has
+   been concentrated upon to reach that same threshold.
 
 Different actions affect moments differently. Concentration, explained
 below, allots the biggest amount of focus. The values are governed by
 =partial-recall-intensities=.
 
-The reverse of implanting is "excising" which =partial-recall-implant=
-will do if called with =C-u=. Permanent buffers can still be forgotten
-manually.
+The reverse of implanting is "excising" which
+=partial-recall-make-permanent= will do if called with =C-u=.
+Permanent buffers can still be forgotten manually.
 
 *** Concentration
 
@@ -127,8 +127,9 @@ of =partial-recall-concentration-cycle=). If the previously focused
 buffer can be focused again after the first repeat, concentration can
 be resumed.
 
-Focus may grow well beyond threshold =partial-recall-implant=. As of
-now this has no further consequences.
+Focus has no upper limit, meaning it may easily transcend
+=partial-recall-plasticity-implant-threshold=. As of now this has no
+further consequences.
 
 Switching tabs has concentration shift to the new tab's current buffer
 and resets the cycle.
@@ -165,14 +166,20 @@ following:
 
 There are also =partial-recall-memorable-traits=. These are functions
 called when the user invokes =partial-recall-flush= to clear up the
-current memory. The default function checks whether a moment was
-either implanted, has gained any focus or is relatively young.
+current memory. The default function checks whether a moment is
+relatively young. If you have
+=partial-recall-plasticity-of-moment-mode= on, moments that have
+permanence or are half-way towards automatically gaining it are also
+spared.
 
 ** Configuration
 
 =partial-recall= will turn on =tab-bar-mode= if it isn't already turned
 on. =partial-recall-mode= will make sure all newly created frames are
 taken into account.
+
+You likely want to enable all optional modes (concentration and
+plasticity).
 
 #+begin_src emacs-lisp
 (use-package partial-recall
@@ -183,7 +190,6 @@ taken into account.
   (partial-recall-buffer-limit 10) ;; The number of buffers in the ring.
   (partial-recall-intermediate-term 1200) ;; The age (in seconds) that, when exceeded, will allow reclaiming.
   (partial-recall-repress t) ;; Whether forgotten buffers should (eventually) be killed.
-  (partial-recall-auto-implant 20) ;; Amount of focus needed before auto-implanting.
   (partial-recall-auto-switch t) ;; Whether to switch to a moment's tab automatically.
   (partial-recall-lighter-prefix "pr") ;; What you will in the mode-line.
   (partial-recall-record-triggers '(consult-buffer)) ;; Commands that might obscure buffers before they are handled.
@@ -193,16 +199,19 @@ taken into account.
   (partial-recall-meaningful-traits '(buffer-file-name ;; List of functions that determine eligible buffers.
                                       partial-recall--not-filtered-p
                                       partial-recall--not-in-view-mode-p))
-  (partial-recall-memorable-traits '(partial-recall--gracedp)) ;; Don't flush recent and implanted moments.
+  (partial-recall-memorable-traits '(partial-recall--gracedp)) ;; Don't flush recent moments.
   (partial-recall-intensities '((swap . 1) (reinsert . 2) (concentrate . 2))) ;; Focus gained from actions.
   (partial-recall-history-size 100) ;; Size of moment and memory history.
 
   (partial-recall-concentration-cycle 60) ;; Amount of seconds between checking whether a buffer remained visible.
 
+  (partial-recall-plasticity-implant-threshold 20) ;; Amount of focus needed before auto-implanting.
+
   :config
   (partial-recall-mode)
   (partial-recall-concentration-mode)
   (partial-recall-plasticity-of-memory-mode)
+  (partial-recall-plasticity-of-moment-mode)
 
   ;; If you use `consult', you can add the provided buffer source.
   (with-eval-after-load 'consult
@@ -218,7 +227,7 @@ I suggest to just bind the command map as shown above, otherwise you
 probably want to bind the following commands:
 
 - =partial-recall-forget=
-- =partial-recall-implant=
+- =partial-recall-make-permanent=
 - =partial-recall-lift=
 - =partial-recall-menu=
 - =partial-recall-reclaim=

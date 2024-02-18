@@ -65,6 +65,22 @@ moment is created. If WAVERS is t,
          (when (and second-moment-buffer (buffer-live-p second-moment-buffer))
            (kill-buffer second-moment-buffer))))))
 
+(defmacro with-memory-plasticity-enabled (&rest args)
+  "Run ARGS with `partial-recall-plasticity-mode' enabled."
+  (declare (indent defun))
+  `(progn
+     (partial-recall-plasticity-of-memory-mode)
+     ,@args
+     (partial-recall-plasticity-of-memory-mode -1)))
+
+(defmacro with-moment-plasticity-enabled (&rest args)
+  "Run ARGS with `partial-recall-plasticity-mode' enabled."
+  (declare (indent defun))
+  `(progn
+     (partial-recall-plasticity-of-moment-mode)
+     ,@args
+     (partial-recall-plasticity-of-moment-mode -1)))
+
 ;; Setup
 
 (dinghy-rope-setup-paths)

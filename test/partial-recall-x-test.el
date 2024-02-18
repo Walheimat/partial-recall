@@ -12,7 +12,7 @@
   :tags '(needs-history)
 
   (with-tab-history (:pre t)
-    (partial-recall--implant)
+    (partial-recall--set-permanence)
 
     (should (equal '(:meaningful t :real t :implanted t)
                    (partial-recall-x-buffer-specs)))

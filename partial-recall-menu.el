@@ -218,19 +218,11 @@ The name is propertized based on MOMENT-STATE."
                   'face 'partial-recall-deemphasized)
     (format-time-string "%H:%M:%S" (seconds-to-time timestamp))))
 
-(defun partial-recall-menu--print-presence (focus implanted)
+(defun partial-recall-menu--print-presence (_focus _implanted)
   "Format presence using FOCUS.
 
 If the moment is IMPLANTED, signal that."
-  (let* ((text (or (and (numberp partial-recall-auto-implant)
-                        (partial-recall-graph focus partial-recall-auto-implant))
-                   (if implanted
-                       partial-recall-menu--persistence-indicator
-                     partial-recall-menu--empty)))
-         (face (if implanted 'partial-recall-soothe 'partial-recall-deemphasized))
-         (help (format "Focus: %s, Implanted: %s" focus implanted)))
-
-    (propertize text 'face face 'help-echo help)))
+  (propertize partial-recall-menu--empty 'face 'partial-recall-deemphasized))
 
 (defun partial-recall-menu--print-memory (memory)
   "Format MEMORY."
@@ -318,12 +310,12 @@ If the moment is IMPLANTED, signal that."
 
                     ;; Implant.
                     ((equal action "I")
-                     (partial-recall--implant buffer)
+                     (partial-recall--set-permanence buffer)
                      (tabulated-list-set-col 0 partial-recall-menu--empty t))
 
                     ;; Excise.
                     ((equal action "X")
-                     (partial-recall--implant buffer t)
+                     (partial-recall--set-permanence buffer t)
                      (tabulated-list-set-col 0 partial-recall-menu--empty t))
                     (t nil))
 
