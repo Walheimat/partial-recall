@@ -322,7 +322,8 @@ Each function will be called with the moment that gained focus.")
 
 A moment is defined by a buffer, a timestamp when that buffer was
 first remembered, a count of how many times it was updated and a
-permanence marker that can prevent it from being forgotten.
+permanence marker that can prevent it from being forgotten if
+`partial-recall-plasticity-of-moment' is on.
 
 The timestamp is distinct from `buffer-display-time' and the
 focus is distinct from `buffer-display-count'."
@@ -543,6 +544,12 @@ If EXCLUDE-SUBCONSCIOUS is t, it is excluded."
 (defun partial-recall--subconsciousp (memory)
   "Check if MEMORY is the subconscious."
   (string= partial-recall--subconscious-key (partial-recall-memory--key memory)))
+
+(defun partial-recall-memory--at-capacity-p (memory)
+  "Check if MEMORY is at capacity."
+  (when-let ((ring (partial-recall-memory--moments memory)))
+
+    (= (ring-length ring) (ring-size ring))))
 
 ;;;;; Moments
 
@@ -1210,12 +1217,6 @@ suppressing the oldest moment."
   (partial-recall--maybe-suppress-oldest-moment memory)
 
   (run-hook-with-args 'partial-recall-after-probe-hook memory))
-
-(defun partial-recall-memory--at-capacity-p (memory)
-  "Check if MEMORY is at capacity."
-  (when-let ((ring (partial-recall-memory--moments memory)))
-
-    (= (ring-length ring) (ring-size ring))))
 
 (defun partial-recall--maybe-suppress-oldest-moment (memory)
   "Suppress the oldest moment in MEMORY if necessary.
