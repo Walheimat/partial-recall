@@ -2,7 +2,7 @@
 
 ;; Author: Krister Schuchardt <krister.schuchardt@gmail.com>
 ;; Homepage: https://github.com/Walheimat/partial-recall
-;; Version: 0.10.0
+;; Version: 0.10.1
 ;; Package-Requires: ((emacs "29.1"))
 
 ;;; Commentary:

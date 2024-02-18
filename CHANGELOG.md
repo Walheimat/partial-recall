@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.10.1](https://github.com/Walheimat/partial-recall/compare/v0.10.0...v0.10.1) (2024-02-18)
+
+
+### Bug Fixes
+
+* **cask:** add new package ([5bd4498](https://github.com/Walheimat/partial-recall/commit/5bd44982291884e3d7edc1e35af10fa12882c5a7))
+* **concentration:** rebuild previous change check ([1294475](https://github.com/Walheimat/partial-recall/commit/129447524589aa770394b1fb302efff24818c828))
+* **plasticity:** add autoload cookie for mode ([b46f92e](https://github.com/Walheimat/partial-recall/commit/b46f92e5e30148d671bc2d2b2c31198592698b3c))
+
+
+### Changes
+
+* **concentration:** faint focus ([c2c745b](https://github.com/Walheimat/partial-recall/commit/c2c745bba87c39808ce49841acc1830f576a67f6))
+* **plasticity:** also extend if youngest is very young ([94f0abf](https://github.com/Walheimat/partial-recall/commit/94f0abf74379d47d442bdd147cc20f5d673d120f))
+
 ## [0.10.0](https://github.com/Walheimat/partial-recall/compare/v0.9.3...v0.10.0) (2024-02-08)
 
 
