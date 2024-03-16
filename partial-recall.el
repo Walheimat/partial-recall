@@ -204,6 +204,8 @@ Older entries will eventually be pushed out by newer entries."
 
 (defvar partial-recall--before-minibuffer nil)
 
+(defvar partial-recall--marked nil)
+
 (defvar-local partial-recall--permanent nil)
 
 ;;;;; Maps
@@ -1204,6 +1206,19 @@ cleaned up."
     (partial-recall-log "Flushed %d moments from `%s'" count memory)
 
     (partial-recall--probe-memory memory)))
+
+(defun partial-recall--spin-out (buffers)
+  "Spin out BUFFERS into new memory."
+  (when-let* ((prompt (format "Spin out %d memories to tab: " (length buffers)))
+              (name (read-string prompt)))
+
+    (tab-bar-new-tab)
+    (tab-bar-rename-tab name)
+
+    (switch-to-buffer (car buffers) t)
+
+    (dolist (buf buffers)
+      (partial-recall--reclaim buf t))))
 
 ;;;;; Repercussions
 

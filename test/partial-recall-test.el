@@ -746,6 +746,24 @@
 
       (bydi-was-called-with tab-bar-close-tab-by-name "test-tab"))))
 
+(ert-deftest pr--spin-out ()
+
+  (bydi ((:mock read-string :return "Test")
+         tab-bar-new-tab
+         tab-bar-rename-tab
+         switch-to-buffer
+         partial-recall--reclaim)
+
+    (partial-recall--spin-out '(a b c))
+
+    (bydi-was-called tab-bar-new-tab)
+    (bydi-was-called-with tab-bar-rename-tab "Test")
+
+    (bydi-was-called-with switch-to-buffer (list 'a t))
+
+    (bydi-was-called-n-times partial-recall--reclaim 3)))
+
+
 (ert-deftest pr--flush ()
   :tags '(needs-history plasticity)
 

@@ -253,6 +253,7 @@ If the moment is IMPLANTED, signal that."
   "f" #'partial-recall-menu-forget
   "i" #'partial-recall-menu-implant
   "x" #'partial-recall-menu-execute
+  "m" #'partial-recall-menu-mark
   "u" #'partial-recall-menu-unmark)
 
 (define-derived-mode partial-recall-menu-mode tabulated-list-mode "Partial Recall Menu"
@@ -272,7 +273,8 @@ If the moment is IMPLANTED, signal that."
   "Execute actions of marked moments."
   (interactive nil partial-recall-menu-mode)
 
-  (let ((needs-update nil))
+  (let ((needs-update nil)
+        (marked nil))
 
     (save-excursion
       (goto-char (point-min))
@@ -317,12 +319,19 @@ If the moment is IMPLANTED, signal that."
                     ((equal action "X")
                      (partial-recall--set-permanence buffer t)
                      (tabulated-list-set-col 0 partial-recall-menu--empty t))
+
+                    ((equal action "M")
+                     (push buffer marked)
+                     (tabulated-list-set-col 0 partial-recall-menu--empty t))
                     (t nil))
 
               (forward-line 1))))))
 
     (when needs-update
-      (tabulated-list-revert))))
+      (tabulated-list-revert))
+
+    (when marked
+      (partial-recall--spin-out marked))))
 
 (defun partial-recall-menu-display-buffer ()
   "Switch to buffer.
@@ -386,6 +395,13 @@ If EXCISE is t, do that instead."
 
     (tabulated-list-set-col 0 " " t)
     (forward-line 1)))
+
+(defun partial-recall-menu-mark ()
+  "Mark the current entry."
+  (interactive)
+
+  (tabulated-list-set-col 0 "M" t)
+  (forward-line 1))
 
 ;;;###autoload
 (defun partial-recall-menu (&optional include-subconscious)

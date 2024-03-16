@@ -198,7 +198,7 @@
 (ert-deftest prm-execute ()
   :tags '(menu user-facing)
 
-  (let ((entries '(["C"] ["C" ][" "] ["F"] nil ["I"] ["R"] ["X"]))
+  (let ((entries '(["C"] ["C" ][" "] ["F"] nil ["I"] ["R"] ["X"] ["M"] ["M"]))
         (sub nil))
 
     (bydi ((:mock tabulated-list-get-id :with (lambda () (list t 'frame 'buffer nil sub)))
@@ -213,6 +213,7 @@
            partial-recall--reinforce
            partial-recall--set-permanence
            partial-recall--lift
+           partial-recall--spin-out
            forward-line)
 
       (with-temp-buffer
@@ -223,7 +224,8 @@
         (bydi-was-called-n-times partial-recall--forget 1)
         (bydi-was-called-n-times partial-recall--reinforce 1)
         (bydi-was-called-n-times partial-recall--set-permanence 2)
-        (bydi-was-called-n-times forward-line 8)
+        (bydi-was-called-n-times partial-recall--spin-out 1)
+        (bydi-was-called-n-times forward-line 10)
         (bydi-was-called-n-times tabulated-list-revert 1)))))
 
 (ert-deftest prm-unmark ()
@@ -293,6 +295,9 @@
 
       (funcall-interactively 'partial-recall-menu-implant t)
       (bydi-was-called-with tabulated-list-set-col '(..."X"))
+
+      (funcall-interactively 'partial-recall-menu-mark)
+      (bydi-was-called-with tabulated-list-set-col '(... "M"))
 
       (partial-recall-menu)
       (bydi-was-called-with display-buffer 'list))))
