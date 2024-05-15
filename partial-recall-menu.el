@@ -51,13 +51,12 @@ INCLUDE-SUBCONSCIOUS is t."
   (let* ((entries nil)
          (buffer-names nil)
          (tab-names nil)
-         (memories (partial-recall-memories (not (or include-subconscious
-                                                      partial-recall-menu--subconscious)))))
+         (memories (partial-recall-memories)))
 
     (dolist (memory memories)
 
       (let* ((real (eq memory (partial-recall--reality)))
-             (sub (partial-recall--subconsciousp memory))
+             (supp (partial-recall--suppressed (partial-recall-memory--key memory)))
              (tab-name (partial-recall-menu--tab-name memory))
              (frame (partial-recall-menu--frame memory))
              (partial-recall-memory--pp (partial-recall-menu--print-memory memory))
@@ -75,7 +74,6 @@ INCLUDE-SUBCONSCIOUS is t."
                                 ((and at-capacity
                                       (eq i (1- (length moments))))
                                  'at-risk)
-                                (sub 'subconscious)
                                 ((partial-recall--intermediate-term-p moment)
                                  'intermediate)
                                 (t nil)))
@@ -87,7 +85,7 @@ INCLUDE-SUBCONSCIOUS is t."
                  (pp-real (if real partial-recall-menu--indicate partial-recall-menu--empty))
 
 
-                 (item (list tab-name frame buffer real sub))
+                 (item (list tab-name frame buffer real nil))
                  (line (vector partial-recall-menu--empty
                                pp-presence
                                pp-modified
@@ -98,10 +96,36 @@ INCLUDE-SUBCONSCIOUS is t."
 
             (push pp-buffer-name buffer-names)
 
-            (push (list item line) entries)))))
+            (push (list item line) entries)))
 
-    (when include-subconscious
-      (setq partial-recall-menu--subconscious t))
+        (when (or include-subconscious
+                  partial-recall-menu--subconscious)
+          (dotimes (i (length supp))
+
+            (let* ((buffer (nth i supp))
+                   (moment-state 'subconscious)
+
+                   (pp-buffer-name (partial-recall-menu--print-buffer buffer moment-state))
+                   (pp-modified (partial-recall-menu--print-buffer-status buffer))
+                   (pp-ts "")
+                   (pp-presence (partial-recall-menu--print-presence 0 nil))
+                   (pp-real partial-recall-menu--empty)
+
+                   (item (list tab-name frame buffer nil t))
+                   (line (vector partial-recall-menu--empty
+                                 pp-presence
+                                 pp-modified
+                                 pp-buffer-name
+                                 pp-real
+                                 (propertize partial-recall-memory--pp
+                                             'face 'shadow)
+                                 pp-ts)))
+
+              (push pp-buffer-name buffer-names)
+
+              (push (list item line) entries)))
+
+          (setq partial-recall-menu--subconscious t))))
 
     (setq tabulated-list-format (partial-recall-menu--format buffer-names tab-names)
           tabulated-list-entries (nreverse entries)))
@@ -231,8 +255,6 @@ If the moment is IMPLANTED, signal that."
         (tab-name (cond
                    ((partial-recall--realityp memory)
                     (partial-recall-menu--tab-name memory t))
-                   ((partial-recall--subconsciousp memory)
-                    partial-recall-menu--null)
                    (t
                     (partial-recall-menu--tab-name memory t)))))
 
@@ -297,13 +319,13 @@ If the moment is IMPLANTED, signal that."
               (cond (;; Reclaim or lift.
                      (equal action "C")
                      (if sub
-                         (partial-recall--lift buffer)
+                         (partial-recall--remember buffer)
                        (partial-recall--reclaim buffer t))
                      (tabulated-list-set-col 0 partial-recall-menu--empty t))
 
                     ;; Forget.
                     ((equal action "F")
-                     (partial-recall--forget buffer t))
+                     (partial-recall--forget buffer))
 
                     ;; Reinforce.
                     ((equal action "R")

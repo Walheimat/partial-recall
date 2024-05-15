@@ -75,13 +75,9 @@ grow instead of forgetting the oldest moment if it itself is still not
 that old or the youngest moment is very young. This (like reclaiming)
 is determined by =partial-recall-intermediate-term=.
 
-Forgotten buffers are not immediately lost, they are put in a special
-memory called the "subconscious" from which they can be "lifted" using
-=partial-recall-lift= (or =partial-recall-retrieve=). The subconscious
-works like any other memory: it is a ring of moments and can only hold
-a limited amount. If =partial-recall-repress= is =t=, the buffers of
-moments leaving the subconscious are killed. Closing a tab means
-forgetting all of the associated memory's moments.
+Forgotten buffers are not lost, they are marked as belonging to the
+ "subconscious" from which they can be "lifted" using
+ =partial-recall-lift= (or =partial-recall-retrieve=).
 
 You may also push buffers from the current memory to another using
 =partial-recall-reject=.
@@ -185,7 +181,6 @@ plasticity).
 (use-package partial-recall
   :custom
   (partial-recall-memory-size 10) ;; Size of a regular memory.
-  (partial-recall-subconscious-size 30) ;; Size of the subconscious.
   (partial-recall-handle-delay 3) ;; The delay before a buffer is handled (remembered or re-inforced).
   (partial-recall-buffer-limit 10) ;; The number of buffers in the ring.
   (partial-recall-intermediate-term 1200) ;; The age (in seconds) that, when exceeded, will allow reclaiming.
@@ -255,8 +250,8 @@ all commands. You can unmark with =u=, display a moment with =e= or
 This can be useful if you want to work on a smaller subset of the
 current moments in a new memory.
 
-If you want to include the subconscious, call =partial-recall-menu=
-with =C-u= or type =s= in the buffer.
+If you want to include subconscious buffers, call
+=partial-recall-menu= with =C-u= or type =s= in the buffer.
 
 ** Hooks
 

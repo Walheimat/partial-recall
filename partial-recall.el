@@ -25,9 +25,8 @@
 ;; All of these things happen automatically but can be performed
 ;; explicitly by the user as well.
 ;;
-;; When moments are forgotten, they are added to a special kind of
-;; memory: the subconscious. Once they leave the subconscious as well,
-;; their buffers are killed.
+;; When moments are forgotten, their buffers are marked as belonging
+;; to the subconscious (from where they can be lifted).
 
 ;;; Code:
 
@@ -60,11 +59,6 @@ quick succession. See `partial-recall-intermediate-term'."
   :type 'integer
   :group 'partial-recall)
 
-(defcustom partial-recall-subconscious-size 30
-  "The amount of buffers to keep in the subconscious."
-  :type 'integer
-  :group 'partial-recall)
-
 (defcustom partial-recall-intermediate-term (* 20 60)
   "Threshold after which moments are handled differently.
 
@@ -80,16 +74,6 @@ See `partial-recall--reclaim', `partial-recall--gracedp' and
 Can be set to nil to disable this behavior."
   :type '(choice (integer :tag "Number of seconds")
                  (const :tag "Don't use" nil))
-  :group 'partial-recall)
-
-(defcustom partial-recall-repress t
-  "Whether `partial-recall-suppress' may kill buffers.
-
-When buffers leave a memory they are first moved to the
-subconscious. Buffers moving out of the subconscious when it
-overflows are killed using `kill-buffer' if they may be
-repressed."
-  :type 'boolean
   :group 'partial-recall)
 
 (defcustom partial-recall-auto-switch t
@@ -189,7 +173,6 @@ Older entries will eventually be pushed out by newer entries."
 ;;;;; Private variables
 
 (defvar partial-recall--table (make-hash-table :test #'equal))
-(defconst partial-recall--subconscious-key "subconscious")
 
 (defvar partial-recall--schedule-timer nil)
 
@@ -467,15 +450,9 @@ If MEMORY is not in another form, this is a no-op."
 
 ;;;;; Memories
 
-(defun partial-recall-memories (&optional exclude-subconscious)
-  "Get all memories.
-
-If EXCLUDE-SUBCONSCIOUS is t, it is excluded."
-  (let ((memories (hash-table-values partial-recall--table)))
-
-    (if exclude-subconscious
-        (seq-filter (lambda (it) (not (partial-recall--subconsciousp it))) memories)
-      memories)))
+(defun partial-recall-memories ()
+  "Get all memories."
+  (hash-table-values partial-recall--table))
 
 (defun partial-recall-memory--owns-buffer-p (memory buffer)
   "Check if MEMORY owns BUFFER."
@@ -516,9 +493,7 @@ If EXCLUDE-SUBCONSCIOUS is t, it is excluded."
 
 (defun partial-recall-memory--name (memory)
   "Get the name of MEMORY."
-  (if (partial-recall--subconsciousp memory)
-      partial-recall--subconscious-key
-    (partial-recall--find-any-tab-from-memory memory)))
+  (partial-recall--find-any-tab-from-memory memory))
 
 (defun partial-recall-memory--removed-buffers (&optional memory)
   "Get a list of buffers removed from MEMORY."
@@ -537,16 +512,6 @@ If EXCLUDE-SUBCONSCIOUS is t, it is excluded."
   "Check if MEMORY is the reality."
   (eq (partial-recall--reality) memory))
 
-(defun partial-recall--subconscious ()
-  "Return (or create) the subconscious."
-  (partial-recall--memory-by-key
-   partial-recall--subconscious-key
-   partial-recall-subconscious-size))
-
-(defun partial-recall--subconsciousp (memory)
-  "Check if MEMORY is the subconscious."
-  (string= partial-recall--subconscious-key (partial-recall-memory--key memory)))
-
 (defun partial-recall-memory--at-capacity-p (memory)
   "Check if MEMORY is at capacity."
   (when-let ((ring (partial-recall-memory--moments memory)))
@@ -555,15 +520,10 @@ If EXCLUDE-SUBCONSCIOUS is t, it is excluded."
 
 ;;;;; Moments
 
-(defun partial-recall-moments (&optional include-subconscious)
-  "Get all moments.
-
-This excludes moments in the subconscious unless
-INCLUDE-SUBCONSCIOUS is t."
-  (cl-loop for k being the hash-keys of partial-recall--table
+(defun partial-recall-moments ()
+  "Get all moments."
+  (cl-loop for _k being the hash-keys of partial-recall--table
            using (hash-values memory)
-           unless (and (not include-subconscious)
-                       (string= k partial-recall--subconscious-key))
            append (ring-elements (partial-recall-memory--moments memory))))
 
 (defun partial-recall-moment--set-permanence (moment permanence)
@@ -598,19 +558,13 @@ Permanent moments do not gain additional focus."
 
     moment))
 
-(defun partial-recall-moment--intensify (moment &optional reset context)
+(defun partial-recall-moment--intensify (moment &optional context)
   "Intensify MOMENT.
 
 This will update its timestamp and increment its focus.
 
 If CONTEXT has a value in `partial-recall-intensities', increase
-by that amount.
-
-If RESET is t, reset the focus instead and remove permanence."
-  (when reset
-    (partial-recall-moment--reset-count moment)
-    (partial-recall-moment--set-permanence moment nil))
-
+by that amount."
   (partial-recall-moment--increase-focus moment context)
 
   (partial-recall-moment--update-timestamp moment))
@@ -623,12 +577,9 @@ If RESET is t, reset the focus instead and remove permanence."
 
 ;;;;; Buffers
 
-(defun partial-recall-buffers (&optional include-subconscious)
-  "Get all mapped buffers.
-
-This excludes moments in the subconscious unless
-INCLUDE-SUBCONSCIOUS is t."
-  (let ((mapped (partial-recall-moments include-subconscious)))
+(defun partial-recall-buffers ()
+  "Get all mapped buffers."
+  (let ((mapped (partial-recall-moments)))
 
     (mapcar #'partial-recall-moment--buffer mapped)))
 
@@ -638,12 +589,9 @@ INCLUDE-SUBCONSCIOUS is t."
 If MEMORY is not passed, use the current reality."
   (partial-recall-memory--owns-buffer-p (or memory (partial-recall--reality)) buffer))
 
-(defun partial-recall--buffer-mapped-p (buffer &optional include-subconscious)
-  "Check if BUFFER is mapped.
-
-This excludes moments in the subconscious unless
-INCLUDE-SUBCONSCIOUS is t."
-  (let ((buffers (partial-recall-buffers include-subconscious)))
+(defun partial-recall--buffer-mapped-p (buffer)
+  "Check if BUFFER is mapped."
+  (let ((buffers (partial-recall-buffers)))
 
     (memq buffer buffers)))
 
@@ -847,7 +795,7 @@ Don't do anything if NORECORD is t."
 
     (dolist (it (ring-elements moments))
       (partial-recall--clean-up-buffer (partial-recall-moment--buffer it))
-      (partial-recall--suppress it))
+      (partial-recall--suppress it memory))
 
     (remhash tab-key table)))
 
@@ -910,10 +858,12 @@ no-op."
 
     (partial-recall--probe-memory memory)
 
-    (unless (partial-recall--lift buffer)
-      (let ((moment (partial-recall-moment--create buffer)))
+    (partial-recall--clear-remnant buffer)
 
-        (partial-recall--ring-insert ring moment)))))
+    (let ((moment (or (partial-recall--lift buffer)
+                      (partial-recall-moment--create buffer))))
+
+      (partial-recall--ring-insert ring moment))))
 
 (defun partial-recall--reinforce (buffer)
   "Reinforce BUFFER in reality.
@@ -940,7 +890,7 @@ If the moment doesn't belong to memory, this is a no-op."
 
     (partial-recall-debug "Re-inserting `%s' in `%s'" moment memory)
 
-    (partial-recall-moment--intensify moment nil 'reinsert)
+    (partial-recall-moment--intensify moment 'reinsert)
 
     (ring-remove+insert+extend ring moment t)))
 
@@ -973,7 +923,7 @@ no-op."
 
     (partial-recall-debug "Won't claim `%s'" buffer)))
 
-(defun partial-recall--forget (&optional buffer suppress)
+(defun partial-recall--forget (&optional buffer)
   "Forget BUFFER.
 
 This will remove the buffer's moment from its owning memory and
@@ -984,13 +934,11 @@ subconscious.
 
 BUFFER defaults to the current buffer no buffer is passed."
   (when-let* ((buffer (or buffer (current-buffer)))
-              ((partial-recall--buffer-mapped-p buffer t))
-              (maybe-remove (lambda (key memory)
+              ((partial-recall--buffer-mapped-p buffer))
+              (maybe-remove (lambda (_key memory)
                               (when-let ((moment (partial-recall-memory--remove-buffer buffer memory)))
 
-                                (when (and suppress
-                                           (not (string= key partial-recall--subconscious-key)))
-                                  (partial-recall--suppress moment))
+                                (partial-recall--suppress moment memory)
 
                                 (partial-recall--probe-memory memory)
 
@@ -1023,7 +971,7 @@ forget each moment while indicating if it has been modified."
                                        "modified"
                                      "unmodified")))
 
-          (partial-recall--forget buffer t))
+          (partial-recall--forget buffer))
 
         (setq moments (cdr moments))))))
 
@@ -1069,53 +1017,45 @@ If EXCISE is t, remove permanence instead."
       (when excise
         (partial-recall-moment--reset-count moment)))))
 
-(defun partial-recall--suppress (moment)
-  "Suppress MOMENT.
+;;;;; Subconscious
 
-This moves it from its owning memory to the subconscious. If the
-owning memory is the subconscious it is instead killed unless
-`partial-recall-repress' is nil.
+(defvar-local partial-recall--remnant nil
+  "This holds the key to the memory this buffer belonged to.")
 
-The moved moment is intensified and reset."
-  (and-let* ((buffer (partial-recall-moment--buffer moment))
-             (memory (partial-recall--subconscious))
-             ((not (partial-recall--buffer-in-memory-p buffer memory)))
-             ((partial-recall--meaningful-buffer-p buffer))
-             (ring (partial-recall-memory--moments memory)))
+(defun partial-recall--clear-remnant (&optional buffer)
+  "Clear remnant from BUFFER."
+  (with-current-buffer buffer
+    (setq-local partial-recall--remnant nil)))
 
-    (when (partial-recall-memory--at-capacity-p memory)
-      (let* ((removed (ring-remove ring))
-             (buffer (partial-recall-moment--buffer removed)))
+(defun partial-recall--suppress (moment memory)
+  "Mark the buffer of MOMENT as suppressed by MEMORY."
+  (with-current-buffer (partial-recall-moment--buffer moment)
+    (setq-local partial-recall--remnant
+                (partial-recall-memory--key memory))))
 
-        (when partial-recall-repress
+(defun partial-recall--suppressed (&optional key)
+  "Get the suppressed buffers.
 
-          (partial-recall-log "Repressing `%s'" removed)
+If KEY is given, it is used, otherwise the current reality's key
+is used."
+  (let* ((key (or key (partial-recall--key)))
+         (buffers (buffer-list)))
 
-          (kill-buffer buffer))))
+    (cl-loop for buffer in buffers
+             if (string= key (buffer-local-value 'partial-recall--remnant buffer))
+             collect buffer)))
 
-    (partial-recall-debug "Suppressing `%s'" moment)
-
-    (partial-recall-moment--intensify moment t 'suppress)
-
-    (partial-recall--ring-insert ring moment)))
+(defun partial-recall--suppressed-p (buffer)
+  "Check if BUFFER is currently suppressed."
+  (memq buffer (partial-recall--suppressed)))
 
 (defun partial-recall--lift (buffer)
-  "Lift BUFFER into reality.
+  "Lift BUFFER from the subconscious (if possible)."
+  (when (partial-recall--suppressed-p buffer)
 
-This moves a buffer from the subconscious to the current reality.
+    (partial-recall-log "Lifting `%s' out of the subconscious" buffer)
 
-If the buffer doesn't belong to the subconscious, this is a
-no-op."
-  (and-let* ((sub (partial-recall--subconscious))
-             ((partial-recall-memory--owns-buffer-p sub buffer))
-             (reality (partial-recall--reality))
-             (moment (partial-recall--find-owning-moment buffer)))
-
-    (partial-recall-log "Lifting `%s' out of the subconscious" moment)
-
-    (partial-recall--swap sub reality moment t)
-
-    moment))
+    (partial-recall-moment--create buffer)))
 
 (defun partial-recall--recollect (buffer)
   "Recollect BUFFER.
@@ -1132,14 +1072,11 @@ buffer."
       (partial-recall--reinforce buffer)
     (partial-recall--reclaim buffer)))
 
-(defun partial-recall--swap (a b moment &optional reset)
+(defun partial-recall--swap (a b moment)
   "Swap MOMENT from memory A to B.
 
 Both memories will be probed. Memory A after the moment was
-removed, memory B before it is inserted.
-
-The moment is intensified. RESET is passed to
-`partial-recall-moment--intensify' as-is."
+removed, memory B before it is inserted."
   (and-let* ((a-ring (partial-recall-memory--moments a))
              (b-ring (partial-recall-memory--moments b))
              (index (ring-member a-ring moment))
@@ -1147,13 +1084,10 @@ The moment is intensified. RESET is passed to
 
     (partial-recall-log "Swapping `%s' from `%s' to `%s'" moment a b)
 
-    (unless (partial-recall--subconsciousp a)
-      (partial-recall-history--record a :type 'removal :moment removed))
-
     (partial-recall--probe-memory a)
     (partial-recall--probe-memory b)
 
-    (partial-recall-moment--intensify moment reset 'swap)
+    (partial-recall-moment--intensify moment 'swap)
 
     (partial-recall--ring-insert b-ring removed)))
 
@@ -1199,7 +1133,7 @@ cleaned up."
         (let* ((index (ring-member ring moment))
                (removed (ring-remove ring index)))
 
-          (partial-recall--suppress removed))
+          (partial-recall--suppress removed memory))
 
         (partial-recall--clean-up-buffer (partial-recall-moment--buffer moment))))
 
@@ -1243,7 +1177,7 @@ beyond the memory's limit."
              ((not (zerop (ring-length ring))))
              (removed (ring-remove ring)))
 
-    (partial-recall--suppress removed)))
+    (partial-recall--suppress removed memory)))
 
 (defun partial-recall--maybe-switch-memory (&optional buffer unscheduled)
   "Maybe switch to BUFFER's memory.
@@ -1516,10 +1450,9 @@ If EXCLUDE-CURRENT is t, don't include the current buffer."
 
 (defun partial-recall--complete-subconscious (prompt)
   "Complete subconscious buffer using PROMPT."
-  (let* ((memory (partial-recall--subconscious))
-         (predicate (lambda (it) (partial-recall--buffer-in-memory-p (cdr it) memory)))
+  (let* ((predicate (lambda (it) (partial-recall--suppressed-p (cdr it))))
          (current (current-buffer))
-         (initial (when (partial-recall--buffer-in-memory-p current memory)
+         (initial (when (partial-recall--suppressed-p current)
                     (buffer-name current))))
 
     (partial-recall--complete-buffer prompt predicate initial)))
@@ -1533,7 +1466,7 @@ are not considered."
                         #'always
                       (lambda (it) (partial-recall--meaningful-buffer-p (cdr it)))))
          (current (current-buffer))
-         (initial (unless (or (partial-recall--buffer-mapped-p current t)
+         (initial (unless (or (partial-recall--buffer-mapped-p current)
                               (and (not (partial-recall--meaningful-buffer-p current))
                                    (not allow-meaningless)))
                     (buffer-name current))))
@@ -1565,12 +1498,9 @@ If EXCLUDE-CURRENT is t, don't include the current buffer."
           buffer
         (user-error "No buffer selected")))))
 
-(defun partial-recall--complete-memory (prompt &optional include-subconscious)
-  "Complete memory using PROMPT.
-
-The subconscious is not included unless INCLUDE-SUBCONSCIOUS is
-t."
-  (let* ((memories (partial-recall-memories (not include-subconscious)))
+(defun partial-recall--complete-memory (prompt)
+  "Complete memory using PROMPT."
+  (let* ((memories (partial-recall-memories))
          (collection (mapcar (lambda (it) (cons (partial-recall-memory--name it) it)) memories))
          (selection (completing-read prompt collection nil t)))
 
@@ -1888,7 +1818,7 @@ Removes the buffer from the current reality. The buffer can be
 reclaimed afterwards."
   (interactive (list (partial-recall--complete-reality "Forget moment: ")))
 
-  (partial-recall--forget buffer t))
+  (partial-recall--forget buffer))
 
 ;;;###autoload
 (defun partial-recall-make-permanent (buffer &optional excise)
@@ -1915,7 +1845,7 @@ isn't at capacity and needs to drop the oldest buffer, it can be
 lifted."
   (interactive (list (partial-recall--complete-subconscious "Lift moment: ")))
 
-  (partial-recall--lift buffer)
+  (partial-recall--remember buffer)
 
   (partial-recall--switch-to-buffer-and-neglect buffer))
 

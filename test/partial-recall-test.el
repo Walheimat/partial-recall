@@ -51,26 +51,13 @@
   (with-tab-history nil
     (let ((reality (partial-recall--reality)))
 
-      (bydi ((:sometimes partial-recall--subconsciousp))
-
-        (should (string= partial-recall--subconscious-key (partial-recall-memory--name reality)))
-
-        (bydi-toggle-sometimes)
-
-        (should (string= "test-tab" (partial-recall-memory--name reality)))))))
+      (should (string= "test-tab" (partial-recall-memory--name reality))))))
 
 (ert-deftest pr--tab ()
   :tags '(needs-history)
   (with-tab-history (:pre t)
     (should (string= (partial-recall--find-tab-name-from-memory nil (selected-frame))
                      "test-tab"))))
-
-(ert-deftest pr--ensure-subconscious ()
-  (let ((partial-recall-table (make-hash-table)))
-
-    (partial-recall--subconscious)
-
-    (should (gethash partial-recall--subconscious-key partial-recall--table))))
 
 (ert-deftest pr--moment-set-permanence ()
   (ert-with-test-buffer (:name "permanence hook" )
@@ -495,7 +482,7 @@
 
     (bydi (partial-recall--suppress
            partial-recall-history--record)
-      (partial-recall--forget (current-buffer) t)
+      (partial-recall--forget (current-buffer))
 
       (bydi-was-called partial-recall--suppress)
       (bydi-was-called partial-recall-history--record))
@@ -518,22 +505,7 @@
 
       (bydi-was-called-with yes-or-no-p "Forget `#<test-moment>' (unmodified)?")
 
-      (bydi-was-called-with partial-recall--forget (list (current-buffer) t)))))
-
-(ert-deftest pr-forget--clears-subconscious ()
-  :tags '(needs-history)
-
-  (with-tab-history (:pre t :lifts t)
-
-    (let ((sub (partial-recall--subconscious)))
-
-      (partial-recall--forget (current-buffer) t)
-
-      (should (partial-recall--buffer-in-memory-p (current-buffer) sub))
-
-      (partial-recall--forget (current-buffer))
-
-      (should-not (partial-recall--buffer-in-memory-p (current-buffer) sub)))))
+      (bydi-was-called-with partial-recall--forget (list (current-buffer))))))
 
 (ert-deftest pr-forget--shortens-extended-memory ()
   :tags '(plasticity needs-history)
@@ -587,49 +559,6 @@
       (bydi-was-called partial-recall--swap)
       (bydi-was-called partial-recall--clean-up-buffer))))
 
-(ert-deftest partial-recall--suppress--remembers-unique ()
-  :tags '(needs-history)
-
-  (with-tab-history (:pre t)
-    (partial-recall--forget (current-buffer) t)
-    (partial-recall--remember (current-buffer))
-    (partial-recall--forget (current-buffer) t)
-
-    (should (eq (ring-length (partial-recall-memory--moments (gethash partial-recall--subconscious-key partial-recall--table)))
-                1))))
-
-(ert-deftest partial-recall--suppress--removes-permanence ()
-  :tags '(needs-history)
-
-  (with-tab-history (:pre t)
-    (let ((moment (partial-recall-current-moment)))
-
-      (partial-recall--set-permanence (current-buffer))
-      (should (partial-recall-moment--permanence moment))
-
-      (partial-recall--forget (current-buffer) t)
-      (should-not (partial-recall-moment--permanence moment)))))
-
-(ert-deftest partial-recall--suppress--kills ()
-  :tags '(needs-history)
-
-  (with-tab-history nil
-
-    (let ((another-temp (generate-new-buffer " *temp*" t)))
-
-      (partial-recall--remember another-temp)
-      (partial-recall--remember (current-buffer))
-
-      (partial-recall--forget another-temp t)
-
-      (bydi ((:always partial-recall-memory--at-capacity-p)
-             kill-buffer)
-        (partial-recall--forget (current-buffer) t)
-
-        (bydi-was-called-with kill-buffer another-temp))
-
-      (kill-buffer another-temp))))
-
 (ert-deftest partial-recall--suppress--just-removes ()
   :tags '(needs-history)
 
@@ -652,18 +581,17 @@
         (kill-buffer another-temp)))))
 
 (ert-deftest partial-recall--lift ()
-  :tags '(needs-history)
+  :tags '(needs-history current)
 
   (with-tab-history (:lifts t :pre t)
-    (let ((sub (gethash partial-recall--subconscious-key partial-recall--table)))
 
-      (partial-recall--forget (current-buffer) t)
+    (partial-recall--forget (current-buffer))
 
-      (should (eq (ring-length (partial-recall-memory--moments sub)) 1))
+    (should partial-recall--remnant)
 
-      (partial-recall--lift (current-buffer))
+    (should (eq (ring-length (partial-recall-memory--moments (partial-recall--reality))) 0))
 
-      (should (eq (ring-length (partial-recall-memory--moments sub)) 0)))))
+    (should (partial-recall--lift (current-buffer)))))
 
 (ert-deftest pr--maybe-switch-memory ()
   :tags '(needs-history)
@@ -1015,6 +943,25 @@
 
     (bydi-was-called-with partial-recall--complete-buffer (list '... (buffer-name (current-buffer))))))
 
+(ert-deftest pr--complete-subconscious ()
+  :tags '(completion)
+
+  (bydi (partial-recall--complete-buffer
+         (:always partial-recall--suppressed-p))
+
+    (should (funcall (nth 1 (partial-recall--complete-subconscious "Some prompt"))
+                     `(current . ,(current-buffer))))))
+
+(ert-deftest pr--complete-subconscious--initial-input ()
+  :tags '(completion)
+
+  (bydi (partial-recall--complete-buffer
+         (:always partial-recall--suppressed-p))
+
+    (partial-recall--complete-subconscious "Some prompt")
+
+    (bydi-was-called-with partial-recall--complete-buffer (list '... (buffer-name (current-buffer))))))
+
 (ert-deftest pr--complete-removed ()
   :tags '(completion)
 
@@ -1024,38 +971,6 @@
     (should (funcall (nth 1 (partial-recall--complete-removed "Some prompt: "))
                      `(current . ,(current-buffer))))))
 
-(ert-deftest pr--complete-subconscious ()
-  :tags '(completion)
-
-  (let* ((partial-recall--table (make-hash-table))
-         (buf (generate-new-buffer " *temp*" t))
-         (sub (partial-recall--subconscious)))
-
-    (ring-insert (partial-recall-memory--moments sub)
-                 (partial-recall-moment--create buf))
-
-    (bydi partial-recall--complete-buffer
-
-      (should (funcall
-               (nth 1 (partial-recall--complete-subconscious "Some prompt: "))
-               `(buf . ,buf))))))
-
-(ert-deftest pr--complete-subconscious--initial-input ()
-  :tags '(needs-history completion)
-
-  (with-tab-history (:pre t)
-    (let ((another (generate-new-buffer " *temp*" t)))
-
-      (partial-recall--remember another)
-      (partial-recall--forget another t)
-
-      (with-current-buffer another
-        (rename-buffer "another-one")
-
-        (bydi (partial-recall--complete-buffer)
-          (partial-recall--complete-subconscious "Some prompt: ")
-
-          (bydi-was-called-with partial-recall--complete-buffer `(... "another-one")))))))
 
 (ert-deftest pr--complete-any ()
   :tags '(completion)
@@ -1122,7 +1037,7 @@
       (let ((partial-recall-plasticity-implant-threshold 20)
             (partial-recall-intensities '((test . 1))))
 
-        (partial-recall-moment--intensify (partial-recall-current-moment) nil 'test)
+        (partial-recall-moment--intensify (partial-recall-current-moment) 'test)
 
         (should (equal
                  '(:propertize "▁"
@@ -1332,7 +1247,7 @@
            partial-recall--complete-memory
            partial-recall--complete-removed
            partial-recall--set-permanence
-           partial-recall--lift
+
            partial-recall--remember
            partial-recall--switch-to-buffer-and-neglect
            partial-recall--meld
@@ -1363,7 +1278,6 @@
       (bydi-was-called partial-recall--reclaim)
       (bydi-was-called partial-recall--forget)
       (bydi-was-called partial-recall--set-permanence)
-      (bydi-was-called partial-recall--lift)
       (bydi-was-called partial-recall--remember)
       (bydi-was-called partial-recall--meld)
       (bydi-was-called partial-recall--flush)

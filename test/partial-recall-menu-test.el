@@ -60,7 +60,7 @@
 
       (bydi-toggle-sometimes)
 
-      (partial-recall--forget second-moment-buffer t)
+      (partial-recall--forget second-moment-buffer)
 
       (partial-recall-menu--revert t)
 
@@ -177,7 +177,6 @@
 
     (with-tab-history (:pre t)
       (should (string= "test-tab" (partial-recall-menu--print-memory (partial-recall--reality))))
-      (should (string= "0" (partial-recall-menu--print-memory (partial-recall--subconscious))))
       (bydi ((:ignore partial-recall--realityp))
         (should (string= "test-tab" (partial-recall-menu--print-memory (partial-recall--reality))))
 
@@ -212,7 +211,7 @@
            partial-recall--forget
            partial-recall--reinforce
            partial-recall--set-permanence
-           partial-recall--lift
+           partial-recall--remember
            partial-recall--spin-out
            forward-line)
 
@@ -220,7 +219,7 @@
         (partial-recall-menu-execute)
 
         (bydi-was-called-n-times partial-recall--reclaim 1)
-        (bydi-was-called-n-times partial-recall--lift 1)
+        (bydi-was-called-n-times partial-recall--remember 1)
         (bydi-was-called-n-times partial-recall--forget 1)
         (bydi-was-called-n-times partial-recall--reinforce 1)
         (bydi-was-called-n-times partial-recall--set-permanence 2)
