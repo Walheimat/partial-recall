@@ -303,6 +303,34 @@
 
     (bydi-was-called-with run-hook-with-args '(partial-recall-after-reality-change-hook "test"))))
 
+(ert-deftest pr--before-undo-close-tab ()
+  :tags '(advice)
+
+  (let ((tab-bar-closed-tabs '((frame (tab (pr . "test"))))))
+
+    (bydi ((:always frame-live-p))
+
+      (should (string= (partial-recall--before-undo-close-tab)
+                       "test")))))
+
+(ert-deftest pr--after-undo-close-tab ()
+  :tags '(advice needs-history)
+
+  (with-tab-history (:pre t)
+    (let ((another (generate-new-buffer " *temp*" t)))
+
+      (partial-recall--remember another)
+
+      (partial-recall--forget (current-buffer))
+      (partial-recall--forget another)
+
+      (let ((partial-recall--restored-tab "test-hash"))
+
+        (partial-recall--after-undo-close-tab)
+
+        (should (eq (length (partial-recall-moments))
+                    2))))))
+
 ;;;; Actions
 
 (ert-deftest pr-remember--remembers ()
@@ -1199,7 +1227,7 @@
       (partial-recall-mode--setup)
 
       (bydi-was-called partial-recall--queue-tab-fix-up)
-      (bydi-was-called-n-times advice-add 7)
+      (bydi-was-called-n-times advice-add 9)
       (bydi-was-called-n-times add-hook 7)
       (bydi-was-called tab-bar-mode))))
 
@@ -1211,7 +1239,7 @@
 
     (partial-recall-mode--teardown)
 
-    (bydi-was-called-n-times advice-remove 7)
+    (bydi-was-called-n-times advice-remove 9)
     (bydi-was-called-n-times remove-hook 7)))
 
 ;;;; API

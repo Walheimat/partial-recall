@@ -839,6 +839,36 @@ Don't do anything if NORECORD is t."
   "Call hook with NAME."
   (run-hook-with-args 'partial-recall-after-reality-change-hook name))
 
+(defvar partial-recall--restored-tab nil)
+
+(defun partial-recall--before-undo-close-tab ()
+  "Record the tab that will be undone and record its key."
+  (and-let* ((predicate (lambda (it) (frame-live-p (alist-get 'frame it))))
+             (closed (seq-find predicate tab-bar-closed-tabs))
+             (tab (alist-get 'tab closed)))
+
+    (setq partial-recall--restored-tab (alist-get 'pr tab))))
+
+(defun partial-recall--after-undo-close-tab ()
+  "Lift subconscious buffers."
+  (and-let* ((key partial-recall--restored-tab)
+             (buffers (partial-recall--suppressed key))
+             (predicate (lambda (a b)
+                          (not (time-less-p (buffer-local-value 'buffer-display-time a)
+                                            (buffer-local-value 'buffer-display-time b)))))
+             (sorted (sort buffers predicate))
+             (truncated (seq-subseq sorted 0
+                                    (min (length sorted)
+                                         partial-recall-memory-size)))
+
+             (memory (partial-recall--memory-by-key key))
+             (moments (partial-recall-memory--moments memory)))
+
+
+    (dolist (buffer truncated)
+      (partial-recall--clear-remnant buffer)
+      (ring-insert moments (partial-recall-moment--create buffer)))))
+
 ;;;; Verbs
 ;;
 ;; This section holds the core of the package, namely the verbs that
@@ -1678,6 +1708,12 @@ If EVENT-TYPE is non-nil, filter the results by it."
   (advice-add
    'tab-bar-switch-to-tab :after
    #'partial-recall--after-tab-bar-switch)
+  (advice-add
+   'tab-bar-undo-close-tab :before
+   #'partial-recall--before-undo-close-tab)
+  (advice-add
+   'tab-bar-undo-close-tab :after
+   #'partial-recall--after-undo-close-tab)
 
   (add-hook 'minibuffer-setup-hook #'partial-recall--on-minibuffer-setup)
   (add-hook 'minibuffer-exit-hook #'partial-recall--on-minibuffer-exit)
@@ -1710,6 +1746,12 @@ If EVENT-TYPE is non-nil, filter the results by it."
   (advice-remove
    'tab-bar-switch-to-tab
    #'partial-recall--after-tab-bar-switch)
+  (advice-remove
+   'tab-bar-undo-close-tab
+   #'partial-recall--before-undo-close-tab)
+  (advice-remove
+   'tab-bar-undo-close-tab
+   #'partial-recall--after-undo-close-tab)
 
   (remove-hook 'minibuffer-setup-hook #'partial-recall--on-minibuffer-setup)
   (remove-hook 'minibuffer-exit-hook #'partial-recall--on-minibuffer-exit)
