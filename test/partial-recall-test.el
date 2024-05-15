@@ -508,12 +508,10 @@
 
   (with-tab-history (:pre t)
 
-    (bydi (partial-recall--suppress
-           partial-recall-history--record)
+    (bydi (partial-recall--suppress)
       (partial-recall--forget (current-buffer))
 
-      (bydi-was-called partial-recall--suppress)
-      (bydi-was-called partial-recall-history--record))
+      (bydi-was-called partial-recall--suppress))
 
     (let* ((memory (gethash (alist-get 'pr test-tab) partial-recall--table))
            (ring (partial-recall-memory--moments memory)))
@@ -1358,39 +1356,6 @@
 
 
 ;;;; History
-
-(cl-defstruct (test-history-structure
-               (:constructor th-create
-                             (&aux
-                              (history (make-ring 3)))))
-  "Test structure for history."
-  history)
-
-(ert-deftest history--record-and-retrieve ()
-  :tags '(history)
-
-  (let ((obj (th-create)))
-
-    (partial-recall-history--record obj :type 'test)
-    (partial-recall-history--record obj :type 'mock)
-    (partial-recall-history--record obj)
-    (partial-recall-history--record obj :type 'test)
-
-    (should (eq (length (partial-recall-history--retrieve obj)) 3))
-    (should (eq (length (partial-recall-history--retrieve obj 'test)) 1))
-    (should (eq 'unspecified (oref (nth 1 (partial-recall-history--retrieve obj)) type)))))
-
-(ert-deftest history--retrieve-moments ()
-  :tags '(history)
-
-  (let* ((obj (th-create)))
-
-    (partial-recall-history--record obj :type 'test :moment 'a)
-    (partial-recall-history--record obj :type 'mock :moment 'b)
-    (partial-recall-history--record obj :type 'test :moment 'c)
-
-    (should (eq (length (partial-recall-history--retrieve-moments obj)) 3))
-    (should (eq (length (partial-recall-history--retrieve-moments obj 'test)) 2))))
 
 (ert-deftest memory--removed-buffers ()
   :tags '(history needs-history)

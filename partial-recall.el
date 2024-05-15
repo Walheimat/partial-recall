@@ -161,13 +161,6 @@ See `partial-recall-moment--intensify' and its callers."
   :type '(alist :key-type symbol :value-type integer)
   :group 'partial-recall)
 
-(defcustom partial-recall-history-size 100
-  "The size of moment and memory history.
-
-Older entries will eventually be pushed out by newer entries."
-  :type 'integer
-  :group 'partial-recall)
-
 ;;;; Variables
 
 ;;;;; Private variables
@@ -301,8 +294,7 @@ Each function will be called with the moment that gained focus.")
                               &aux
                               (timestamp (floor (time-to-seconds)))
                               (focus 0)
-                              (permanence nil)
-                              (history (make-ring partial-recall-history-size)))))
+                              (permanence nil))))
   "A moment of partial recall.
 
 A moment is defined by a buffer, a timestamp when that buffer was
@@ -312,7 +304,7 @@ permanence marker that can prevent it from being forgotten if
 
 The timestamp is distinct from `buffer-display-time' and the
 focus is distinct from `buffer-display-count'."
-  buffer timestamp focus permanence history)
+  buffer timestamp focus permanence)
 
 (cl-defstruct (partial-recall-memory
                (:conc-name partial-recall-memory--)
@@ -321,28 +313,12 @@ focus is distinct from `buffer-display-count'."
                               &key
                               (orig-size partial-recall-memory-size)
                               &aux
-                              (moments (make-ring orig-size))
-                              (history (make-ring partial-recall-history-size)))))
+                              (moments (make-ring orig-size)))))
   "A memory of partial recall.
 
 A memory is a key that connects it to the hash table, a ring of
 moments and the size it had upon construction."
-  key orig-size moments history)
-
-(cl-defstruct (partial-recall-event
-               (:conc-name partial-recall-event--)
-               (:constructor partial-recall-event--create
-                             (type
-                              &optional
-                              moment
-                              memory
-                              &aux
-                              (timestamp (floor (time-to-seconds))))))
-  "A event of a specific type
-
-The event will have a timestamp and can optionally hold
-references to a moment and/or a memory."
-  type moment memory timestamp)
+  key orig-size moments)
 
 ;;;; Utility
 
@@ -469,8 +445,6 @@ If MEMORY is not in another form, this is a no-op."
               (index (partial-recall-memory--owns-buffer-p memory buffer))
               (removed (ring-remove moments index)))
 
-    (partial-recall-history--record memory :type 'removal :moment removed)
-
     removed))
 
 (defun partial-recall-memory--find-in-other-frame (memory)
@@ -498,11 +472,9 @@ If MEMORY is not in another form, this is a no-op."
 (defun partial-recall-memory--removed-buffers (&optional memory)
   "Get a list of buffers removed from MEMORY."
   (let* ((memory (or memory (partial-recall--reality)))
-         (moments (partial-recall-history--retrieve-moments memory 'removal)))
+         (buffers (partial-recall--suppressed (partial-recall-memory--key memory))))
 
-    (seq-filter
-     (lambda (it) (not (partial-recall-memory--owns-buffer-p memory it)))
-     (mapcar #'partial-recall-moment--buffer moments))))
+    buffers))
 
 (defun partial-recall--reality ()
   "Get the current memory."
@@ -1645,38 +1617,6 @@ is shown."
       `(:propertize ,(or (partial-recall-graph length size) "-")
                     face partial-recall-deemphasized
                     help-echo ,(format "Memory contains %d/%d moment(s)" length size)))))
-
-;;;; History
-
-(cl-defun partial-recall-history--record (object &key type memory moment)
-  "Record an event for OBJECT.
-
-The type of the event can be specified using TYPE, otherwise it
-is considered unspecified. Optionally references to MEMORY or
-MOMENT can be passed."
-  (ring-insert
-   (oref object history)
-   (partial-recall-event--create (or type 'unspecified) moment memory)))
-
-(defun partial-recall-history--retrieve (object &optional event-type)
-  "Retrieve history of OBJECT.
-
-If EVENT-TYPE is non-nil, filter the results by it."
-  (let* ((history (oref object history))
-         (elements (ring-elements history))
-         (filter (if event-type
-                     (lambda (it) (eq event-type (oref it type)))
-                   #'always)))
-
-    (seq-filter filter elements)))
-
-(defun partial-recall-history--retrieve-moments (object &optional event-type)
-  "Retrieve moments recorded in OBJECT history.
-
-If EVENT-TYPE is non-nil, filter the results by it."
-  (mapcar
-   #'partial-recall-event--moment
-   (partial-recall-history--retrieve object event-type)))
 
 ;;;; Setup
 

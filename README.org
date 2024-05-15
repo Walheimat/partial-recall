@@ -196,7 +196,6 @@ plasticity).
                                       partial-recall--not-in-view-mode-p))
   (partial-recall-memorable-traits '(partial-recall--gracedp)) ;; Don't flush recent moments.
   (partial-recall-intensities '((swap . 1) (reinsert . 2) (concentrate . 2))) ;; Focus gained from actions.
-  (partial-recall-history-size 100) ;; Size of moment and memory history.
 
   (partial-recall-concentration-cycle 60) ;; Amount of seconds between checking whether a buffer remained visible.
 
