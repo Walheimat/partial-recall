@@ -1812,10 +1812,8 @@ removed from the memory again."
 (defun partial-recall-lift (buffer)
   "Lift BUFFER out of the subconscious and switch to it.
 
-Buffers that are forgotten move to the subconscious first before
-being removed completely. As long as the subconscious itself
-isn't at capacity and needs to drop the oldest buffer, it can be
-lifted."
+Buffers that are forgotten are marked as remnants until they are
+remembered again."
   (interactive (list (partial-recall--complete-subconscious "Lift moment: ")))
 
   (partial-recall--remember buffer)
