@@ -862,8 +862,7 @@ no-op."
 
     (partial-recall--clear-remnant buffer)
 
-    (let ((moment (or (partial-recall--lift buffer)
-                      (partial-recall-moment--create buffer))))
+    (let ((moment (partial-recall-moment--create buffer)))
 
       (partial-recall--ring-insert ring moment))))
 
@@ -1050,14 +1049,6 @@ is used."
 (defun partial-recall--suppressed-p (buffer)
   "Check if BUFFER is currently suppressed."
   (memq buffer (partial-recall--suppressed)))
-
-(defun partial-recall--lift (buffer)
-  "Lift BUFFER from the subconscious (if possible)."
-  (when (partial-recall--suppressed-p buffer)
-
-    (partial-recall-log "Lifting `%s' out of the subconscious" buffer)
-
-    (partial-recall-moment--create buffer)))
 
 (defun partial-recall--recollect (buffer)
   "Recollect BUFFER.

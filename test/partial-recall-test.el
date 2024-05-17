@@ -606,18 +606,25 @@
 
         (kill-buffer another-temp)))))
 
-(ert-deftest partial-recall--lift ()
-  :tags '(needs-history current)
+(ert-deftest pr--suppressed-p ()
+  :tags '(subconscious)
 
-  (with-tab-history (:lifts t :pre t)
+  (bydi ((:mock partial-recall--suppressed :return '(a b c)))
 
-    (partial-recall--forget (current-buffer))
+    (should (partial-recall--suppressed-p 'b))
+    (should-not (partial-recall--suppressed-p 'd))))
 
-    (should partial-recall--remnant)
+(ert-deftest pr--suppressed ()
+  :tags '(subconscious)
 
-    (should (eq (ring-length (partial-recall-memory--moments (partial-recall--reality))) 0))
+  (ert-with-test-buffer (:name "suppressed")
+    (setq-local partial-recall--remnant "best")
+    (bydi ((:mock partial-recall--key :return "test")
+           (:mock buffer-list :return (list (current-buffer))))
 
-    (should (partial-recall--lift (current-buffer)))))
+      (should-not (partial-recall--suppressed))
+
+      (should (partial-recall--suppressed "best")))))
 
 (ert-deftest pr--maybe-switch-memory ()
   :tags '(needs-history)
