@@ -551,9 +551,7 @@ by that amount."
 
 (defun partial-recall-buffers ()
   "Get all mapped buffers."
-  (let ((mapped (partial-recall-moments)))
-
-    (mapcar #'partial-recall-moment--buffer mapped)))
+  (mapcar #'partial-recall-moment--buffer (partial-recall-moments)))
 
 (defun partial-recall--buffer-in-memory-p (buffer &optional memory)
   "Check if BUFFER is a member of MEMORY.
@@ -1412,8 +1410,8 @@ Message will be formatted with ARGS."
 (defun partial-recall--complete-dream (prompt)
   "Complete dream buffer using PROMPT."
   (let* ((predicate (lambda (it) (and-let* ((buffer (cdr it))
-                                       ((partial-recall--buffer-mapped-p buffer))
-                                       ((not (partial-recall--buffer-in-memory-p buffer)))))))
+                                            ((partial-recall--buffer-mapped-p buffer))
+                                            ((not (partial-recall--buffer-in-memory-p buffer)))))))
          (current (current-buffer))
          (initial (unless (partial-recall--buffer-in-memory-p current)
                     (buffer-name current))))
