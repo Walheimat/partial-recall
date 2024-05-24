@@ -15,16 +15,24 @@
 (require 'subr-x)
 (require 'partial-recall)
 
-(defvar partial-recall-menu--buffer "*Partial Recall Menu*")
-(defvar partial-recall-menu--empty " ")
-(defvar partial-recall-menu--null "-")
-(defvar partial-recall-menu--indicate "*")
-(defvar partial-recall-menu--missing "?")
-(defvar partial-recall-menu--persistence-indicator "░")
+(defvar partial-recall-menu--buffer "*Partial Recall Menu*"
+  "Name of the menu buffer.")
+(defvar partial-recall-menu--empty " "
+  "String representation of empty content.")
+(defvar partial-recall-menu--null "-"
+  "String representation of null content.")
+(defvar partial-recall-menu--indicate "*"
+  "String used to indicate the current memory.")
+(defvar partial-recall-menu--missing "?"
+  "String used to indicate missing content.")
+(defvar partial-recall-menu--persistence-indicator "░"
+  "String used to indicate persistence without focus.")
 
-(defvar partial-recall-menu--excess-time (* 60 60 12))
+(defvar partial-recall-menu--excess-time (* 60 60 12)
+  "Time in seconds after which time should be displayed differently.")
 
-(defvar-local partial-recall-menu--subconscious nil)
+(defvar-local partial-recall-menu--subconscious nil
+  "If t, subconscious buffers will be included in the menu.")
 
 (defun partial-recall-menu--format (buffers tabs)
   "Get format using BUFFERS and TABS."

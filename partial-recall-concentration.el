@@ -29,8 +29,13 @@ concentration."
 
 ;;; Variables
 
-(defvar partial-recall-concentration--timer nil)
-(defvar partial-recall-concentration--deferred nil)
+(defvar partial-recall--faint-focus nil
+  "The moment focused before concentration broke.")
+
+(defvar partial-recall-concentration--timer nil
+  "Timer after which concentration will be checked.")
+(defvar partial-recall-concentration--deferred nil
+  "Timer after which it is checked if concentration may resume.")
 
 ;;; Errors
 

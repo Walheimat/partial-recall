@@ -666,11 +666,11 @@
           (bydi-was-called-with tab-bar-switch-to-tab "test"))))))
 
 (ert-deftest pr--clean-up-buffer ()
-  (let ((partial-recall--last-checked (current-buffer)))
+  (let ((partial-recall--last-handled (current-buffer)))
 
     (partial-recall--clean-up-buffer (current-buffer))
 
-    (should-not partial-recall--last-checked))
+    (should-not partial-recall--last-handled))
 
   (bydi ((:mock window-buffer :return (current-buffer))
          quit-window)

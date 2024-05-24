@@ -165,24 +165,40 @@ See `partial-recall-moment--intensify' and its callers."
 
 ;;;;; Private variables
 
-(defvar partial-recall--table (make-hash-table :test #'equal))
+(defvar partial-recall--table (make-hash-table :test #'equal)
+  "Hash table mapping tabs to memories using common key.")
 
-(defvar partial-recall--schedule-timer nil)
+(defvar partial-recall--schedule-timer nil
+  "Timer that runs until a buffer will be handled.
 
-(defvar partial-recall--last-focus nil)
-(defvar partial-recall--faint-focus nil)
+Switching to a buffer just schedules its handling. Only the
+buffer the user lingers on will actually be handled.")
 
-(defvar partial-recall--last-checked nil)
-(defvar partial-recall--neglect nil)
+(defvar partial-recall--last-focus nil
+  "The moment that was last focused.")
 
-(defvar partial-recall--switch-to-buffer-function #'switch-to-buffer)
-(defvar partial-recall--pop-to-buffer-function #'pop-to-buffer)
+(defvar partial-recall--last-handled nil
+  "The buffer that was last handled.")
 
-(defvar partial-recall--before-minibuffer nil)
+(defvar partial-recall--neglect nil
+  "If t, the next visited buffer will not be handled.")
 
-(defvar partial-recall--marked nil)
+(defvar partial-recall--switch-to-buffer-function #'switch-to-buffer
+  "Function to call when switching to a buffer.")
+(defvar partial-recall--pop-to-buffer-function #'pop-to-buffer
+  "Function to call when popping to a buffer.")
 
-(defvar-local partial-recall--permanent nil)
+(defvar partial-recall--before-minibuffer nil
+  "Buffer visited before minibuffer was set up.")
+
+(defvar-local partial-recall--permanent nil
+  "Whether the buffer's moment is permanent.
+
+This is only set for extensions and doesn't affect internal
+logic.")
+
+(defvar partial-recall--restored-tab nil
+  "The tab that was just restored.")
 
 ;;;;; Maps
 
@@ -583,7 +599,7 @@ This also checks for buffers that might have been obscured."
 (defun partial-recall--buffer-new-p (buffer)
   "Check if BUFFER is actually new."
   (cond
-   ((eq partial-recall--last-checked buffer)
+   ((eq partial-recall--last-handled buffer)
     nil)
    ((eq partial-recall--neglect buffer)
     (setq partial-recall--neglect nil))
@@ -721,7 +737,7 @@ be found, it will be ignored."
         (partial-recall--recollect buffer)
       (partial-recall--remember buffer))
 
-    (setq partial-recall--last-checked buffer)))
+    (setq partial-recall--last-handled buffer)))
 
 ;;;;; Reactions
 
@@ -808,8 +824,6 @@ Don't do anything if NORECORD is t."
 (defun partial-recall--after-tab-bar-switch (name)
   "Call hook with NAME."
   (run-hook-with-args 'partial-recall-after-reality-change-hook name))
-
-(defvar partial-recall--restored-tab nil)
 
 (defun partial-recall--before-undo-close-tab ()
   "Record the tab that will be undone and record its key."
@@ -1210,8 +1224,8 @@ no longer recorded as the last checked buffer."
   (dolist (frame (frame-list))
     (partial-recall--clean-up-window buffer frame)
 
-    (when (eq partial-recall--last-checked buffer)
-      (setq partial-recall--last-checked nil))
+    (when (eq partial-recall--last-handled buffer)
+      (setq partial-recall--last-handled nil))
 
     (when (and partial-recall--last-focus
                (eq (partial-recall-moment--buffer partial-recall--last-focus)
@@ -1333,8 +1347,10 @@ If CONSIDER-DELAY is t, consider handling delay."
 
 ;;;; Graphing
 
-(defvar partial-recall-graph--blocks ["▁" "▂" "▃" "▄" "▅" "▆" "▇" "█"])
-(defvar partial-recall-graph--ratios '(0.125 0.25 0.375 0.5 0.625 0.75 0.875 1))
+(defvar partial-recall-graph--blocks ["▁" "▂" "▃" "▄" "▅" "▆" "▇" "█"]
+  "Vector of strings that represent focus visually.")
+(defvar partial-recall-graph--ratios '(0.125 0.25 0.375 0.5 0.625 0.75 0.875 1)
+  "Vector of floats that map absolute values to blocks.")
 
 (defun partial-recall-graph (val max)
   "Graph VAL.
@@ -1520,13 +1536,15 @@ Shows additional moment and memory info if
     (define-key map [mode-line mouse-1] 'partial-recall-lighter--toggle)
     (define-key map [mode-line mouse-3] 'partial-recall-lighter--menu)
 
-    map))
+    map)
+  "Map used in the mode line lighter.")
 
 (defvar partial-recall-lighter--title
   `(:propertize partial-recall-lighter-prefix
                 mouse-face mode-line-highlight
                 help-echo "Partial Recall\nmouse-1: Toggle permanence\nmouse-3: Menu"
-                local-map ,partial-recall-lighter--map))
+                local-map ,partial-recall-lighter--map)
+  "Mode line construct for the lighter title.")
 
 (defun partial-recall-lighter--toggle ()
   "Implant or excise the current buffer."
