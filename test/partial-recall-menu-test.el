@@ -27,16 +27,18 @@
 (ert-deftest prm--revert ()
   :tags '(needs-history menu user-facing)
 
-  (bydi (tabulated-list-init-header
-         (:mock partial-recall-menu--print-timestamp :return "today")
-         (:mock partial-recall-menu--print-memory :return "rem")
-         (:mock partial-recall-menu--print-presence :return "*")
-         (:mock partial-recall-menu--tab-name :return "test-tab")
-         (:mock partial-recall-menu--frame :return "frame")
-         (:sometimes partial-recall-memory--at-capacity-p)
-         (:othertimes partial-recall--intermediate-term-p))
 
-    (with-tab-history (:pre t :second-mem t :second-mom t)
+  (with-tab-history (:pre t :second-mem t :second-mom t)
+
+    (bydi (tabulated-list-init-header
+           (:mock partial-recall-menu--print-timestamp :return "today")
+           (:mock partial-recall-menu--print-memory :return "rem")
+           (:mock partial-recall-menu--print-presence :return "*")
+           (:mock partial-recall-menu--tab-name :return "test-tab")
+           (:mock partial-recall-menu--frame :return "frame")
+           (:sometimes partial-recall-memory--at-capacity-p)
+           (:othertimes partial-recall--intermediate-term-p))
+
 
       (ring-insert
        (partial-recall-memory--moments second-memory)
