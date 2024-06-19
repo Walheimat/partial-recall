@@ -170,9 +170,16 @@
 
   (put 'test-meaningful 'partial-recall-non-meaningful-explainer "Testing")
 
-  (let ((partial-recall-meaningful-traits '(test-meaningful)))
+  (bydi ((:othertimes partial-recall--buffer-mapped-p))
 
-    (should (string= "Testing" (partial-recall--explain-omission)))))
+    (let ((partial-recall-meaningful-traits '(test-meaningful)))
+
+      (should (string= "Testing" (partial-recall--explain-omission)))
+
+      (bydi-toggle-volatile 'partial-recall--buffer-mapped-p)
+
+      (should (string= "Testing (was remembered explicitly)"
+                       (partial-recall--explain-omission))))))
 
 ;;;; Reactions
 

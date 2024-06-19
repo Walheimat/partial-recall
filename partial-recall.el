@@ -1286,7 +1286,7 @@ If ARG is t, the current moment is considered graced as well."
            (eq (current-buffer) (partial-recall-moment--buffer moment)))))
 
 (defun partial-recall--explain-omission (&optional buffer)
-  "Get the reason why BUFFER is omitted.
+  "Get the reason why BUFFER is (or would normally be) omitted.
 
 This will try to find the first trait in
 `partial-recall-meaningful-traits' that returns falsy and return
@@ -1298,7 +1298,9 @@ its explainer (property
              (failing (seq-find finder partial-recall-meaningful-traits))
              (explainer (get failing 'partial-recall-non-meaningful-explainer)))
 
-    explainer))
+    (if (partial-recall--buffer-mapped-p (current-buffer))
+        (format "%s (was remembered explicitly)" explainer)
+      explainer)))
 
 (put 'buffer-file-name
      'partial-recall-non-meaningful-explainer
