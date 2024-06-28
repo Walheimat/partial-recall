@@ -36,7 +36,7 @@
            (:mock partial-recall-menu--print-presence :return "*")
            (:mock partial-recall-menu--tab-name :return "test-tab")
            (:mock partial-recall-menu--frame :return "frame")
-           (:sometimes partial-recall-memory--at-capacity-p)
+           (:sometimes partial-recall-memory--near-capacity-p)
            (:othertimes partial-recall--intermediate-term-p))
 
 

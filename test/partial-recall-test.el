@@ -368,7 +368,7 @@
 
   (with-memory-plasticity-enabled
     (with-tab-history (:probes t)
-      (bydi ((:always partial-recall-memory--at-capacity-p)
+      (bydi ((:always partial-recall-memory--near-capacity-p)
              (:always partial-recall-plasticity--should-extend-p)
              partial-recall--maybe-reinserted-implanted
              partial-recall--maybe-suppress-oldest-moment
@@ -385,7 +385,7 @@
     (with-tab-history (:pre t :probes t)
       (let ((another-temp (generate-new-buffer " *temp*" t)))
 
-        (bydi ((:always partial-recall-memory--at-capacity-p)
+        (bydi ((:always partial-recall-memory--near-capacity-p)
                partial-recall--maybe-reinsert-implanted
                partial-recall--suppress)
           (partial-recall--remember another-temp)
@@ -410,7 +410,7 @@
              (:mock buffer-name :return "buffer")
              partial-recall--maybe-reinsert-implanted
              partial-recall-moment--update-timestamp
-             (:always partial-recall-memory--at-capacity-p)
+             (:always partial-recall-memory--near-capacity-p)
              (:always partial-recall-plasticity--should-extend-p))
 
         (partial-recall--swap a b moment)
@@ -605,7 +605,7 @@
         (partial-recall--remember (current-buffer))
         (partial-recall--forget another-temp)
 
-        (bydi ((:always partial-recall-memory--at-capacity-p)
+        (bydi ((:always partial-recall-memory--near-capacity-p)
                kill-buffer)
           (partial-recall--forget)
 
@@ -1168,7 +1168,7 @@
 
         (should (equal
                  '(:propertize "|"
-                               face partial-recall-deemphasized
+                               face partial-recall-contrast
                                help-echo "Memory contains 1/1 moment(s)")
                  (partial-recall-lighter--memory))))
 

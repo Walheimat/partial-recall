@@ -68,7 +68,7 @@ INCLUDE-SUBCONSCIOUS is t."
              (tab-name (partial-recall-menu--tab-name memory))
              (frame (partial-recall-menu--frame memory))
              (partial-recall-memory--pp (partial-recall-menu--print-memory memory))
-             (at-capacity (partial-recall-memory--at-capacity-p memory))
+             (at-capacity (partial-recall-memory--near-capacity-p memory))
              (moments (ring-elements (partial-recall-memory--moments memory))))
 
         (push tab-name tab-names)

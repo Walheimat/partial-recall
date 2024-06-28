@@ -500,11 +500,18 @@ If MEMORY is not in another form, this is a no-op."
   "Check if MEMORY is the reality."
   (eq (partial-recall--reality) memory))
 
-(defun partial-recall-memory--at-capacity-p (memory)
-  "Check if MEMORY is at capacity."
-  (when-let ((ring (partial-recall-memory--moments memory)))
+(defun partial-recall-memory--near-capacity-p (memory &optional threshold)
+  "Check if MEMORY is near capacity.
 
-    (= (ring-length ring) (ring-size ring))))
+Optional THRESHOLD determines what this means. If it is not
+passed, this checks if the memory is exactly at capacity. Passing
+a positive integer determines if the capacity is near that
+threshold."
+  (when-let ((threshold (or threshold 0))
+             (ring (partial-recall-memory--moments memory)))
+
+    (>= (ring-length ring)
+        (- (ring-size ring) threshold))))
 
 ;;;;; Moments
 
@@ -1177,7 +1184,7 @@ suppressing the oldest moment."
 
 This will be any moment that would be removed anyway by insertion
 beyond the memory's limit."
-  (and-let* (((partial-recall-memory--at-capacity-p memory))
+  (and-let* (((partial-recall-memory--near-capacity-p memory))
              (ring (partial-recall-memory--moments memory))
              ((not (zerop (ring-length ring))))
              (removed (ring-remove ring)))
@@ -1617,6 +1624,9 @@ is shown."
              (ring (partial-recall-memory--moments memory))
              (orig-size (partial-recall-memory--orig-size memory))
              (size (ring-size ring))
+             (face (if (partial-recall-memory--near-capacity-p memory (/ partial-recall-memory-size 2))
+                       'partial-recall-contrast
+                     'partial-recall-deemphasized))
              (length (ring-length ring)))
 
     (if (> size orig-size)
@@ -1624,7 +1634,7 @@ is shown."
                       face partial-recall-emphasis
                       help-echo ,(format "Memory has grown to +%d" (- size orig-size)))
       `(:propertize ,(or (partial-recall-graph length size) "-")
-                    face partial-recall-deemphasized
+                    face ,face
                     help-echo ,(format "Memory contains %d/%d moment(s)" length size)))))
 
 ;;;; Setup

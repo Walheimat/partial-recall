@@ -41,7 +41,7 @@ If this is nil, never auto-implant."
         (orig (partial-recall-memory--orig-size memory))
         (curr (ring-size (partial-recall-memory--moments memory))))
 
-    (when (and (not (partial-recall-memory--at-capacity-p memory))
+    (when (and (not (partial-recall-memory--near-capacity-p memory))
                (> curr orig))
 
       (partial-recall-debug "Resizing `%s'" memory)
@@ -52,7 +52,7 @@ If this is nil, never auto-implant."
   "Maybe extend MEMORY.
 
 See `partial-recall-plasticity--should-extend-p'."
-  (when (and (partial-recall-memory--at-capacity-p memory)
+  (when (and (partial-recall-memory--near-capacity-p memory)
              (partial-recall-plasticity--should-extend-p memory))
 
     (partial-recall-debug "Extending `%s'" memory)
