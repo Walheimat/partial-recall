@@ -702,20 +702,18 @@ Optionally search in FRAME."
 
 (defun partial-recall--schedule-buffer (buffer)
   "Schedule handling BUFFER."
-  (with-current-buffer buffer
-    (and-let* ((buffer (current-buffer))
-               ((partial-recall--buffer-new-p buffer))
-               ((partial-recall--meaningful-buffer-p buffer)))
+  (and-let* (((partial-recall--buffer-new-p buffer))
+             ((partial-recall--meaningful-buffer-p buffer)))
 
-      (partial-recall--void-schedule-timer)
+    (partial-recall--void-schedule-timer)
 
-      (partial-recall-debug "Scheduling buffer `%s'" buffer)
+    (partial-recall-debug "Scheduling buffer `%s'" buffer)
 
-      (setq partial-recall--schedule-timer
-            (run-at-time
-             partial-recall-handle-delay
-             nil
-             #'partial-recall--handle-buffer buffer)))))
+    (setq partial-recall--schedule-timer
+          (run-at-time
+           partial-recall-handle-delay
+           nil
+           #'partial-recall--handle-buffer buffer))))
 
 (defun partial-recall--void-schedule-timer ()
   "Void the current timer."
