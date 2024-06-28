@@ -338,6 +338,15 @@
         (should (eq (length (partial-recall-moments))
                     2))))))
 
+(ert-deftest pr--before-view-buffer ()
+  :tags '(reaction)
+
+  (bydi ((:watch partial-recall--to-be-viewed))
+
+    (partial-recall--before-view-buffer (current-buffer))
+
+    (bydi-was-set-to partial-recall--to-be-viewed (current-buffer))))
+
 ;;;; Actions
 
 (ert-deftest pr-remember--remembers ()
@@ -1239,7 +1248,7 @@
       (partial-recall-mode--setup)
 
       (bydi-was-called partial-recall--queue-tab-fix-up)
-      (bydi-was-called-n-times advice-add 9)
+      (bydi-was-called-n-times advice-add 10)
       (bydi-was-called-n-times add-hook 7)
       (bydi-was-called tab-bar-mode))))
 
@@ -1251,7 +1260,7 @@
 
     (partial-recall-mode--teardown)
 
-    (bydi-was-called-n-times advice-remove 9)
+    (bydi-was-called-n-times advice-remove 10)
     (bydi-was-called-n-times remove-hook 7)))
 
 ;;;; API

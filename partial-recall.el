@@ -129,7 +129,8 @@ See trait `partial-recall--not-filtered-p'."
 
 (defcustom partial-recall-meaningful-traits '(buffer-file-name
                                               partial-recall--not-filtered-p
-                                              partial-recall--not-in-view-mode-p)
+                                              partial-recall--not-in-view-mode-p
+                                              partial-recall--not-to-be-viewed-p)
   "List of functions that describe traits of a meaningful buffer.
 
 These functions are inspected using `func-arity'. If they have a
@@ -199,6 +200,9 @@ logic.")
 
 (defvar partial-recall--restored-tab nil
   "The tab that was just restored.")
+
+(defvar partial-recall--to-be-viewed nil
+  "The buffer about to be viewed by `view-buffer'.")
 
 ;;;;; Maps
 
@@ -858,6 +862,10 @@ Don't do anything if NORECORD is t."
       (partial-recall--clear-remnant buffer)
       (ring-insert moments (partial-recall-moment--create buffer)))))
 
+(defun partial-recall--before-view-buffer (buffer &rest _)
+  "Record BUFFER as about to be viewed."
+  (setq partial-recall--to-be-viewed buffer))
+
 ;;;; Verbs
 ;;
 ;; This section holds the core of the package, namely the verbs that
@@ -1280,6 +1288,14 @@ This means the buffer won't be scheduled for handling."
   "Make sure BUFFER is not in `view-mode'."
   (not (buffer-local-value 'view-mode buffer)))
 
+(defun partial-recall--not-to-be-viewed-p (buffer)
+  "Make sure that BUFFER is not to be viewed."
+  (let ((before partial-recall--to-be-viewed))
+
+    (setq partial-recall--to-be-viewed nil)
+
+    (not (eq buffer before))))
+
 (defun partial-recall--gracedp (moment &optional arg)
   "Check if MOMENT was graced.
 
@@ -1671,6 +1687,9 @@ is shown."
   (advice-add
    'tab-bar-undo-close-tab :after
    #'partial-recall--after-undo-close-tab)
+  (advice-add
+   'view-buffer :before
+   #'partial-recall--before-view-buffer)
 
   (add-hook 'minibuffer-setup-hook #'partial-recall--on-minibuffer-setup)
   (add-hook 'minibuffer-exit-hook #'partial-recall--on-minibuffer-exit)
@@ -1709,6 +1728,9 @@ is shown."
   (advice-remove
    'tab-bar-undo-close-tab
    #'partial-recall--after-undo-close-tab)
+  (advice-remove
+   'view-buffer
+   #'partial-recall--before-view-buffer)
 
   (remove-hook 'minibuffer-setup-hook #'partial-recall--on-minibuffer-setup)
   (remove-hook 'minibuffer-exit-hook #'partial-recall--on-minibuffer-exit)
