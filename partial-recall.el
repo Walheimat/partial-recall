@@ -706,7 +706,8 @@ Optionally search in FRAME."
 
 (defun partial-recall--schedule-buffer (buffer)
   "Schedule handling BUFFER."
-  (and-let* (((partial-recall--buffer-new-p buffer))
+  (and-let* ((buffer (get-buffer buffer))
+             ((partial-recall--buffer-new-p buffer))
              ((partial-recall--meaningful-buffer-p buffer)))
 
     (partial-recall--void-schedule-timer)
