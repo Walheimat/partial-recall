@@ -524,10 +524,12 @@
 
   (with-tab-history (:pre t)
 
-    (bydi (partial-recall--suppress)
-      (partial-recall--forget (current-buffer))
+    (bydi (partial-recall--suppress
+           partial-recall--banish)
+      (partial-recall--forget (current-buffer) t)
 
-      (bydi-was-called partial-recall--suppress))
+      (bydi-was-called partial-recall--suppress)
+      (bydi-was-called partial-recall--banish))
 
     (let* ((memory (gethash (alist-get 'pr test-tab) partial-recall--table))
            (ring (partial-recall-memory--moments memory)))
@@ -579,6 +581,13 @@
 
               (kill-buffer another-temp)
               (kill-buffer yet-another-temp))))))))
+
+(ert-deftest pr--banish ()
+  (ert-with-test-buffer (:name "banished")
+
+    (partial-recall--banish (current-buffer))
+
+    (should partial-recall--banished)))
 
 (ert-deftest partial-recall--reject ()
   (with-tab-history (:pre t :second-mem t)
@@ -1323,6 +1332,7 @@
       (call-interactively 'partial-recall-forget-some)
       (call-interactively 'partial-recall-reject)
       (call-interactively 'partial-recall-retrieve)
+      (call-interactively 'partial-recall-banish)
 
       (bydi-was-called partial-recall--reclaim)
       (bydi-was-called partial-recall--forget)
@@ -1336,7 +1346,7 @@
       (bydi-was-called partial-recall--reject)
       (bydi-was-called partial-recall--complete-removed)
 
-      (bydi-was-called-n-times partial-recall--complete-reality 5)
+      (bydi-was-called-n-times partial-recall--complete-reality 6)
       (bydi-was-called-n-times partial-recall--switch-to-buffer-and-neglect 6)
       (bydi-was-called-n-times switch-to-buffer 2)
       (bydi-was-called-n-times pop-to-buffer 1)

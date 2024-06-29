@@ -68,7 +68,9 @@ Since memories are rings, moments will leave the ring after more
 moments than its size will allow have been added without revisiting
 them. This removal is called "forgetting". You may also call
 =partial-recall-forget= (or =partial-recall-forget-some=) manually (or
-kill the buffer).
+kill the buffer). You may also call =partial-recall-banish= to not
+just forget a buffer but no longer add it to any memory in whose
+context it is switched to.
 
 If you enable =partial-recall-plasticity-of-memory-mode= memories will
 grow instead of forgetting the oldest moment if it itself is still not
@@ -146,8 +148,11 @@ By default only three traits are in the list:
    meaningful.
 2. =partial-recall--not-filtered-p= which means the buffers name is
    not matched by =partial-recall-filter=.
-3. =partial-recall--not-in-view-mode= which should be
-   self-explanatory.
+3. =partial-recall--not-in-view-mode= and
+   =partial-recall--not-to-be-viewed-p= that prevent buffers in
+   =view-mode= to be considered.
+4. =partial-recall--not-banished-p= which means the buffer was not the
+   target of =partial-recall-banish=.
 
 For these three traits property
 =partial-recall-non-meaningful-explainer= is set which is read by
@@ -193,7 +198,9 @@ plasticity).
   (partial-recall-filter '("COMMIT_EDITMSG")) ;; Regexes of names that should be ignored.
   (partial-recall-meaningful-traits '(buffer-file-name ;; List of functions that determine eligible buffers.
                                       partial-recall--not-filtered-p
-                                      partial-recall--not-in-view-mode-p))
+                                      partial-recall--not-in-view-mode-p
+                                      partial-recall--not-to-be-viewed-p
+                                      partial-recall--not-banished-p))
   (partial-recall-memorable-traits '(partial-recall--gracedp)) ;; Don't flush recent moments.
   (partial-recall-intensities '((swap . 1) (reinsert . 2) (concentrate . 2))) ;; Focus gained from actions.
 
@@ -221,6 +228,7 @@ I suggest to just bind the command map as shown above, otherwise you
 probably want to bind the following commands:
 
 - =partial-recall-forget=
+- =partial-recall-banish=
 - =partial-recall-make-permanent=
 - =partial-recall-lift=
 - =partial-recall-menu=

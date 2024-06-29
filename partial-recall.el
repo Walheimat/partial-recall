@@ -130,7 +130,8 @@ See trait `partial-recall--not-filtered-p'."
 (defcustom partial-recall-meaningful-traits '(buffer-file-name
                                               partial-recall--not-filtered-p
                                               partial-recall--not-in-view-mode-p
-                                              partial-recall--not-to-be-viewed-p)
+                                              partial-recall--not-to-be-viewed-p
+                                              partial-recall--not-banished-p)
   "List of functions that describe traits of a meaningful buffer.
 
 These functions are inspected using `func-arity'. If they have a
@@ -204,6 +205,12 @@ logic.")
 (defvar partial-recall--to-be-viewed nil
   "The buffer about to be viewed by `view-buffer'.")
 
+(defvar-local partial-recall--banished nil
+  "Whether the buffer should never be scheduled.
+
+This has no effect if `partial-recall--not-banished-p' is not
+part of `partial-recall-meaningful-traits'.")
+
 ;;;;; Maps
 
 ;;;###autoload
@@ -212,6 +219,7 @@ logic.")
 
     (define-key map (kbd "b") 'partial-recall-switch-to-buffer)
     (define-key map (kbd "4") 'partial-recall-switch-to-buffer-other-window)
+    (define-key map (kbd "b") 'partial-recall-banish)
     (define-key map (kbd "c") 'partial-recall-reclaim)
     (define-key map (kbd "f") 'partial-recall-forget)
     (define-key map (kbd "k") 'partial-recall-forget-some)
@@ -950,14 +958,15 @@ no-op."
 
     (partial-recall-debug "Won't claim `%s'" buffer)))
 
-(defun partial-recall--forget (&optional buffer)
+(defun partial-recall--forget (&optional buffer banish)
   "Forget BUFFER.
 
 This will remove the buffer's moment from its owning memory and
 clean-up remaining windows. The moment is probed afterwards.
 
-If SUPPRESS is t, the forgotten moment is moved into the
-subconscious.
+If BANISH is t, the buffer is marked with
+`partial-recall--banished', meaning it will no longer be
+scheduled automatically.
 
 BUFFER defaults to the current buffer no buffer is passed."
   (when-let* ((buffer (or buffer (current-buffer)))
@@ -972,6 +981,9 @@ BUFFER defaults to the current buffer no buffer is passed."
                                 (throw 'found memory)))))
 
     (partial-recall--clean-up-buffer buffer)
+
+    (when banish
+      (partial-recall--banish buffer))
 
     (let ((memory (catch 'found
                     (maphash maybe-remove partial-recall--table))))
@@ -1001,6 +1013,11 @@ forget each moment while indicating if it has been modified."
           (partial-recall--forget buffer))
 
         (setq moments (cdr moments))))))
+
+(defun partial-recall--banish (buffer)
+  "Banish BUFFER."
+  (with-current-buffer buffer
+    (setq partial-recall--banished t)))
 
 (defun partial-recall--reject (buffer memory)
   "Reject BUFFER and push it to MEMORY.
@@ -1297,6 +1314,10 @@ This means the buffer won't be scheduled for handling."
 
     (not (eq buffer before))))
 
+(defun partial-recall--not-banished-p (buffer)
+  "Make sure that BUFFER is not banished."
+  (not (buffer-local-value 'partial-recall--banished buffer)))
+
 (defun partial-recall--gracedp (moment &optional arg)
   "Check if MOMENT was graced.
 
@@ -1333,6 +1354,9 @@ its explainer (property
 (put 'partial-recall--not-in-view-mode-p
      'partial-recall-non-meaningful-explainer
      "Buffer is in `view-mode'")
+(put 'partial-recall--not-banished-p
+     'partial-recall-non-meaningful-explainer
+     "Buffer was banished.")
 
 ;;;; Thresholds
 
@@ -1841,6 +1865,16 @@ reclaimed afterwards."
   (interactive (list (partial-recall--complete-reality "Forget moment: ")))
 
   (partial-recall--forget buffer))
+
+;;;###autoload
+(defun partial-recall-banish (buffer)
+  "Banish BUFFER.
+
+Removes buffer from the current reality and marks it as no longer
+meaningful."
+  (interactive (list (partial-recall--complete-reality "Banish moment: ")))
+
+  (partial-recall--forget buffer t))
 
 ;;;###autoload
 (defun partial-recall-make-permanent (buffer &optional excise)
