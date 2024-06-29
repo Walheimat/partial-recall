@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.11.0](https://github.com/Walheimat/partial-recall/compare/v0.10.1...v0.11.0) (2024-06-29)
+
+### Features
+
+* **forgetting:** allow banishing buffers ([fdec137](https://github.com/Walheimat/partial-recall/commit/fdec1375cadb76c27dca10d968e9eb68a7ef7bc2))
+* **menu,core:** spin out buffers into a new memory ([3ab6903](https://github.com/Walheimat/partial-recall/commit/3ab6903b757dee868bace3ebe325a7dd4e1283f7))
+* **reactions:** support tab-bar-undo-close-tab ([813e9d9](https://github.com/Walheimat/partial-recall/commit/813e9d995b077e533e8e202780477c851233f5d2))
+* rework how the subconscious works ([af5361c](https://github.com/Walheimat/partial-recall/commit/af5361c31f490e1f8f964e76e7515e2adddc8222))
+
+### Bug Fixes
+
+* **schedule:** allow passing buffer name ([c408dab](https://github.com/Walheimat/partial-recall/commit/c408daba5ac99f9c3018b41c3e4b4ded3cc94bd8))
+* **traits:** consider view-mode being called after switching to buffer ([f8cecaa](https://github.com/Walheimat/partial-recall/commit/f8cecaaccfa2543ac348d7b0d4254860b3c55bab))
+
+### Changes
+
+* **explain-omission:** reference manual inclusion ([e4868be](https://github.com/Walheimat/partial-recall/commit/e4868be35b832d9d930523f6a29dc2c112af0c0d))
+* **lighter:** indicate if memory near capacity with contrast ([122a8cc](https://github.com/Walheimat/partial-recall/commit/122a8cc358b5abe9b08167253eeb899e549bbf8d))
+
 ## [0.10.1](https://github.com/Walheimat/partial-recall/compare/v0.10.0...v0.10.1) (2024-02-18)
 
 

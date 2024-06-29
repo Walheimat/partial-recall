@@ -2,7 +2,7 @@
 
 ;; Author: Krister Schuchardt <krister.schuchardt@gmail.com>
 ;; Homepage: https://github.com/Walheimat/partial-recall
-;; Version: 0.10.1
+;; Version: 0.11.0
 ;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: frames files convenience
 
