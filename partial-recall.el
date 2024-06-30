@@ -1174,7 +1174,9 @@ cleaned up."
     (when (> count 0)
       (partial-recall-log "Flushed %d moments from `%s'" count memory)
 
-      (partial-recall--probe-memory memory))))
+      (partial-recall--probe-memory memory))
+
+    count))
 
 (defun partial-recall--spin-out (buffers)
   "Spin out BUFFERS into new memory."
