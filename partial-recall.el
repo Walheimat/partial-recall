@@ -1159,8 +1159,6 @@ cleaned up."
   (let* ((ring (partial-recall-memory--moments memory))
          (count 0))
 
-    (partial-recall-log "Flushing `%s'" memory)
-
     (dolist (moment (ring-elements ring))
       (unless (seq-some (lambda (it) (funcall it moment arg)) partial-recall-memorable-traits)
 
@@ -1173,9 +1171,10 @@ cleaned up."
 
         (partial-recall--clean-up-buffer (partial-recall-moment--buffer moment))))
 
-    (partial-recall-log "Flushed %d moments from `%s'" count memory)
+    (when (> count 0)
+      (partial-recall-log "Flushed %d moments from `%s'" count memory)
 
-    (partial-recall--probe-memory memory)))
+      (partial-recall--probe-memory memory))))
 
 (defun partial-recall--spin-out (buffers)
   "Spin out BUFFERS into new memory."
