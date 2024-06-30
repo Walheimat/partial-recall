@@ -171,7 +171,9 @@ current memory. The default function checks whether a moment is
 relatively young. If you have
 =partial-recall-plasticity-of-moment-mode= on, moments that have
 permanence or are half-way towards automatically gaining it are also
-spared.
+spared. If you have =partial-recall-hygiene-mode= on flushing happens
+automatically after a delay configured by
+=partial-recall-hygiene-idle-delay=.
 
 ** Configuration
 
@@ -179,8 +181,8 @@ spared.
 on. =partial-recall-mode= will make sure all newly created frames are
 taken into account.
 
-You likely want to enable all optional modes (concentration and
-plasticity).
+You likely want to enable all optional modes (concentration,
+plasticity and hygiene).
 
 #+begin_src emacs-lisp
 (use-package partial-recall
@@ -208,11 +210,14 @@ plasticity).
 
   (partial-recall-plasticity-implant-threshold 20) ;; Amount of focus needed before auto-implanting.
 
+  (partial-recall-hygiene-idle-delay 5) ;; Idle time (in seconds) when hygiene routine should run.
+
   :config
   (partial-recall-mode)
   (partial-recall-concentration-mode)
   (partial-recall-plasticity-of-memory-mode)
   (partial-recall-plasticity-of-moment-mode)
+  (partial-recall-hygiene-mode)
 
   ;; If you use `consult', you can add the provided buffer source.
   (with-eval-after-load 'consult

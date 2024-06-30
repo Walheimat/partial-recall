@@ -15,4 +15,5 @@
  "partial-recall-concentration.el"
  "partial-recall-plasticity.el"
  "partial-recall-menu.el"
- "partial-recall-x.el")
+ "partial-recall-x.el"
+ "partial-recall-hygiene.el")

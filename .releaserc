@@ -78,6 +78,7 @@
                     "partial-recall-plasticity.el",
                     "partial-recall-x.el",
                     "partial-recall-menu.el",
+                    "partial-recall-hygiene.el",
                     "Cask",
                     "Makefile"
                 ]
