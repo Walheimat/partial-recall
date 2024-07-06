@@ -497,10 +497,16 @@ If MEMORY is not in another form, this is a no-op."
   "Get the name of MEMORY."
   (partial-recall--find-any-tab-from-memory memory))
 
+(defun partial-recall-memory--unique (memory)
+  "Get the unique name of MEMORY.
+
+This is just indirection to access the key slot."
+  (partial-recall-memory--key memory))
+
 (defun partial-recall-memory--removed-buffers (&optional memory)
   "Get a list of buffers removed from MEMORY."
   (let* ((memory (or memory (partial-recall--reality)))
-         (buffers (partial-recall--suppressed (partial-recall-memory--key memory))))
+         (buffers (partial-recall--suppressed (partial-recall-memory--unique memory))))
 
     buffers))
 
@@ -668,7 +674,7 @@ Searches all memories unless MEMORY is provided."
   "Get the tab for MEMORY.
 
 Optionally search in FRAME."
-  (when-let ((key (partial-recall-memory--key memory))
+  (when-let ((key (partial-recall-memory--unique memory))
              (tabs (if frame
                        (with-selected-frame frame
                          (funcall tab-bar-tabs-function frame))
@@ -1075,7 +1081,7 @@ If EXCISE is t, remove permanence instead."
   "Mark the buffer of MOMENT as suppressed by MEMORY."
   (with-current-buffer (partial-recall-moment--buffer moment)
     (setq-local partial-recall--remnant
-                (partial-recall-memory--key memory))))
+                (partial-recall-memory--unique memory))))
 
 (defun partial-recall--suppressed (&optional key)
   "Get the suppressed buffers.

@@ -211,6 +211,8 @@ plasticity and hygiene).
   (partial-recall-plasticity-implant-threshold 20) ;; Amount of focus needed before auto-implanting.
 
   (partial-recall-hygiene-idle-delay 5) ;; Idle time (in seconds) when hygiene routine should run.
+  (partial-recall-hygiene-flush t) ;; Whether to flush memories regularly.
+  (partial-recall-hygiene-warn-on-full t) ;; Whether to warn about full memories (once).
 
   :config
   (partial-recall-mode)
