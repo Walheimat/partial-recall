@@ -100,7 +100,7 @@ the heuristics on which moments get flushed."
       (when (and partial-recall-hygiene-warn-on-full
                  (partial-recall-memory--near-capacity-p memory)
 
-                 (not (memq (partial-recall-memory--name memory) partial-recall-hygiene--warned)))
+                 (not (member (partial-recall-memory--unique memory) partial-recall-hygiene--warned)))
 
         (setq full (append full (list (partial-recall-memory--unique memory))))))
 
@@ -124,7 +124,7 @@ the heuristics on which moments get flushed."
   (if partial-recall-hygiene-mode
 
       (setq partial-recall-hygiene--timer
-            (run-with-idle-timer 2 partial-recall-hygiene-idle-delay #'partial-recall-hygiene--on-idle))
+            (run-with-idle-timer partial-recall-hygiene-idle-delay t #'partial-recall-hygiene--on-idle))
 
     (cancel-timer partial-recall-hygiene--timer)
     (setq partial-recall-hygiene--timer nil)))
