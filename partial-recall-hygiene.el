@@ -60,6 +60,10 @@ Runs `partial-recall-hygiene--on-idle'.")
 
 ;;;; Functionality
 
+(defun partial-recall-hygiene--minibuffer-active-p ()
+  "Check if the minibuffer is active."
+  (seq-find #'window-minibuffer-p (window-list-1)))
+
 (defun partial-recall-hygiene--nag (msg)
   "Nag user about MSG."
   (let ((buffer (get-buffer-create partial-recall-hygiene--nag-buffer-name))
@@ -76,7 +80,8 @@ Runs `partial-recall-hygiene--on-idle'.")
                    (cons partial-recall-hygiene-nag-buffer-action
                          partial-recall-hygiene-nag-buffer-action-params))))
 
-      (select-window window))))
+      (unless (partial-recall-hygiene--minibuffer-active-p)
+        (select-window window)))))
 
 (defun partial-recall-hygiene--on-idle ()
   "Run a hygiene routine.
@@ -107,9 +112,9 @@ the heuristics on which moments get flushed."
     (when (> sum 0)
       (partial-recall-log "Flushed %d moments in total" sum))
 
-    (setq partial-recall-hygiene--warned full)
-
     (when full
+      (setq partial-recall-hygiene--warned full)
+
       (partial-recall-hygiene--nag
        (format "Following memories are full: %s"
                (mapconcat #'identity full ", "))))))
