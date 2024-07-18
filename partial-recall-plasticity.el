@@ -104,7 +104,7 @@ re-insert any implanted one."
       (while (and oldest
                   (not (memq oldest checked))
                   (partial-recall-moment--permanence oldest))
-        (partial-recall--reinsert oldest memory)
+        (partial-recall--reinsert oldest memory "permanent moment")
         (push oldest checked)
         (setq oldest (partial-recall--ring-oldest ring))))))
 

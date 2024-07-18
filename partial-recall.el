@@ -916,20 +916,23 @@ a no-op."
   (and-let* ((reality (partial-recall--reality))
              (moment (partial-recall--find-owning-moment buffer reality)))
 
-    (partial-recall--reinsert moment reality)))
+    (partial-recall--reinsert moment reality "reinforcement")))
 
-(defun partial-recall--reinsert (moment memory)
+(defun partial-recall--reinsert (moment memory &optional reason)
   "Reinsert MOMENT into MEMORY.
 
 This removes, inserts and extends the memory. The moment is
 intensified.
 
-If the moment doesn't belong to memory, this is a no-op."
+If the moment doesn't belong to memory, this is a no-op.
+
+Optionally, give a REASON why moment was re-inserted."
   (and-let* ((ring (partial-recall-memory--moments memory))
              ((ring-member ring moment))
-             (buffer (partial-recall-moment--buffer moment)))
+             (buffer (partial-recall-moment--buffer moment))
+             (reason (or reason "unknown reason")))
 
-    (partial-recall-debug "Re-inserting `%s' in `%s'" moment memory)
+    (partial-recall-debug "Re-inserting `%s' in `%s' (%s)" moment memory reason)
 
     (partial-recall-moment--intensify moment 'reinsert)
 
