@@ -99,7 +99,7 @@ the heuristics on which moments get flushed."
       ;; Flush moments.
       (when partial-recall-hygiene-flush
         (setq sum (+ sum
-                     (partial-recall--flush memory))))
+                     (partial-recall--flush memory nil t))))
 
       ;; Keep track of full memories.
       (when (and partial-recall-hygiene-warn-on-full
