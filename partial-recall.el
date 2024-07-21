@@ -1157,18 +1157,23 @@ This routine signals an error if A and B are the same memory."
     (when close
       (tab-bar-close-tab-by-name (partial-recall--find-tab-name-from-memory a)))))
 
-(defun partial-recall--flush (memory &optional arg)
+(defun partial-recall--flush (memory &optional arg ignore-visible)
   "Flush MEMORY.
 
 This will call all functions of `partial-recall-memorable-traits'
 to check if a moment should be kept, passing moment and ARG.
 
+If IGNORE-VISIBLE is t, currently displayed moments will not be flushed.
+
 Buffers that aren't kept are suppressed and have their windows
 cleaned up."
   (let* ((ring (partial-recall-memory--moments memory))
-         (count 0))
+         (count 0)
+         (moments (ring-elements ring))
+         (filter (lambda (moment) (not (partial-recall--buffer-visible-p (partial-recall-moment--buffer moment)))))
+         (moments (if ignore-visible (seq-filter filter moments) moments)))
 
-    (dolist (moment (ring-elements ring))
+    (dolist (moment moments)
       (unless (seq-some (lambda (it) (funcall it moment arg)) partial-recall-memorable-traits)
 
         (setq count (1+ count))

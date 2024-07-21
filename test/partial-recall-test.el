@@ -770,6 +770,12 @@
 
           (bydi-was-called partial-recall--clean-up-buffer))
 
+        (bydi (partial-recall--clean-up-buffer
+               (:always partial-recall--buffer-visible-p))
+          (partial-recall--flush (partial-recall--reality) nil t)
+
+          (bydi-was-not-called partial-recall--clean-up-buffer))
+
         (should (eq 1 (ring-length ring)))
         (should (eq another (partial-recall-moment--buffer (ring-ref ring 0))))
 
