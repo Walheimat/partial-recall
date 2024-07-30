@@ -40,6 +40,14 @@ This is only done once."
   :type 'alist
   :group 'partial-recall)
 
+(defcustom partial-recall-hygiene-messaging-method 'partial-recall-hygiene--nag
+  "The method through which messaging is done.
+
+The function will be called with a single argument: the message to be
+displayed."
+  :type 'function
+  :group 'partial-recall)
+
 (defcustom partial-recall-hygiene-nag-buffer-action 'display-buffer-at-bottom
   "Action used to display nag buffers."
   :type 'symbol
@@ -115,9 +123,9 @@ the heuristics on which moments get flushed."
     (when full
       (setq partial-recall-hygiene--warned full)
 
-      (partial-recall-hygiene--nag
-       (format "Following memories are full: %s"
-               (mapconcat #'identity full ", "))))))
+      (funcall partial-recall-hygiene-messaging-method
+               (format "Following memories are full: %s"
+                       (mapconcat #'identity full ", "))))))
 
 ;;;; API
 
