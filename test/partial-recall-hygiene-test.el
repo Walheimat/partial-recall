@@ -8,6 +8,18 @@
 
 (require 'partial-recall-hygiene nil t)
 
+(ert-deftest pr-hygiene--message ()
+  :tags '(hygiene)
+
+  (bydi ((:watch partial-recall-log)
+         partial-recall-log)
+
+    (partial-recall-hygiene--message "Testing")
+
+    (bydi-was-set partial-recall-log)
+
+    (bydi-was-called-with partial-recall-log "Testing")))
+
 (ert-deftest pr-hygiene--on-idle--flushes ()
   :tags '(hygiene)
 
@@ -28,7 +40,7 @@
   (let ((partial-recall-hygiene-flush nil))
 
     (bydi (partial-recall-log
-           message
+           partial-recall-hygiene--message
            (:mock partial-recall-memories :return '(a b c))
            (:always partial-recall-memory--near-capacity-p)
            (:mock partial-recall-memory--name :with symbol-name)
@@ -36,11 +48,11 @@
 
       (partial-recall-hygiene--on-idle)
 
-      (bydi-was-called message t)
+      (bydi-was-called partial-recall-hygiene--message t)
 
       (partial-recall-hygiene--on-idle)
 
-      (bydi-was-not-called message))))
+      (bydi-was-not-called partial-recall-hygiene--message))))
 
 (ert-deftest pr-hygiene-mode ()
   :tags '(hygiene)

@@ -40,7 +40,7 @@ This is only done once."
   :type 'alist
   :group 'partial-recall)
 
-(defcustom partial-recall-hygiene-messaging-method 'message
+(defcustom partial-recall-hygiene-messaging-method 'partial-recall-hygiene--message
   "The method through which messaging is done.
 
 The function will be called with a single argument: the message to be
@@ -62,6 +62,12 @@ Runs `partial-recall-hygiene--on-idle'.")
   "Name of the buffer displaying nags.")
 
 ;;;; Functionality
+
+(defun partial-recall-hygiene--message (message)
+  "Display MESSAGE using function `partial-recall-log'."
+  (let ((partial-recall-log t))
+
+    (partial-recall-log message)))
 
 (defun partial-recall-hygiene--on-idle ()
   "Run a hygiene routine.
