@@ -40,17 +40,12 @@ This is only done once."
   :type 'alist
   :group 'partial-recall)
 
-(defcustom partial-recall-hygiene-messaging-method 'partial-recall-hygiene--nag
+(defcustom partial-recall-hygiene-messaging-method 'message
   "The method through which messaging is done.
 
 The function will be called with a single argument: the message to be
 displayed."
   :type 'function
-  :group 'partial-recall)
-
-(defcustom partial-recall-hygiene-nag-buffer-action 'display-buffer-at-bottom
-  "Action used to display nag buffers."
-  :type 'symbol
   :group 'partial-recall)
 
 ;;;; Private variables
@@ -67,29 +62,6 @@ Runs `partial-recall-hygiene--on-idle'.")
   "Name of the buffer displaying nags.")
 
 ;;;; Functionality
-
-(defun partial-recall-hygiene--minibuffer-active-p ()
-  "Check if the minibuffer is active."
-  (seq-find #'window-minibuffer-p (window-list-1)))
-
-(defun partial-recall-hygiene--nag (msg)
-  "Nag user about MSG."
-  (let ((buffer (get-buffer-create partial-recall-hygiene--nag-buffer-name))
-        (inhibit-read-only t))
-
-    (with-current-buffer buffer
-      (delete-region (point-min) (point-max))
-      (insert msg)
-
-      (read-only-mode))
-
-    (let ((window (display-buffer
-                   buffer
-                   (cons partial-recall-hygiene-nag-buffer-action
-                         partial-recall-hygiene-nag-buffer-action-params))))
-
-      (unless (partial-recall-hygiene--minibuffer-active-p)
-        (select-window window)))))
 
 (defun partial-recall-hygiene--on-idle ()
   "Run a hygiene routine.

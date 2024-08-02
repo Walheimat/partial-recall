@@ -8,22 +8,6 @@
 
 (require 'partial-recall-hygiene nil t)
 
-(ert-deftest pr-hygiene--nag ()
-  :tags '(hygiene)
-
-  (let ((partial-recall-hygiene-nag-buffer-action 'test)
-        (partial-recall-hygiene-nag-buffer-action-params '((mock . turtle))))
-
-    (bydi (display-buffer
-           select-window)
-
-      (partial-recall-hygiene--nag "Testing")
-
-      (should (get-buffer partial-recall-hygiene--nag-buffer-name))
-
-      (bydi-was-called-with display-buffer '(... (test . ((mock . turtle)))))
-      (bydi-was-called select-window))))
-
 (ert-deftest pr-hygiene--on-idle--flushes ()
   :tags '(hygiene)
 
@@ -44,7 +28,7 @@
   (let ((partial-recall-hygiene-flush nil))
 
     (bydi (partial-recall-log
-           partial-recall-hygiene--nag
+           message
            (:mock partial-recall-memories :return '(a b c))
            (:always partial-recall-memory--near-capacity-p)
            (:mock partial-recall-memory--name :with symbol-name)
@@ -52,11 +36,11 @@
 
       (partial-recall-hygiene--on-idle)
 
-      (bydi-was-called partial-recall-hygiene--nag t)
+      (bydi-was-called message t)
 
       (partial-recall-hygiene--on-idle)
 
-      (bydi-was-not-called partial-recall-hygiene--nag))))
+      (bydi-was-not-called message))))
 
 (ert-deftest pr-hygiene-mode ()
   :tags '(hygiene)
