@@ -614,10 +614,7 @@ This also checks for buffers that might have been obscured."
          (visible (and buffer
                        (buffer-live-p buffer)
                        (or (eq buffer partial-recall--before-minibuffer)
-                           (memq buffer (mapcar #'window-buffer windows)))))
-         (verb (if visible "remains" "is no longer")))
-
-    (partial-recall-debug "Buffer `%s' %s visible" buffer verb)
+                           (memq buffer (mapcar #'window-buffer windows))))))
 
     visible))
 
@@ -753,15 +750,18 @@ If in between scheduling and handling the buffer it can no longer
 be found, it will be ignored."
   (partial-recall--void-schedule-timer)
 
-  (when (partial-recall--buffer-visible-p buffer)
+  (if (partial-recall--buffer-visible-p buffer)
 
-    (partial-recall-log "Handling buffer `%s'" buffer)
+      (progn
+        (partial-recall-log "Handling buffer `%s' as it remains visible" buffer)
 
-    (if (partial-recall--buffer-mapped-p buffer)
-        (partial-recall--recollect buffer)
-      (partial-recall--remember buffer))
+        (if (partial-recall--buffer-mapped-p buffer)
+            (partial-recall--recollect buffer)
+          (partial-recall--remember buffer))
 
-    (setq partial-recall--last-handled buffer)))
+        (setq partial-recall--last-handled buffer))
+
+    (partial-recall-log "Not handling `%s' as it is no longer visible" buffer)))
 
 ;;;;; Reactions
 
