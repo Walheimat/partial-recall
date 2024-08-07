@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.12.0](https://github.com/Walheimat/partial-recall/compare/v0.11.0...v0.12.0) (2024-08-07)
+
+### Features
+
+* **hygiene:** add new behavior ([4238dfe](https://github.com/Walheimat/partial-recall/commit/4238dfe78ddc96377f4c32b030a0fe563355454a))
+* **hygiene:** nag about full memories ([05b174b](https://github.com/Walheimat/partial-recall/commit/05b174b0e60cc5e8173226ecc0c2724b5cb057bd))
+
+### Bug Fixes
+
+* **flush:** don't probe memory unless moments were suppressed ([b9aecee](https://github.com/Walheimat/partial-recall/commit/b9aeceedc0e91e4cfca8c2f1828994658ca95f82))
+
+### Changes
+
+* **flush:** parameter to not flush visible moments ([8ace07c](https://github.com/Walheimat/partial-recall/commit/8ace07c795a965e9d0cc80329ec61e22ad916bf8))
+* **flush:** return count of flushed moments ([95a3e1b](https://github.com/Walheimat/partial-recall/commit/95a3e1bffa72e001d0096397682a65068da6c410))
+* **hygiene:** allow customizing function used to message ([555b3bb](https://github.com/Walheimat/partial-recall/commit/555b3bb8536ad38800cdb8ea1934212d2173f9ec))
+* **hygiene:** call flush with ignore-visible ([5ad6240](https://github.com/Walheimat/partial-recall/commit/5ad6240e1c691ff5ed79569a2edb2b287cc66f03))
+* **hygiene:** don't select window while minibuffer is active ([614e9ed](https://github.com/Walheimat/partial-recall/commit/614e9ed39d4363c0c0362a94052e16b11b5cd569))
+* **hygiene:** remove nagging function in favor of message ([fbd85a9](https://github.com/Walheimat/partial-recall/commit/fbd85a9442181a46b538264492d9d3e5d10fdd0c))
+* **hygiene:** use partial-recall-log for nagging ([c69b798](https://github.com/Walheimat/partial-recall/commit/c69b798e07a97166aa86910a24a8f470df4e529d))
+* **logging:** only log visibility while handling ([fd0a464](https://github.com/Walheimat/partial-recall/commit/fd0a464f4fbdda7a9f8dceacd60d15e48d32dfd6))
+* **logging:** state reason for reinserting moments ([8765220](https://github.com/Walheimat/partial-recall/commit/876522090b8ed3df7c0af1487f435de45c2a2f5e))
+
 ## [0.11.0](https://github.com/Walheimat/partial-recall/compare/v0.10.1...v0.11.0) (2024-06-29)
 
 ### Features
