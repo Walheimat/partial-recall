@@ -217,23 +217,25 @@ part of `partial-recall-meaningful-traits'.")
 (defvar partial-recall-command-map
   (let ((map (make-sparse-keymap)))
 
-    (define-key map (kbd "b") 'partial-recall-switch-to-buffer)
     (define-key map (kbd "4") 'partial-recall-switch-to-buffer-other-window)
     (define-key map (kbd "b") 'partial-recall-banish)
+    (define-key map (kbd "b") 'partial-recall-switch-to-buffer)
     (define-key map (kbd "c") 'partial-recall-reclaim)
     (define-key map (kbd "f") 'partial-recall-forget)
-    (define-key map (kbd "k") 'partial-recall-forget-some)
+    (define-key map (kbd "g") 'partial-recall-pop-to-logs)
     (define-key map (kbd "i") 'partial-recall-make-permanent)
     (define-key map (kbd "j") 'partial-recall-reject)
+    (define-key map (kbd "k") 'partial-recall-forget-some)
+    (define-key map (kbd "l") 'partial-recall-lift)
     (define-key map (kbd "m") 'partial-recall-menu)
     (define-key map (kbd "n") 'partial-recall-next)
-    (define-key map (kbd "p") 'partial-recall-previous)
-    (define-key map (kbd "u") 'partial-recall-meld)
-    (define-key map (kbd "r") 'partial-recall-remember)
-    (define-key map (kbd "l") 'partial-recall-lift)
-    (define-key map (kbd "x") 'partial-recall-flush)
     (define-key map (kbd "o") 'partial-recall-explain-omission)
+    (define-key map (kbd "p") 'partial-recall-previous)
+    (define-key map (kbd "r") 'partial-recall-remember)
     (define-key map (kbd "t") 'partial-recall-retrieve)
+    (define-key map (kbd "u") 'partial-recall-meld)
+    (define-key map (kbd "x") 'partial-recall-flush)
+
     map)
   "Map for `partial-recall-mode' commands.")
 
@@ -1432,6 +1434,26 @@ Selects a symbol based on VAL's relation to MAX."
 
 ;;;; Messaging
 
+(defvar partial-recall-log--buffer-name "*partial-recall*"
+  "The buffer that holds all written logs.")
+
+(defun partial-recall-log--write-to-buffer (fmt &rest args)
+  "Format FMT with ARGS."
+  (let ((buffer (get-buffer partial-recall-log--buffer-name))
+        (inhibit-read-only t)
+        (time-stamp (format-time-string "[%H:%M:%S] ")))
+
+    (unless buffer
+      (setq buffer (get-buffer-create partial-recall-log--buffer-name))
+      (with-current-buffer buffer
+        (view-mode)))
+
+    (with-current-buffer buffer
+      (goto-char (point-max))
+      (insert time-stamp)
+      (insert (apply #'format fmt args))
+      (insert "\n"))))
+
 (defun partial-recall-warn (message &rest args)
   "Warn about MESSAGE.
 
@@ -1447,10 +1469,11 @@ Message will be formatted with ARGS."
 (defun partial-recall-log (fmt &rest args)
   "Use ARGS to format FMT if not silenced."
   (when partial-recall-log
-    (let* ((fmt (partial-recall-log--prefix-fmt-string fmt))
+    (let* ((prefixed (partial-recall-log--prefix-fmt-string fmt))
            (args (mapcar #'partial-recall-repr args)))
 
-      (apply 'message fmt args))))
+      (apply 'partial-recall-log--write-to-buffer fmt args)
+      (apply 'message prefixed args))))
 
 (defun partial-recall-log--prefix-fmt-string (format-string)
   "Prefix FORMAT-STRING."
@@ -1975,6 +1998,18 @@ Passes ARG to the underlying function which will be passed to the
   (if-let ((explanation (partial-recall--explain-omission)))
       (message explanation)
     (message "Buffer is meaningful or infringed trait has no explanation")))
+
+;;;###autoload
+(defun partial-recall-pop-to-logs ()
+  "Switch to the log buffer."
+  (interactive)
+
+  (let ((buffer (get-buffer partial-recall-log--buffer-name)))
+
+    (unless buffer
+      (user-error "You need to set `partial-recall-log' first"))
+
+    (pop-to-buffer (get-buffer partial-recall-log--buffer-name))))
 
 (provide 'partial-recall)
 

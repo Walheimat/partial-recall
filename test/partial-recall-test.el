@@ -921,23 +921,25 @@
     (setq partial-recall-log 1)
 
     (shut-up
-      (ert-with-message-capture messages
-        (partial-recall-log "test: %s %s" "one" "two")
+      (bydi (partial-recall-log--write-to-buffer)
+        (ert-with-message-capture messages
+          (partial-recall-log "test: %s %s" "one" "two")
 
-        (partial-recall-debug "test: %s" "three")
+          (partial-recall-debug "test: %s" "three")
 
-        (setq partial-recall-log 0)
+          (setq partial-recall-log 0)
 
-        (partial-recall-debug "test: %s" "four")
+          (partial-recall-debug "test: %s" "four")
 
-        (should (string= messages "test: one two\ntest: four\n"))))))
+          (should (string= messages "test: one two\ntest: four\n")))))))
 
 (ert-deftest pr--log--uses-repr ()
   :tags '(needs-history)
 
   (with-tab-history nil
     (bydi-with-mock ((:mock format-time-string :return "now")
-                     (:mock partial-recall-memory--name :return "test"))
+                     (:mock partial-recall-memory--name :return "test")
+                     partial-recall-log--write-to-buffer)
 
       (let* ((buffer (get-buffer-create "test-repr"))
              (moment (partial-recall-moment--create buffer))
@@ -950,6 +952,24 @@
             (should (string= "Test :: The moment #<moment test-repr (now)> was found\n" messages))))
 
         (kill-buffer buffer)))))
+
+(ert-deftest pr--log--writes-to-buffer ()
+  (bydi ((:mock format-time-string :return "[time] "))
+    (let ((partial-recall-log nil))
+
+      (partial-recall-log "This is a %s" "test")
+
+      (should-not (get-buffer partial-recall-log--buffer-name))
+
+      (setq partial-recall-log 0)
+
+      (shut-up
+        (partial-recall-log "This is the %s message" "first")
+        (partial-recall-debug "This %s the %s message" "will be" "second"))
+
+      (with-current-buffer (get-buffer partial-recall-log--buffer-name)
+        (should (string= (buffer-string)
+                         "[time] This is the first message\n[time] This will be the second message\n"))))))
 
 (ert-deftest pr--repr ()
   (bydi-with-mock ((:mock format-time-string :return "now")
@@ -1360,6 +1380,19 @@
       (bydi-was-called-n-times partial-recall--complete-memory 3))
 
     (kill-buffer buffer)))
+
+(ert-deftest pr-pop-to-logs ()
+  (let ((partial-recall-log 0))
+    (bydi (pop-to-buffer)
+      (shut-up
+        (partial-recall-log "Make sure it exists"))
+
+      (partial-recall-pop-to-logs)
+      (bydi-was-called pop-to-buffer)
+
+      (kill-buffer partial-recall-log--buffer-name)
+
+      (should-error (partial-recall-pop-to-logs)))))
 
 (ert-deftest pr-explain-omission ()
   :tags '(user-facing)

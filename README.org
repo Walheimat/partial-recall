@@ -251,6 +251,7 @@ probably want to bind the following commands:
 - =partial-recall-explain-omission=
 - =partial-recall-reject=
 - =partial-recall-retrieve=
+- =partial-recall-pop-to-logs=
 
 ** Using the menu
 
