@@ -1467,9 +1467,12 @@ Message will be formatted with ARGS."
     (apply 'partial-recall-log fmt args)))
 
 (defun partial-recall-log (fmt &rest args)
-  "Use ARGS to format FMT if not silenced."
+  "Use ARGS to format FMT if not silenced.
+
+The messages are not logged in the message buffer."
   (when partial-recall-log
-    (let* ((prefixed (partial-recall-log--prefix-fmt-string fmt))
+    (let* ((message-log-max nil)
+           (prefixed (partial-recall-log--prefix-fmt-string fmt))
            (args (mapcar #'partial-recall-repr args)))
 
       (apply 'partial-recall-log--write-to-buffer fmt args)

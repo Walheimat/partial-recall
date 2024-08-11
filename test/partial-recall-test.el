@@ -921,9 +921,12 @@
     (setq partial-recall-log 1)
 
     (shut-up
-      (bydi (partial-recall-log--write-to-buffer)
+      (bydi (partial-recall-log--write-to-buffer
+             (:watch message-log-max))
         (ert-with-message-capture messages
           (partial-recall-log "test: %s %s" "one" "two")
+
+          (bydi-was-set message-log-max)
 
           (partial-recall-debug "test: %s" "three")
 
