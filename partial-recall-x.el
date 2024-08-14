@@ -17,11 +17,16 @@
 
 (require 'partial-recall)
 
+(defcustom partial-recall-x-consult-narrow-key ?u
+  "Key used to narrow to `partial-recall' buffers."
+  :group 'partial-recall
+  :type 'character)
+
 ;;;###autoload
 (defvar partial-recall-x-consult-buffer-source
   (list :name "Partial Recall"
         :hidden t
-        :narrow ?u
+        :narrow partial-recall-x-consult-narrow-key
         :category 'buffer
         :state #'consult--buffer-state
         :history 'buffer-name-history
