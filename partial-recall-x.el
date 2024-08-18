@@ -22,7 +22,6 @@
   :group 'partial-recall
   :type 'character)
 
-;;;###autoload
 (defvar partial-recall-x-consult-buffer-source
   (list :name "Partial Recall"
         :hidden t

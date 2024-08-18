@@ -213,6 +213,7 @@ plasticity and hygiene).
   (partial-recall-hygiene-idle-delay 5) ;; Idle time (in seconds) when hygiene routine should run.
   (partial-recall-hygiene-flush t) ;; Whether to flush memories regularly.
   (partial-recall-hygiene-warn-on-full t) ;; Whether to warn about full memories (once).
+  (partial-recall-x-consult-narrow-key ?u) ;; The key used to narrow using `consult-buffer'.
 
   :config
   (partial-recall-mode)
@@ -223,6 +224,8 @@ plasticity and hygiene).
 
   ;; If you use `consult', you can add the provided buffer source.
   (with-eval-after-load 'consult
+    (require 'partial-recall-x)
+
     (add-to-list
      'consult-buffer-sources
      'partial-recall-x-consult-buffer-source))
