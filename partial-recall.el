@@ -231,6 +231,7 @@ part of `partial-recall-meaningful-traits'.")
     (define-key map (kbd "o") 'partial-recall-explain-omission)
     (define-key map (kbd "p") 'partial-recall-previous)
     (define-key map (kbd "r") 'partial-recall-remember)
+    (define-key map (kbd "s") 'partial-recall-remember-some)
     (define-key map (kbd "t") 'partial-recall-retrieve)
     (define-key map (kbd "u") 'partial-recall-meld)
     (define-key map (kbd "x") 'partial-recall-flush)
@@ -876,7 +877,7 @@ Don't do anything if NORECORD is t."
 
 
     (dolist (buffer truncated)
-      (partial-recall--clear-remnant buffer)
+      (partial-recall--clear-remnants buffer)
       (ring-insert moments (partial-recall-moment--create buffer)))))
 
 (defun partial-recall--before-view-buffer (buffer &rest _)
@@ -902,11 +903,29 @@ no-op."
 
     (partial-recall--probe-memory memory)
 
-    (partial-recall--clear-remnant buffer)
+    (partial-recall--clear-remnants buffer)
 
     (let ((moment (partial-recall-moment--create buffer)))
 
       (partial-recall--ring-insert ring moment))))
+
+(defvar-local partial-recall--disturbed nil
+  "If non-nil don't include during `partial-recall--remember-some'.")
+
+(defun partial-recall--remember-some (&optional include-all)
+  "Remember some buffers that were lost.
+
+This will prompt the user for each lost buffer exactly once unless
+optional INCLUDE-ALL is t."
+  (let ((buffers (partial-recall-memory--removed-buffers)))
+
+    (dolist (buffer buffers)
+      (if (and (or include-all
+                   (not (buffer-local-value 'partial-recall--disturbed buffer)))
+               (yes-or-no-p (format "Remember lost buffer `%s'?" buffer)))
+          (partial-recall--remember buffer)
+        (with-current-buffer buffer
+          (setq partial-recall--disturbed t))))))
 
 (defun partial-recall--reinforce (buffer)
   "Reinforce BUFFER in reality.
@@ -1077,10 +1096,11 @@ If EXCISE is t, remove permanence instead."
 (defvar-local partial-recall--remnant nil
   "This holds the key to the memory this buffer belonged to.")
 
-(defun partial-recall--clear-remnant (&optional buffer)
-  "Clear remnant from BUFFER."
+(defun partial-recall--clear-remnants (&optional buffer)
+  "Clear remnants from BUFFER."
   (with-current-buffer buffer
-    (setq-local partial-recall--remnant nil)))
+    (setq-local partial-recall--remnant nil)
+    (setq-local parital-recall--disturbed nil)))
 
 (defun partial-recall--suppress (moment memory)
   "Mark the buffer of MOMENT as suppressed by MEMORY."
@@ -1992,6 +2012,13 @@ Passes ARG to the underlying function which will be passed to the
   (interactive)
 
   (partial-recall--forget-some))
+
+;;;###autoload
+(defun partial-recall-remember-some ()
+  "Prompt the user to remember some moments."
+  (interactive)
+
+  (partial-recall--remember-some))
 
 ;;;###autoload
 (defun partial-recall-explain-omission ()

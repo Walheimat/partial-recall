@@ -551,6 +551,31 @@
 
       (bydi-was-called-with partial-recall--forget (list (current-buffer))))))
 
+(ert-deftest pr--remember-some ()
+  :tags '(needs-history)
+
+  (with-tab-history (:pre t)
+
+    (bydi ((:sometimes yes-or-no-p)
+           (:spy partial-recall--remember)
+           (:watch partial-recall--disturbed))
+
+      (rename-buffer "some-remember")
+
+      (partial-recall--forget)
+
+      (partial-recall--remember-some)
+
+      (bydi-was-called-with yes-or-no-p "Remember lost buffer `some-remember'?")
+      (bydi-was-called-with partial-recall--remember (current-buffer) t)
+
+      (partial-recall--forget)
+      (bydi-toggle-volatile 'yes-or-no-p)
+      (partial-recall--remember-some)
+
+      (bydi-was-not-called partial-recall--remember)
+      (bydi-was-set partial-recall--disturbed))))
+
 (ert-deftest pr-forget--shortens-extended-memory ()
   :tags '(plasticity needs-history)
 
@@ -1336,6 +1361,7 @@
            partial-recall--set-permanence
 
            partial-recall--remember
+           partial-recall--remember-some
            partial-recall--switch-to-buffer-and-neglect
            partial-recall--meld
            partial-recall--flush
@@ -1362,6 +1388,7 @@
       (call-interactively 'partial-recall-reject)
       (call-interactively 'partial-recall-retrieve)
       (call-interactively 'partial-recall-banish)
+      (call-interactively 'partial-recall-remember-some)
 
       (bydi-was-called partial-recall--reclaim)
       (bydi-was-called partial-recall--forget)
@@ -1372,6 +1399,7 @@
       (bydi-was-called partial-recall--next-buffer)
       (bydi-was-called partial-recall--previous-buffer)
       (bydi-was-called partial-recall--forget-some)
+      (bydi-was-called partial-recall--remember-some)
       (bydi-was-called partial-recall--reject)
       (bydi-was-called partial-recall--complete-removed)
 
