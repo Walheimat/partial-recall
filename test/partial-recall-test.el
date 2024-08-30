@@ -567,7 +567,7 @@
       (partial-recall--remember-some)
 
       (bydi-was-called-with yes-or-no-p "Remember lost buffer `some-remember'?")
-      (bydi-was-called-with partial-recall--remember (current-buffer) t)
+      (bydi-was-called-with partial-recall--remember (current-buffer) :clear t)
 
       (partial-recall--forget)
       (bydi-toggle-volatile 'yes-or-no-p)

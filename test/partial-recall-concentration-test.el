@@ -101,7 +101,7 @@
       (bydi-was-set partial-recall-concentration--deferred)
       (bydi-was-set-to partial-recall--faint-focus 'last)
 
-      (bydi-was-called-with partial-recall-concentration--start '(nil 1) t)
+      (bydi-was-called-with partial-recall-concentration--start '(nil 1) :clear t)
 
       (partial-recall-concentration--defer)
 

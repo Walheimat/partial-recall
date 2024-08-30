@@ -48,7 +48,7 @@
 
       (partial-recall-hygiene--on-idle)
 
-      (bydi-was-called partial-recall-hygiene--message t)
+      (bydi-was-called partial-recall-hygiene--message :clear t)
 
       (partial-recall-hygiene--on-idle)
 
