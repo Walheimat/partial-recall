@@ -877,7 +877,8 @@ Don't do anything if NORECORD is t."
 
 
     (dolist (buffer truncated)
-      (partial-recall--clear-remnants buffer)
+      (partial-recall--clear-remnant buffer)
+      (partial-recall--clear-disturbed buffer)
       (ring-insert moments (partial-recall-moment--create buffer)))))
 
 (defun partial-recall--before-view-buffer (buffer &rest _)
@@ -903,7 +904,8 @@ no-op."
 
     (partial-recall--probe-memory memory)
 
-    (partial-recall--clear-remnants buffer)
+    (partial-recall--clear-remnant buffer)
+    (partial-recall--clear-disturbed buffer)
 
     (let ((moment (partial-recall-moment--create buffer)))
 
@@ -911,6 +913,11 @@ no-op."
 
 (defvar-local partial-recall--disturbed nil
   "If non-nil don't include during `partial-recall--remember-some'.")
+
+(defun partial-recall--clear-disturbed (&optional buffer)
+  "Clear disturbed marker from BUFFER."
+  (with-current-buffer buffer
+    (setq partial-recall--disturbed nil)))
 
 (defun partial-recall--remember-some (&optional include-all)
   "Remember some buffers that were lost.
@@ -1096,11 +1103,10 @@ If EXCISE is t, remove permanence instead."
 (defvar-local partial-recall--remnant nil
   "This holds the key to the memory this buffer belonged to.")
 
-(defun partial-recall--clear-remnants (&optional buffer)
-  "Clear remnants from BUFFER."
+(defun partial-recall--clear-remnant (&optional buffer)
+  "Clear remnant from BUFFER."
   (with-current-buffer buffer
-    (setq-local partial-recall--remnant nil)
-    (setq-local parital-recall--disturbed nil)))
+    (setq partial-recall--remnant nil)))
 
 (defun partial-recall--suppress (moment memory)
   "Mark the buffer of MOMENT as suppressed by MEMORY."
