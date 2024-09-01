@@ -1754,6 +1754,7 @@ is shown."
 
   (partial-recall--queue-tab-fix-up)
 
+  ;; Handle buffer changes.
   (advice-add
    partial-recall--switch-to-buffer-function :before
    #'partial-recall--before-switch-to-buffer)
@@ -1767,11 +1768,19 @@ is shown."
    'register-val-jump-to :before
    #'partial-recall--after-register-val-jump-to)
   (advice-add
+   'view-buffer :before
+   #'partial-recall--before-view-buffer)
+  (add-hook 'kill-buffer-hook #'partial-recall--forget)
+
+  ;; Handle window configuration changes.
+  (advice-add
    'winner-undo :after
    #'partial-recall--after-winner)
   (advice-add
    'winner-redo :after
    #'partial-recall--after-winner)
+
+  ;; Handle tab changes.
   (advice-add
    'tab-bar-switch-to-tab :after
    #'partial-recall--after-tab-bar-switch)
@@ -1781,16 +1790,13 @@ is shown."
   (advice-add
    'tab-bar-undo-close-tab :after
    #'partial-recall--after-undo-close-tab)
-  (advice-add
-   'view-buffer :before
-   #'partial-recall--before-view-buffer)
+  (add-hook 'tab-bar-tab-pre-close-functions #'partial-recall--on-close)
+  (add-hook 'tab-bar-tab-post-open-functions #'partial-recall--on-create)
 
+  ;; Handle focus changes.
   (add-hook 'minibuffer-setup-hook #'partial-recall--on-minibuffer-setup)
   (add-hook 'minibuffer-exit-hook #'partial-recall--on-minibuffer-exit)
   (add-hook 'after-make-frame-functions #'partial-recall--queue-tab-fix-up)
-  (add-hook 'kill-buffer-hook #'partial-recall--forget)
-  (add-hook 'tab-bar-tab-pre-close-functions #'partial-recall--on-close)
-  (add-hook 'tab-bar-tab-post-open-functions #'partial-recall--on-create)
   (add-hook 'delete-frame-functions #'partial-recall--on-frame-delete))
 
 (defun partial-recall-mode--teardown ()
@@ -1808,11 +1814,17 @@ is shown."
    'register-val-jump-to
    #'partial-recall--after-register-val-jump-to)
   (advice-remove
+   'view-buffer
+   #'partial-recall--before-view-buffer)
+  (remove-hook 'kill-buffer-hook #'partial-recall--forget)
+
+  (advice-remove
    'winner-undo
    #'partial-recall--after-winner)
   (advice-remove
    'winner-redo
    #'partial-recall--after-winner)
+
   (advice-remove
    'tab-bar-switch-to-tab
    #'partial-recall--after-tab-bar-switch)
@@ -1822,16 +1834,12 @@ is shown."
   (advice-remove
    'tab-bar-undo-close-tab
    #'partial-recall--after-undo-close-tab)
-  (advice-remove
-   'view-buffer
-   #'partial-recall--before-view-buffer)
+  (remove-hook 'tab-bar-tab-pre-close-functions #'partial-recall--on-close)
+  (remove-hook 'tab-bar-tab-post-open-functions #'partial-recall--on-create)
 
   (remove-hook 'minibuffer-setup-hook #'partial-recall--on-minibuffer-setup)
   (remove-hook 'minibuffer-exit-hook #'partial-recall--on-minibuffer-exit)
   (remove-hook 'after-make-frame-functions #'partial-recall--queue-tab-fix-up)
-  (remove-hook 'kill-buffer-hook #'partial-recall--forget)
-  (remove-hook 'tab-bar-tab-pre-close-functions #'partial-recall--on-close)
-  (remove-hook 'tab-bar-tab-post-open-functions #'partial-recall--on-create)
   (remove-hook 'delete-frame-functions #'partial-recall--on-frame-delete))
 
 ;;;; API
