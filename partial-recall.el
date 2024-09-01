@@ -1729,19 +1729,21 @@ is shown."
   (and-let* ((memory (partial-recall--reality))
              (ring (partial-recall-memory--moments memory))
              (orig-size (partial-recall-memory--orig-size memory))
-             (size (ring-size ring))
-             (face (if (partial-recall-memory--near-capacity-p memory (/ partial-recall-memory-size 2))
-                       'partial-recall-contrast
-                     'partial-recall-deemphasized))
-             (length (ring-length ring)))
+             (size (ring-size ring)))
 
     (if (> size orig-size)
-        `(:propertize "+"
-                      face partial-recall-emphasis
+
+        `(:propertize "+" face partial-recall-emphasis
                       help-echo ,(format "Memory has grown to +%d" (- size orig-size)))
-      `(:propertize ,(or (partial-recall-graph length size) "-")
-                    face ,face
-                    help-echo ,(format "Memory contains %d/%d moment(s)" length size)))))
+
+      (let ((face (if (partial-recall-memory--near-capacity-p memory (/ partial-recall-memory-size 2))
+                      'partial-recall-contrast
+                    'partial-recall-deemphasized))
+            (length (ring-length ring)))
+
+        `(:propertize ,(or (partial-recall-graph length size) "-")
+                      face ,face
+                      help-echo ,(format "Memory contains %d/%d moment(s)" length size))))))
 
 ;;;; Setup
 
