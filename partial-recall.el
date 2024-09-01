@@ -1541,8 +1541,8 @@ The messages are not logged in the message buffer."
 (defun partial-recall--complete-dream (prompt)
   "Complete dream buffer using PROMPT."
   (let* ((predicate (lambda (it) (and-let* ((buffer (cdr it))
-                                            ((partial-recall--buffer-mapped-p buffer))
-                                            ((not (partial-recall--buffer-in-memory-p buffer)))))))
+                                       ((partial-recall--buffer-mapped-p buffer))
+                                       ((not (partial-recall--buffer-in-memory-p buffer)))))))
          (current (current-buffer))
          (initial (unless (partial-recall--buffer-in-memory-p current)
                     (buffer-name current))))
@@ -1675,8 +1675,8 @@ Shows additional moment and memory info if
   (interactive)
 
   (let* ((map (make-sparse-keymap))
-         (rename (lambda (sym) (substring (symbol-name sym)
-                                          (1+ (length "partial-recall")))))
+         (rename (lambda (sym)
+                   (substring (symbol-name sym) (1+ (length "partial-recall")))))
          (bind (lambda (_event func)
                  (define-key-after map
                    (vector func)
