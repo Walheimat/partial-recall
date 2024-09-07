@@ -266,7 +266,8 @@
   :tags '(menu user-facing)
 
   (let ((real nil)
-        (sub nil))
+        (sub nil)
+        (partial-recall-menu-display-command 'display-buffer))
 
     (bydi (partial-recall-menu--display
            (:mock partial-recall-menu--id :return (list "tab" "frame" 'buffer real sub))
