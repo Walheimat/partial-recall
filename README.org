@@ -215,6 +215,8 @@ plasticity and hygiene).
   (partial-recall-hygiene-warn-on-full t) ;; Whether to warn about full memories (once).
   (partial-recall-x-consult-narrow-key ?u) ;; The key used to narrow using `consult-buffer'.
 
+  (partial-recall-menu-display-command 'pop-to-buffer) ;; Command used to display the menu buffer.
+
   :config
   (partial-recall-mode)
   (partial-recall-concentration-mode)

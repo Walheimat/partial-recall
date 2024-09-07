@@ -15,6 +15,13 @@
 (require 'subr-x)
 (require 'partial-recall)
 
+;;;; Customization:
+
+(defcustom partial-recall-menu-display-command 'pop-to-buffer
+  "The command used to display the buffer."
+  :type 'function
+  :group 'partial-recall)
+
 (defvar partial-recall-menu--buffer "*Partial Recall Menu*"
   "Name of the menu buffer.")
 (defvar partial-recall-menu--empty " "
@@ -441,7 +448,7 @@ If INCLUDE-SUBCONSCIOUS is t, the list will include those
 buffers."
   (interactive "P")
 
-  (display-buffer (partial-recall-menu--list include-subconscious)))
+  (funcall partial-recall-menu-display-command (partial-recall-menu--list include-subconscious)))
 
 (provide 'partial-recall-menu)
 
