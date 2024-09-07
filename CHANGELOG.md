@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.13.0](https://github.com/Walheimat/partial-recall/compare/v0.12.0...v0.13.0) (2024-09-07)
+
+### Features
+
+* **remember:** remember multiple buffers ([29c001b](https://github.com/Walheimat/partial-recall/commit/29c001bdca3f4213bd5db2df85291b4ad67bc4b7))
+
+### Bug Fixes
+
+* **banish:** bind to z in command map ([5898e3d](https://github.com/Walheimat/partial-recall/commit/5898e3d31507d8a376f13f00af55387990d021a0))
+* **x,consult:** remove autoload cookie ([483f20f](https://github.com/Walheimat/partial-recall/commit/483f20f712585d62f025b83a58873884480fe096))
+
+### Changes
+
+* **consult:** allow customizing narrow key ([5f58ffd](https://github.com/Walheimat/partial-recall/commit/5f58ffd5ba97ded385e833cb021ac4a9d5ea0134))
+* **logging:** don't log to message buffer ([cd34819](https://github.com/Walheimat/partial-recall/commit/cd34819c3d0e318eccb6cfe21dbadda821b6b09f))
+* **logging:** log to buffer, command to pop to it ([1a90f7b](https://github.com/Walheimat/partial-recall/commit/1a90f7b4930365bf0e116380e71b3be26d20221c))
+* **menu:** use pop-to-buffer to display, make configurable ([3e87f04](https://github.com/Walheimat/partial-recall/commit/3e87f0456f1ac086d8056dbd6427f2e7a2f03b01))
+
 ## [0.12.0](https://github.com/Walheimat/partial-recall/compare/v0.11.0...v0.12.0) (2024-08-07)
 
 ### Features
