@@ -1209,6 +1209,8 @@ cleaned up."
         (let* ((index (ring-member ring moment))
                (removed (ring-remove ring index)))
 
+          (partial-recall-debug "Flushing %s" removed)
+
           (partial-recall--suppress removed memory))
 
         (partial-recall--clean-up-buffer (partial-recall-moment--buffer moment))))
