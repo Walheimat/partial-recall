@@ -17,7 +17,7 @@
 
 ;;; Customization
 
-(defcustom partial-recall-concentration-cycle 60
+(defcustom partial-recall-concentration-cycle 10
   "Number of seconds a cycle of concentration takes.
 
 If a buffer remains visible from when the cycle began until it

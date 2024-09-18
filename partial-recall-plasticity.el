@@ -21,7 +21,7 @@
 
 ;;;; Customization
 
-(defcustom partial-recall-plasticity-implant-threshold 20
+(defcustom partial-recall-plasticity-implant-threshold 100
   "The amount of focus before auto-implanting a moment.
 
 If this is nil, never auto-implant."

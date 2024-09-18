@@ -156,7 +156,7 @@ considered memorable. See `partial-recall--flush'."
   :type '(repeat function)
   :group 'partial-recall)
 
-(defcustom partial-recall-intensities '((swap . 1) (reinsert . 2) (concentrate . 2))
+(defcustom partial-recall-intensities '((swap . 5) (reinsert . 20) (concentrate . 5))
   "The amount of focus gained from actions.
 
 See `partial-recall-moment--intensify' and its callers."

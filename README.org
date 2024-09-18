@@ -204,11 +204,11 @@ plasticity and hygiene).
                                       partial-recall--not-to-be-viewed-p
                                       partial-recall--not-banished-p))
   (partial-recall-memorable-traits '(partial-recall--gracedp)) ;; Don't flush recent moments.
-  (partial-recall-intensities '((swap . 1) (reinsert . 2) (concentrate . 2))) ;; Focus gained from actions.
+  (partial-recall-intensities '((swap . 5) (reinsert . 20) (concentrate . 5))) ;; Focus gained from actions.
 
-  (partial-recall-concentration-cycle 60) ;; Amount of seconds between checking whether a buffer remained visible.
+  (partial-recall-concentration-cycle 10) ;; Amount of seconds between checking whether a buffer remained visible.
 
-  (partial-recall-plasticity-implant-threshold 20) ;; Amount of focus needed before auto-implanting.
+  (partial-recall-plasticity-implant-threshold 100) ;; Amount of focus needed before auto-implanting.
 
   (partial-recall-hygiene-idle-delay 5) ;; Idle time (in seconds) when hygiene routine should run.
   (partial-recall-hygiene-flush t) ;; Whether to flush memories regularly.
