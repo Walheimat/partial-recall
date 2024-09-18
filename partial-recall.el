@@ -103,7 +103,7 @@ moment's focus."
   :type '(repeat symbol)
   :group 'partial-recall)
 
-(defcustom partial-recall-log nil
+(defcustom partial-recall-log t
   "Whether to log.
 
 This is either nil meaning no logging, or 1 for info logging and
@@ -112,6 +112,11 @@ This is either nil meaning no logging, or 1 for info logging and
                  (symbol :tag "Default")
                  (const :tag "Info" 1)
                  (const :tag "Debug" 0))
+  :group 'partial-recall)
+
+(defcustom partial-recall-log-echo nil
+  "Whether to also log messages in the echo area."
+  :type 'boolean
   :group 'partial-recall)
 
 (defcustom partial-recall-log-prefix "PR"
@@ -1497,14 +1502,19 @@ Message will be formatted with ARGS."
 (defun partial-recall-log (fmt &rest args)
   "Use ARGS to format FMT if not silenced.
 
-The messages are not logged in the message buffer."
+If logging is enabled, they are written to the
+`partial-recall-log--buffer-name' buffer. If `partial-recall-log-echo'
+they are also echoed using `message'."
   (when partial-recall-log
-    (let* ((message-log-max nil)
-           (prefixed (partial-recall-log--prefix-fmt-string fmt))
-           (args (mapcar #'partial-recall-repr args)))
+    (let ((args (mapcar #'partial-recall-repr args)))
 
       (apply 'partial-recall-log--write-to-buffer fmt args)
-      (apply 'message prefixed args))))
+
+      (when partial-recall-log-echo
+        (let* ((message-log-max nil)
+               (prefixed (partial-recall-log--prefix-fmt-string fmt)))
+
+          (apply 'message prefixed args))))))
 
 (defun partial-recall-log--prefix-fmt-string (format-string)
   "Prefix FORMAT-STRING."

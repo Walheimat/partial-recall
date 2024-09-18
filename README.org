@@ -195,7 +195,8 @@ plasticity and hygiene).
   (partial-recall-auto-switch t) ;; Whether to switch to a moment's tab automatically.
   (partial-recall-lighter-prefix "pr") ;; What you will in the mode-line.
   (partial-recall-record-triggers '(consult-buffer)) ;; Commands that might obscure buffers before they are handled.
-  (partial-recall-log nil) ;; Whether to log actions. Set to 1 for info logs and 0 for debug logs.
+  (partial-recall-log t) ;; Whether to log actions. Set to t or 1 for info logs and 0 for debug logs.
+  (partial-recall-log-echo nil) ;; Whether to also log to echo area.
   (partial-recall-log-prefix "PR") ;; Message prefix for log messages.
   (partial-recall-filter '("COMMIT_EDITMSG")) ;; Regexes of names that should be ignored.
   (partial-recall-meaningful-traits '(buffer-file-name ;; List of functions that determine eligible buffers.

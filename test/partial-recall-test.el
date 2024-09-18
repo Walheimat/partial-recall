@@ -937,9 +937,15 @@
     (partial-recall-warn "Testing")
     (bydi-was-called-with display-warning (list 'partial-recall "Testing" :warning))))
 
+(defun kill-log-buffer ()
+  "Kill the log buffer if it exists."
+  (when-let ((buffer (get-buffer partial-recall-log--buffer-name)))
+    (kill-buffer buffer)))
+
 (ert-deftest pr--log ()
   (let ((partial-recall-log nil)
-        (partial-recall-log-prefix nil))
+        (partial-recall-log-prefix nil)
+        (partial-recall-log-echo t))
 
     (should-not (partial-recall-log "test: %s %s" "one" "two"))
 
@@ -959,7 +965,9 @@
 
           (partial-recall-debug "test: %s" "four")
 
-          (should (string= messages "test: one two\ntest: four\n")))))))
+          (should (string= messages "test: one two\ntest: four\n")))))
+
+    (kill-log-buffer)))
 
 (ert-deftest pr--log--uses-repr ()
   :tags '(needs-history)
@@ -972,14 +980,15 @@
       (let* ((buffer (get-buffer-create "test-repr"))
              (moment (partial-recall-moment--create buffer))
              (partial-recall-log 0)
-             (partial-recall-log-prefix "Test"))
+             (partial-recall-log-prefix "Test")
+             (partial-recall-log-echo t))
 
         (shut-up
           (ert-with-message-capture messages
             (partial-recall-debug "The moment %s was %s" moment "found")
-            (should (string= "Test :: The moment #<moment test-repr (now)> was found\n" messages))))
+            (should (string= "Test :: The moment #<moment test-repr (now)> was found\n" messages)))))))
 
-        (kill-buffer buffer)))))
+  (kill-log-buffer))
 
 (ert-deftest pr--log--writes-to-buffer ()
   (bydi ((:mock format-time-string :return "[time] "))
@@ -997,7 +1006,9 @@
 
       (with-current-buffer (get-buffer partial-recall-log--buffer-name)
         (should (string= (buffer-string)
-                         "[time] This is the first message\n[time] This will be the second message\n"))))))
+                         "[time] This is the first message\n[time] This will be the second message\n")))))
+
+  (kill-log-buffer))
 
 (ert-deftest pr--repr ()
   (bydi-with-mock ((:mock format-time-string :return "now")
@@ -1012,7 +1023,9 @@
       (should (string= "#<moment test-print (now)>" (partial-recall-repr moment)))
       (should (eq 'hello (partial-recall-repr 'hello)))
 
-      (kill-buffer buffer))))
+      (kill-buffer buffer))
+
+    (kill-log-buffer)))
 
 ;;;; Completion
 
