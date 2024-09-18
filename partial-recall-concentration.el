@@ -91,7 +91,6 @@ current moment is focused."
                  (or (eq moment focus)
                      (partial-recall--buffer-visible-p
                       (partial-recall-moment--buffer focus))))
-
       (signal 'partial-recall-concentration-changed moment))
 
     (partial-recall-debug "Concentration held on `%s'" focus)))
@@ -129,7 +128,7 @@ well."
   "Re-concentrate after switching to NAME.
 
 This cancels and re-runs the timer."
-  (partial-recall-debug "Shifting concentration towards `%s'" name)
+  (partial-recall-log "Shifting concentration towards `%s'" name)
 
   (partial-recall-concentration--start))
 
@@ -157,8 +156,7 @@ to `run-with-timer'. They default to
 
 (defun partial-recall-concentration--setup ()
   "Setup `partial-recall-concentration-mode'."
-  (when (partial-recall--reality)
-    (partial-recall-concentration--concentrate))
+  (partial-recall-concentration--concentrate)
 
   (add-hook
    'partial-recall-after-create-hook
