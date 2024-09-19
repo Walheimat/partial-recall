@@ -70,7 +70,7 @@ current moment is focused."
          (partial-recall-debug "Concentration on `%s' broke" lost))
 
        (partial-recall-concentration--renew)
-       (partial-recall-debug "Concentration on `%s' begins" moment)
+       (partial-recall-log "Concentration on `%s' begins" moment)
 
        (setq partial-recall--last-focus moment
              partial-recall--faint-focus nil)))))
