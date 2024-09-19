@@ -25,14 +25,14 @@
 
   (let ((partial-recall-hygiene-warn-on-full nil))
 
-    (bydi (partial-recall-log
+    (bydi (partial-recall-debug
            (:mock partial-recall-memories :return '(a b c))
            (:mock partial-recall--flush :return 1))
 
       (partial-recall-hygiene--on-idle)
 
       (bydi-was-called-n-times partial-recall--flush 3)
-      (bydi-was-called-n-times partial-recall-log 2))))
+      (bydi-was-called-n-times partial-recall-debug 2))))
 
 (ert-deftest pr-hygiene--on-idle--nags ()
   :tags '(hygiene)
