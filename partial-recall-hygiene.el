@@ -76,7 +76,7 @@ This flushes moments from all memories.
 
 See `partial-recall--flush' and `partial-recall-memorable-traits' for
 the heuristics on which moments get flushed."
-  (partial-recall-log "Running hygiene routine")
+  (partial-recall-debug "Running hygiene routine")
 
   (let ((sum 0)
         (full nil))
@@ -96,7 +96,7 @@ the heuristics on which moments get flushed."
         (setq full (append full (list (partial-recall-memory--unique memory))))))
 
     (when (> sum 0)
-      (partial-recall-log "Flushed %d moments in total" sum))
+      (partial-recall-debug "Flushed %d moments in total" sum))
 
     (when full
       (setq partial-recall-hygiene--warned full)
