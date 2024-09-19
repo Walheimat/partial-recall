@@ -1467,7 +1467,7 @@ Selects a symbol based on VAL's relation to MAX."
 
 ;;;; Messaging
 
-(defvar partial-recall-log--buffer-name "*partial-recall*"
+(defvar partial-recall-log--buffer-name "*partial-recall-log*"
   "The buffer that holds all written logs.")
 
 (defun partial-recall-log--write-to-buffer (fmt &rest args)
