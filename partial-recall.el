@@ -1645,11 +1645,11 @@ If EXCLUDE-CURRENT is t, don't include the current buffer."
 (defvar partial-recall-lighter '(" "
                                  (:eval partial-recall-lighter--title)
                                  (partial-recall-lighter-show-info
-                                  ( "["
-                                    (:eval (partial-recall-lighter--moment))
-                                    "/"
-                                    (:eval (partial-recall-lighter--memory))
-                                    "]")))
+                                  ("["
+                                   (:eval (partial-recall-lighter--moment))
+                                   "/"
+                                   (:eval (partial-recall-lighter--memory))
+                                   "]")))
   "The lighter as a list of mode line constructs.
 
 Shows additional moment and memory info if
@@ -1683,7 +1683,7 @@ Shows additional moment and memory info if
     (partial-recall-make-permanent (current-buffer) (partial-recall-moment--permanence moment))))
 
 (defun partial-recall-lighter--menu ()
-  "Show a menu.."
+  "Show a menu."
   (interactive)
 
   (let* ((map (make-sparse-keymap))
