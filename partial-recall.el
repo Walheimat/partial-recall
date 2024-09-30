@@ -1485,7 +1485,8 @@ Selects a symbol based on VAL's relation to MAX."
       (goto-char (point-max))
       (insert time-stamp)
       (insert (apply #'format fmt args))
-      (insert "\n"))))
+      (insert "\n")
+      (set-buffer-modified-p nil))))
 
 (defun partial-recall-warn (message &rest args)
   "Warn about MESSAGE.
