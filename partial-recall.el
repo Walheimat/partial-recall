@@ -1481,7 +1481,7 @@ Selects a symbol based on VAL's relation to MAX."
     (unless buffer
       (setq buffer (get-buffer-create partial-recall-log--buffer-name))
       (with-current-buffer buffer
-        (view-mode)))
+        (read-only-mode)))
 
     (with-current-buffer buffer
       (goto-char (point-max))
@@ -2070,7 +2070,7 @@ Passes ARG to the underlying function which will be passed to the
     (unless buffer
       (user-error "You need to set `partial-recall-log' first"))
 
-    (pop-to-buffer (get-buffer partial-recall-log--buffer-name))))
+    (view-buffer-other-window (get-buffer partial-recall-log--buffer-name))))
 
 (provide 'partial-recall)
 

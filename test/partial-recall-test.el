@@ -1427,12 +1427,12 @@
 
 (ert-deftest pr-pop-to-logs ()
   (let ((partial-recall-log 0))
-    (bydi (pop-to-buffer)
+    (bydi (view-buffer-other-window)
       (shut-up
         (partial-recall-log "Make sure it exists"))
 
       (partial-recall-pop-to-logs)
-      (bydi-was-called pop-to-buffer)
+      (bydi-was-called view-buffer-other-window)
 
       (kill-buffer partial-recall-log--buffer-name)
 
