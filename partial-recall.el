@@ -1285,6 +1285,8 @@ If UNSCHEDULED is t don't account for reclaiming."
                 ('t t)
                 (_ nil))))
 
+    (partial-recall-debug "Automatically switching to `%s' because of `%s'" owner moment)
+
     (with-current-buffer buffer
       (tab-bar-switch-to-tab (partial-recall--find-tab-name-from-memory owner)))))
 
