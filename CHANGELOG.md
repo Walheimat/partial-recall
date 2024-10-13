@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.13.1](https://github.com/Walheimat/partial-recall/compare/v0.13.0...v0.13.1) (2024-10-13)
+
+### Bug Fixes
+
+* **pop-to-logs:** set read-only, use view-buffer-other-window ([dc293e3](https://github.com/Walheimat/partial-recall/commit/dc293e349396229e002c909a8cb65d5edd2b557d))
+
+### Changes
+
+* **concentration,implanting:** rework focusing ([2bff462](https://github.com/Walheimat/partial-recall/commit/2bff4624ba2e4f925dc2638667b9f821dc41846a))
+* **logging:** call set-buffer-modified-p after insert ([bf09a58](https://github.com/Walheimat/partial-recall/commit/bf09a58ded93353cf3f23a25e8aa5211fef80803))
+* **logging:** disable echoing logs by default, log by default ([bc93408](https://github.com/Walheimat/partial-recall/commit/bc9340862114f19f605b2df47e924993b9077017))
+* **logging:** include "log" in buffer name ([c46ecc8](https://github.com/Walheimat/partial-recall/commit/c46ecc83e318fac58d8f17dcbf6a1cb70158ab17))
+
 ## [0.13.0](https://github.com/Walheimat/partial-recall/compare/v0.12.0...v0.13.0) (2024-09-07)
 
 ### Features
