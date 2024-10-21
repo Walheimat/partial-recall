@@ -33,7 +33,7 @@
           (partial-recall-intensities '((reinsert . 1))))
       (with-tab-history (:pre t)
 
-        (bydi ((:spy partial-recall-plasticity--maybe-implant-moment)
+        (bydi ((:spy partial-recall-plasticity--maybe-implant-or-excise)
                (:spy partial-recall--set-permanence)
                partial-recall-moment--reset-count)
 
@@ -41,11 +41,19 @@
           (partial-recall--reinforce (current-buffer))
           (partial-recall--reinforce (current-buffer))
 
-          (bydi-was-called-n-times partial-recall-plasticity--maybe-implant-moment 2)
+          (bydi-was-called-n-times partial-recall-plasticity--maybe-implant-or-excise 2)
           (bydi-was-called-n-times partial-recall--set-permanence 1)
 
-          (let ((moment (partial-recall-current-moment)))
-            (should (partial-recall-moment--permanence moment)))
+          ;; Test moving the moment below the threshold again.
+          (let ((moment (partial-recall-current-moment))
+                (partial-recall-intensities '((reinsert . -1))))
+            (should (partial-recall-moment--permanence moment))
+
+            (partial-recall--reinforce (current-buffer))
+
+            (should-not (partial-recall-moment--permanence moment)))
+
+          (partial-recall--reinforce (current-buffer))
 
           (partial-recall--set-permanence (current-buffer) t)
 

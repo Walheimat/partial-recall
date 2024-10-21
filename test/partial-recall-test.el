@@ -408,12 +408,16 @@
 
   (with-memory-plasticity-enabled
     (let* ((partial-recall-memory-size 1)
+           (partial-recall-intensities '((swap . -1)))
            (a (partial-recall-memory--create "a"))
            (b (partial-recall-memory--create "b"))
            (buffer (generate-new-buffer " *temp*" t))
            (moment (partial-recall-moment--create buffer)))
 
       (ring-insert (partial-recall-memory--moments a) moment)
+
+      (setf (partial-recall-moment--focus moment) 10)
+      (setf (partial-recall-moment--permanence moment) t)
 
       (bydi ((:mock partial-recall--find-tab-name-from-memory :return "tab")
              (:mock buffer-name :return "buffer")
@@ -425,6 +429,9 @@
         (partial-recall--swap a b moment)
 
         (bydi-was-called partial-recall-moment--update-timestamp)
+
+        ;; Check that swapping can also reduce focus of permanent moments.
+        (should (eq 9 (partial-recall-moment--focus moment)))
 
         (let ((ring (partial-recall-memory--moments b)))
 
@@ -1162,7 +1169,7 @@
       (let ((partial-recall-plasticity-implant-threshold 20)
             (partial-recall-intensities '((test . 1))))
 
-        (partial-recall-moment--intensify (partial-recall-current-moment) 'test)
+        (partial-recall-moment--adjust (partial-recall-current-moment) 'test)
 
         (should (equal
                  '(:propertize "▁"

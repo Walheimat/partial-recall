@@ -79,17 +79,26 @@ moment."
 
 ;;;; Moment
 
-(defun partial-recall-plasticity--maybe-implant-moment (moment count)
+(defun partial-recall-plasticity--maybe-implant-or-excise (moment count)
   "Check if MOMENT should be implanted automatically.
 
 This is true if COUNT exceeds
-`partial-recall-platicity-implant-threshold'."
-  (when (and (not (partial-recall-moment--permanence moment))
-             (>= count partial-recall-plasticity-implant-threshold))
+`partial-recall-platicity-implant-threshold'.
 
+If MOMENT already is implanted but no longer has the necessary focus,
+this will excise it without resetting the count."
+  (cond
+   ((and (not (partial-recall-moment--permanence moment))
+         (>= count partial-recall-plasticity-implant-threshold))
     (partial-recall-debug "Focus on `%s' raised to auto-implant threshold" moment)
 
-    (partial-recall--set-permanence (partial-recall-moment--buffer moment))))
+    (partial-recall--set-permanence (partial-recall-moment--buffer moment)))
+
+   ((and (partial-recall-moment--permanence moment)
+         (< count partial-recall-plasticity-implant-threshold))
+    (partial-recall-debug "Focus on `%s' lowered below auto-implant threshold" moment)
+
+    (partial-recall--set-permanence (partial-recall-moment--buffer moment) t t))))
 
 (defun partial-recall-plasticity--maybe-reinsert-implanted (memory)
   "Maybe reinforce oldest moments in MEMORY.
@@ -171,7 +180,7 @@ If the moment is IMPLANTED, signal that."
 
         (add-hook
          'partial-recall-after-focus-change-hook
-         #'partial-recall-plasticity--maybe-implant-moment)
+         #'partial-recall-plasticity--maybe-implant-or-excise)
 
         (advice-add
          #'partial-recall-lighter--moment-in-memory :before-until
@@ -192,7 +201,7 @@ If the moment is IMPLANTED, signal that."
 
     (remove-hook
      'partial-recall-after-focus-change-hook
-     #'partial-recall-plasticity--maybe-implant-moment)
+     #'partial-recall-plasticity--maybe-implant-or-excise)
 
     (advice-remove
      #'partial-recall-lighter--moment-in-memory

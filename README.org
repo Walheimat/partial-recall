@@ -110,6 +110,10 @@ The reverse of implanting is "excising" which
 =partial-recall-make-permanent= will do if called with =C-u=.
 Permanent buffers can still be forgotten manually.
 
+Actions like swapping a moment from one memory to another even reduce
+focus. In =partial-recal-plasticity-of-moment-mode= such moments may
+also lose previously gained permanence.
+
 *** Concentration
 
 Every =partial-recall-concentration-cycle= seconds =partial-recall=
@@ -205,7 +209,7 @@ plasticity and hygiene).
                                       partial-recall--not-to-be-viewed-p
                                       partial-recall--not-banished-p))
   (partial-recall-memorable-traits '(partial-recall--gracedp)) ;; Don't flush recent moments.
-  (partial-recall-intensities '((swap . 5) (reinsert . 20) (concentrate . 4))) ;; Focus gained from actions.
+  (partial-recall-intensities '((swap . -10) (reinsert . 20) (concentrate . 4))) ;; Focus gained (or lost) from actions.
 
   (partial-recall-concentration-cycle 10) ;; Amount of seconds between checking whether a buffer remained visible.
 

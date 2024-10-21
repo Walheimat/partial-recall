@@ -161,10 +161,10 @@ considered memorable. See `partial-recall--flush'."
   :type '(repeat function)
   :group 'partial-recall)
 
-(defcustom partial-recall-intensities '((swap . 5) (reinsert . 20) (concentrate . 4))
-  "The amount of focus gained from actions.
+(defcustom partial-recall-intensities '((swap . -10) (reinsert . 20) (concentrate . 4))
+  "The amount of focus gained (or lost) from actions.
 
-See `partial-recall-moment--intensify' and its callers."
+See `partial-recall-moment--adjust' and its callers."
   :type '(alist :key-type symbol :value-type integer)
   :group 'partial-recall)
 
@@ -564,14 +564,15 @@ threshold."
 
   moment)
 
-(defun partial-recall-moment--increase-focus (moment context)
-  "Increment the focus for MOMENT using CONTEXT.
+(defun partial-recall-moment--adjust-focus (moment context)
+  "Adjust the focus for MOMENT using CONTEXT.
 
 Permanent moments do not gain additional focus."
-  (and-let* (((not (partial-recall-moment--permanence moment)))
-             (amount (or (alist-get context partial-recall-intensities) 0))
+  (and-let* ((amount (or (alist-get context partial-recall-intensities) 0))
+             ((or (not (partial-recall-moment--permanence moment))
+                  (< amount 0)))
              (count (partial-recall-moment--focus moment))
-             (updated-count (+ count amount)))
+             (updated-count (max 0 (+ count amount))))
 
     (setf (partial-recall-moment--focus moment) updated-count)
 
@@ -579,14 +580,14 @@ Permanent moments do not gain additional focus."
 
     moment))
 
-(defun partial-recall-moment--intensify (moment &optional context)
+(defun partial-recall-moment--adjust (moment &optional context)
   "Intensify MOMENT.
 
 This will update its timestamp and increment its focus.
 
 If CONTEXT has a value in `partial-recall-intensities', increase
 by that amount."
-  (partial-recall-moment--increase-focus moment context)
+  (partial-recall-moment--adjust-focus moment context)
 
   (partial-recall-moment--update-timestamp moment))
 
@@ -967,7 +968,7 @@ Optionally, give a REASON why moment was re-inserted."
 
     (partial-recall-debug "Re-inserting `%s' in `%s' (%s)" moment memory reason)
 
-    (partial-recall-moment--intensify moment 'reinsert)
+    (partial-recall-moment--adjust moment 'reinsert)
 
     (ring-remove+insert+extend ring moment t)))
 
@@ -1082,14 +1083,16 @@ current reality or if BUFFER doesn't belong to MEMORY."
       (partial-recall--swap reality memory moment)
       (partial-recall--clean-up-buffer buffer))))
 
-(defun partial-recall--set-permanence (&optional buffer excise)
+(defun partial-recall--set-permanence (&optional buffer excise keep-focus)
   "Implant BUFFER.
 
 This makes the buffer's owning moment permanent. A permanent
 moment can not be reclaimed and will not be automatically
 forgotten.
 
-If EXCISE is t, remove permanence instead."
+If EXCISE is t, remove permanence instead.
+
+If KEEP-FOCUS is t, do not reset the focus."
   (when-let* ((buffer (or buffer (current-buffer)))
               (moment (partial-recall--find-owning-moment buffer))
               (verb (if excise "Removing permanence from" "Adding permanence to")))
@@ -1100,7 +1103,7 @@ If EXCISE is t, remove permanence instead."
 
       (partial-recall-moment--set-permanence moment (not excise))
 
-      (when excise
+      (when (and excise (not keep-focus))
         (partial-recall-moment--reset-count moment)))))
 
 ;;;;; Subconscious
@@ -1153,8 +1156,7 @@ buffer."
 (defun partial-recall--swap (a b moment)
   "Swap MOMENT from memory A to B.
 
-Both memories will be probed. Memory A after the moment was
-removed, memory B before it is inserted."
+Both memories will be probed after the moment was move was completed."
   (and-let* ((a-ring (partial-recall-memory--moments a))
              (b-ring (partial-recall-memory--moments b))
              (index (ring-member a-ring moment))
@@ -1165,7 +1167,7 @@ removed, memory B before it is inserted."
     (partial-recall--probe-memory a)
     (partial-recall--probe-memory b)
 
-    (partial-recall-moment--intensify moment 'swap)
+    (partial-recall-moment--adjust moment 'swap)
 
     (partial-recall--ring-insert b-ring removed)))
 

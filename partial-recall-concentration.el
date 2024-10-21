@@ -59,7 +59,7 @@ current moment is focused."
                 partial-recall--faint-focus nil)
           (partial-recall-concentration--renew))
 
-        (partial-recall-moment--intensify partial-recall--last-focus 'concentrate))
+        (partial-recall-moment--adjust partial-recall--last-focus 'concentrate))
 
     ((partial-recall-concentration-not-ready partial-recall-concentration-not-owned)
      (partial-recall-concentration--defer))

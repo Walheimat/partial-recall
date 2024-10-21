@@ -56,7 +56,7 @@
            (another (generate-new-buffer " *temp*" t))
            (another-moment (partial-recall-moment--create another)))
 
-      (bydi (partial-recall-moment--intensify
+      (bydi (partial-recall-moment--adjust
              partial-recall-concentration--renew
              (:mock partial-recall--find-owning-moment :return another)
              (:always partial-recall--buffer-visible-p)
@@ -64,7 +64,7 @@
 
         (partial-recall-concentration--concentrate)
 
-        (bydi-was-called-with partial-recall-moment--intensify `(,partial-recall--last-focus ...))
+        (bydi-was-called-with partial-recall-moment--adjust `(,partial-recall--last-focus ...))
 
         (kill-buffer another)
 
@@ -76,7 +76,7 @@
         (partial-recall-concentration--concentrate)
 
         (bydi-was-called partial-recall-concentration--renew)
-        (bydi-was-called partial-recall-moment--intensify)
+        (bydi-was-called partial-recall-moment--adjust)
         (bydi-was-set partial-recall--faint-focus)))))
 
 (ert-deftest pr--shift-or-defer-concentration ()
