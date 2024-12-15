@@ -21,10 +21,8 @@
   "Number of seconds a cycle of concentration takes.
 
 If a buffer remains visible from when the cycle began until it
-ends, its focus is increased. Can be set to nil to disable
-concentration."
-  :type '(choice (integer :tag "Number of seconds")
-                 (const :tag "Don't use" nil))
+ends, its focus is increased."
+  :type '(integer :tag "Number of seconds")
   :group 'partial-recall)
 
 ;;; Variables
